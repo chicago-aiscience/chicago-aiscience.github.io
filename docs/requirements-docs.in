@@ -1,0 +1,10 @@
+sphinx
+myst-parser
+furo
+sphinxcontrib-mermaid
+sphinx-design
+
+ipykernel
+nbsphinx
+
+research @ file://./python/research

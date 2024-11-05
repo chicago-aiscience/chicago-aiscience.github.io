@@ -1,0 +1,37 @@
+name: build, release, deploy
+run-name: deployment by @${{ github.actor }}
+on:
+    push:
+        branches:
+            - main
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: astral-sh/setup-uv@v3
+          - name: build site
+            run: |
+              uv venv .venv
+              uv pip sync docs/requirements-docs.txt
+              uv run sphinx-build docs/source/ docs/_build/
+          - name: upload site
+            id: upload
+            uses: actions/upload-pages-artifact@v3
+            with:
+                path: ./docs/_build/
+                name: github-pages
+                retention-days: 1
+    deploy:
+        runs-on: ubuntu-latest
+        needs: build
+        permissions:
+            pages: write
+            id-token: write
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+          - name: deploy site
+            id: deployment
+            uses: actions/deploy-pages@v4

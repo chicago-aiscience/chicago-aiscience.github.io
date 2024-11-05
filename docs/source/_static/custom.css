@@ -1,0 +1,19 @@
+/* body {
+    font-size: 14px;
+} */
+
+/* :root {
+} */
+
+.content {
+    width: 100%;
+    max-width: 50em;
+}
+
+.sidebar-drawer {
+    width: auto;
+}
+
+.toc-drawer {
+    padding-left: 1rem;
+}

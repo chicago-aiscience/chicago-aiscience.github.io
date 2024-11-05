@@ -1,0 +1,29 @@
+
+.notes
+.env*
+!.env.shared
+.DS_Store
+notebook.ipynb
+
+# under construction
+docs/source/dev
+typescript/messyscrape/README.md
+
+# artifacts
+coverage/
+docs/_build/
+dist/
+
+# cache
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# python
+.venv/
+__pycache__/
+*.egg-info/
+
+# vscode
+.vscode/settings.json
+.vscode/workspace.code-snippets

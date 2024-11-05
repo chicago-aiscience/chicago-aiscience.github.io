@@ -1,0 +1,4 @@
+types-docutils
+myst-parser
+pytest
+-e ./python/research

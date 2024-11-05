@@ -1,0 +1,6 @@
+{
+    "recommendations": [
+        "charliermarsh.ruff",
+        "denoland.vscode-deno",
+    ]
+}

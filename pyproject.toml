@@ -1,0 +1,23 @@
+[project]
+name = "ai-sci-docs"
+version = "0.1.0"
+description = "docs for the Schmidt fellows"
+readme = "README.md"
+requires-python = ">=3.12"
+
+
+[tool.mypy]
+strict = true
+files = ["docs", "python"]
+
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I"]
+pydocstyle.convention = "numpy"
+
+
+[tool.pytest]
+ini_options.testpaths = ["tests"]

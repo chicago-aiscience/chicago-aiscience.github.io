@@ -1,0 +1,29 @@
+{
+    "tasks": {
+        "start:messyscrape": "deno run --config ./typescript/messyscrape/deno.jsonc typescript/messyscrape/main.ts",
+        "test:messyscrape": "deno test --config ./ts/messyscrape/deno.jsonc --allow-read typescript/messyscrape/ --coverage",
+        "typecheck:messyscrape": "deno check --config typescript/messyscrape/deno.jsonc typescript/messyscrape/",
+        "test:research-browser": "deno test --config typescript/research-browser/deno.jsonc typescript/research-browser/ --coverage --trace-leaks",
+        "typecheck:research-browser": "deno check --config typescript/research-browser/deno.jsonc typescript/research-browser/",
+        "build:research-browser": "deno run --allow-read --allow-write --allow-env --allow-net typescript/research-browser/build.ts"
+    },
+    "fmt": {
+        "include": ["typescript"],
+        "lineWidth": 100,
+        "semiColons": true,
+        "indentWidth": 4,
+        "singleQuote": true
+    },
+    "imports": {
+        "@std/assert": "jsr:@std/assert@^1.0.6",
+        "@testing-library/dom": "npm:@testing-library/dom@^10.4.0",
+        "@testing-library/react": "npm:@testing-library/react@^16.0.1",
+        "@types/react": "npm:@types/react@^18.3.12",
+        "happy-dom": "npm:happy-dom@^15.7.4",
+        "react": "https://esm.sh/react@18.3.1",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client/index.js"
+    },
+    "compilerOptions": {
+        "lib": ["dom"]
+    }
+}

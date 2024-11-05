@@ -1,0 +1,23 @@
+name: build develop
+run-name: dev build by @${{ github.actor }}
+on:
+    push:
+        branches:
+            - develop
+jobs:
+    build-dev-site:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: astral-sh/setup-uv@v3
+          - name: build
+            run: |
+              uv venv .venv
+              uv pip sync docs/requirements-docs.txt
+              uv run sphinx-build docs/source/ docs/_build/
+          - name: archive
+            uses: actions/upload-artifact@v4
+            with:
+                path: ./docs/_build/
+                name: docs_ai_site_develop
+                retention-days: 1

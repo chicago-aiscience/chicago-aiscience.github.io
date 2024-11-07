@@ -1,5 +1,6 @@
 
 install:
+	deno install
 	deno task build --allow-scripts
 
 run:
@@ -8,6 +9,7 @@ run:
 clean:
 
 distclean:
+	rm -f deno.lock
 	rm -rf node_modules/
 	rm -rf dist/
 

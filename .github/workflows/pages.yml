@@ -17,6 +17,7 @@ jobs:
         run: deno install --allow-scripts
       - name: Build site
         run: deno task build
+      - run: touch ./dist/.nojekyll
       - name: Upload static files
         id: upload
         uses: actions/upload-pages-artifact@v3

@@ -15,20 +15,25 @@ jobs:
           deno-version: v2.x
       - name: Install dependencies
         run: deno install --allow-scripts
-      - name: Build project
+      - name: Build site
         run: deno task build
-      - name: Upload static files as artifact
-        id: deployment
+      - name: Upload static files
+        id: upload
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/
+          path: ./dist/
+          name: github-pages
+          retention-days: 1
 
   deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

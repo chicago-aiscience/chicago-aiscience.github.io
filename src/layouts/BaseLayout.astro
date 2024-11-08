@@ -1,0 +1,58 @@
+---
+import { siteConfig } from '../config'
+import Sidebar from '../components/Sidebar.astro'
+
+interface Props {
+    title?: string;
+    description?: string;
+}
+
+const {
+    title = siteConfig.title,
+    description = siteConfig.description,
+} = Astro.props
+---
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
+		<meta name="viewport" content="width=device-width" />
+        <meta name="description" content={description} />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+	</head>
+	<body>
+		<div class="layout">
+            <Sidebar />
+
+            <main>
+                <header>
+                    <h1>{title}</h1>
+                </header>
+                <slot />
+            </main>
+        </div>
+	</body>
+</html>
+
+<style is:global>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {}
+</style>
+
+<style>
+    .layout {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    main {
+        flex: 1;
+        padding: 2rem;
+    }
+</style>

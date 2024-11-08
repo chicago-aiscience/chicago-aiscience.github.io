@@ -1,0 +1,65 @@
+---
+import { siteConfig } from '../config'
+import { routes } from '../routes'
+
+interface Props {
+    nav?: typeof siteConfig.nav
+}
+
+const { nav = siteConfig.nav } = Astro.props
+---
+
+<aside>
+    <nav>
+        <div class="brand">
+            <a href="/">{siteConfig.brand}</a>
+        </div>
+
+        <ul>
+            {nav.map(item => (
+                <li><a href={routes[item.route]}>{item.title}</a></li>
+            ))}
+        </ul>
+    </nav>
+</aside>
+
+<style>
+    aside {
+        width: 150px;
+        min-height: 100vh;
+        background: #fafafa;
+        border-right: 1px solid #eaeaea;
+    }
+
+    nav {
+        position: sticky;
+        top: 0;
+        padding: 1rem;
+    }
+
+    .brand {
+        margin-bottom: 2rem;
+        font-weight: 600;
+        font-size: 1.15rem;
+        letter-spacing: -0.025em;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    li {
+        margin: 0.75rem 0;
+    }
+
+    a {
+        text-decoration: none;
+        color: #555;
+    }
+
+    a:hover {
+        color: #000;
+    }
+</style>

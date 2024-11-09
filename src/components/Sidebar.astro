@@ -25,7 +25,7 @@ const { nav = siteConfig.nav } = Astro.props
 
 <style>
     aside {
-        width: 150px;
+        width: 220px;
         min-height: 100vh;
         background: #fafafa;
         border-right: 1px solid #eaeaea;
@@ -34,14 +34,16 @@ const { nav = siteConfig.nav } = Astro.props
     nav {
         position: sticky;
         top: 0;
-        padding: 1rem;
+        padding: 2rem;
     }
 
     .brand {
         margin-bottom: 2rem;
         font-weight: 600;
-        font-size: 1.15rem;
+        font-size: 1.4rem;
         letter-spacing: -0.025em;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eaeaea;
     }
 
     ul {
@@ -49,17 +51,19 @@ const { nav = siteConfig.nav } = Astro.props
         padding: 0;
         margin: 0;
     }
-
-    li {
-        margin: 0.75rem 0;
-    }
+    li { margin: 0.75rem 0; }
 
     a {
         text-decoration: none;
         color: #555;
+        transition: all 0.1s;
+        display: block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 10px;
     }
-
     a:hover {
         color: #000;
+        background: #fff;
     }
+    .brand a { color: #000; }
 </style>

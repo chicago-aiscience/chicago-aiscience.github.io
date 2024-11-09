@@ -19,6 +19,7 @@ const {
 		<meta name="viewport" content="width=device-width" />
         <meta name="description" content={description} />
 		<meta name="generator" content={Astro.generator} />
+        <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 		<title>{title}</title>
 	</head>
 	<body>
@@ -36,13 +37,44 @@ const {
 </html>
 
 <style is:global>
-    * {
+    html {
         box-sizing: border-box;
+    }
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: inherit;
         margin: 0;
         padding: 0;
     }
 
-    body {}
+    body {
+        line-height: 1.4;
+        font-family: 'Roboto';
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        line-height: 1.2;
+        margin-bottom: 1rem;
+        font-weight: 500;
+    }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    p { margin-bottom: 1rem; }
+
+    img {
+        display: block;
+        max-width: 100%;
+    }
+
+    input,
+    button,
+    textarea,
+    select {
+        font: inherit;
+    }
 </style>
 
 <style>
@@ -53,6 +85,6 @@ const {
 
     main {
         flex: 1;
-        padding: 2rem;
+        padding: 2.5rem 3rem;
     }
 </style>

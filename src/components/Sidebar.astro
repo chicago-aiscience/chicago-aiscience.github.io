@@ -1,12 +1,11 @@
 ---
-import { siteConfig } from '../config'
-import { routes } from '../routes'
+import { siteConfig, pages } from '../config'
 
 interface Props {
-    nav?: typeof siteConfig.nav
+    nav?: typeof siteConfig.navItems
 }
 
-const { nav = siteConfig.nav } = Astro.props
+const { nav = siteConfig.navItems } = Astro.props
 ---
 
 <aside>
@@ -16,8 +15,8 @@ const { nav = siteConfig.nav } = Astro.props
         </div>
 
         <ul>
-            {nav.map(item => (
-                <li><a href={routes[item.route]}>{item.title}</a></li>
+            {nav.map(key => (
+                <li><a href={pages[key].path}>{pages[key].title}</a></li>
             ))}
         </ul>
     </nav>

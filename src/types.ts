@@ -1,16 +1,18 @@
-import type { routes } from './routes'
+export type PageConfig = {
+  title: string;
+  path: string;
+  description: string;
+};
 
-export type Route = keyof typeof routes
-export type RouteValue = (typeof routes)[Route]
+export type Pages = {
+  [K: string]: PageConfig;
+};
 
-export type NavItem = {
-    title: string;
-    route: Route;
-}
+export type SiteConfig<P extends Pages> = NonNullable<PageConfig> & {
+  path: "/";
+  brand: string;
+  navItems: Array<keyof P>;
+};
 
-export type SiteConfig = {
-    title: string;
-    brand: string;
-    description: string;
-    nav: NavItem[];
-}
+export const HOME = Symbol("home");
+export type HomeKey = typeof HOME;

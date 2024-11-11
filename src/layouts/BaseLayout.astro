@@ -1,26 +1,25 @@
 ---
-import { siteConfig } from '../config'
+import { pages, siteConfig } from '../config'
 import Sidebar from '../components/Sidebar.astro'
+import { HOME, type HomeKey } from '@/types';
 
 interface Props {
-    title?: string;
-    description?: string;
+    key: keyof typeof pages | HomeKey
 }
 
-const {
-    title = siteConfig.title,
-    description = siteConfig.description,
-} = Astro.props
+const { key } = Astro.props;
+
+const config = key === HOME ? siteConfig : pages[key];
 ---
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
 		<!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
 		<meta name="viewport" content="width=device-width" />
-        <meta name="description" content={description} />
+        <meta name="description" content={config.description} />
 		<meta name="generator" content={Astro.generator} />
         <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-		<title>{title}</title>
+		<title>{config.title}</title>
 	</head>
 	<body>
 		<div class="layout">
@@ -28,9 +27,11 @@ const {
 
             <main>
                 <header>
-                    <h1>{title}</h1>
+                    <h1>{config.title}</h1>
                 </header>
-                <slot />
+                <slot>
+                    <p>{config.description}</p>
+                </slot>
             </main>
         </div>
 	</body>

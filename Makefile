@@ -1,17 +1,26 @@
 
 install:
 	deno install
-	deno task build --allow-scripts
+	deno task build
 
 run:
 	deno task start
 
+check:
+	deno task test
+
+lint:
+	deno fmt
+
 clean:
 
 distclean:
-	rm -f deno.lock
 	rm -rf node_modules/
 	rm -rf dist/
 
+	# probably don't want to remove lockfile anymore
+	# was handy for debugging pages deployment Sharp issues
+	# rm -f deno.lock
 
-.PHONY: install clean distclean
+
+.PHONY: install run check clean distclean

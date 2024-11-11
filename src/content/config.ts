@@ -2,7 +2,7 @@ import { fellowSchema } from "@/schemas";
 import { defineCollection } from "astro:content";
 
 const fellowsCollection = defineCollection({
-  type: "data",
+  type: "content",
   schema: fellowSchema,
 });
 

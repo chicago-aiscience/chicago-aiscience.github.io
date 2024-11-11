@@ -1,15 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
 import FellowCard from '@/components/FellowCard.astro';
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 
 // TODO: Figure out Zod type validation
-const fellows: CollectionEntry<unknown>[] = await getCollection('fellows')
+const fellows = await getCollection('fellows')
 ---
 <BaseLayout key="fellows">
     <div class="fellow-grid">
-        {fellows.map(f => (
-            <FellowCard {...f.data} />
+        {fellows.map(fellow => (
+            <FellowCard {...fellow.data} />
         ))}
     </div>
 </BaseLayout>

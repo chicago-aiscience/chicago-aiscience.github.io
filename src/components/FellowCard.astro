@@ -2,8 +2,8 @@
 interface Props {
     name: string,
     cohort: string,
-    githubUser?: string[]
-    imageUrl?: string[]
+    githubUser?: string[] | undefined,
+    imageUrl?: string[] | undefined
 }
 
 const { name, imageUrl, cohort, githubUser } = Astro.props

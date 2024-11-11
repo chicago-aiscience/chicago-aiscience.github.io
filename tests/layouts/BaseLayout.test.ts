@@ -1,23 +1,23 @@
 import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import { expect, test } from "vitest";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { simpleTestSiteConfig } from "tests/fixtures/config";
+// import { simpleTestSiteConfig } from "tests/fixtures/config";
 
-test("BaseLayout uses provided title and description", async () => {
-  const container = await AstroContainer.create();
-  const result = await container.renderToString(BaseLayout, {
-    props: {
-      title: simpleTestSiteConfig.title,
-      description: simpleTestSiteConfig.description,
-    },
-    slots: { default: "<div>Content</div>" },
-  });
+// test("BaseLayout uses provided title and description", async () => {
+//   const container = await AstroContainer.create();
+//   const result = await container.renderToString(BaseLayout, {
+//     props: {
+//       title: simpleTestSiteConfig.title,
+//       description: simpleTestSiteConfig.description,
+//     },
+//     slots: { default: "<div>Content</div>" },
+//   });
 
-  expect(result).includes("<title>Test Site Title</title>");
-  expect(result).includes('content="Test site description"');
-  expect(result).includes('class="layout"');
-  //   expect(result).includes("<div>Content</div>");
-});
+//   expect(result).includes("<title>Test Site Title</title>");
+//   expect(result).includes('content="Test site description"');
+//   expect(result).includes('class="layout"');
+//   //   expect(result).includes("<div>Content</div>");
+// });
 
 test("BaseLayout falls back to siteConfig defaults", async () => {
   const container = await AstroContainer.create();

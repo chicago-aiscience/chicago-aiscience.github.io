@@ -24,10 +24,10 @@ export const pages = {
 } satisfies Pages;
 
 export const siteConfig = {
-  title: "AI in Science",
+  title: "Eric and Wendy Schmidt AI in Science Postdoctoral Fellowship",
   path: "/",
   brand: "AI Science",
-  description: "Postdocs research",
+  description: "Fellow’s Research",
   navItems: [
     "fellows",
     "research",

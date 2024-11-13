@@ -38,6 +38,17 @@ const config = key === HOME ? siteConfig : pages[key];
 </html>
 
 <style is:global>
+    :root {
+        --color-primary: #ffffff;
+        --color-secondary: #f5f5f5;
+        --color-accent: #f4ecd8;
+        --color-border: #cbd5e1;
+        --color-text: #000000;
+        --color-text-muted: #555555;
+        --border-radius: 7px;
+        --transition-speed: 0.1s;
+    }
+
     html {
         box-sizing: border-box;
     }
@@ -68,6 +79,7 @@ const config = key === HOME ? siteConfig : pages[key];
     img {
         display: block;
         max-width: 100%;
+        height: auto;
     }
 
     input,
@@ -87,5 +99,6 @@ const config = key === HOME ? siteConfig : pages[key];
     main {
         flex: 1;
         padding: 2.5rem 3rem;
+        background: var(--color-primary)
     }
 </style>

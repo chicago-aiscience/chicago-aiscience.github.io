@@ -6,6 +6,7 @@ interface Props {
 }
 
 const { nav = siteConfig.navItems } = Astro.props
+const { pathname } = Astro.url
 ---
 
 <aside>
@@ -16,7 +17,7 @@ const { nav = siteConfig.navItems } = Astro.props
 
         <ul>
             {nav.map(key => (
-                <li><a href={pages[key].path}>{pages[key].title}</a></li>
+                <li><a class={pathname === pages[key].path ? 'active' : ''} href={pages[key].path}>{pages[key].title}</a></li>
             ))}
         </ul>
     </nav>
@@ -26,8 +27,8 @@ const { nav = siteConfig.navItems } = Astro.props
     aside {
         width: 220px;
         min-height: 100vh;
-        background: #fafafa;
-        border-right: 1px solid #eaeaea;
+        background: var(--color-secondary);
+        border-right: 1px solid var(--color-border);
     }
 
     nav {
@@ -42,7 +43,7 @@ const { nav = siteConfig.navItems } = Astro.props
         font-size: 1.4rem;
         letter-spacing: -0.025em;
         padding-bottom: 0.5rem;
-        border-bottom: 1px solid #eaeaea;
+        border-bottom: 1px solid var(--color-border);
     }
 
     ul {
@@ -50,19 +51,28 @@ const { nav = siteConfig.navItems } = Astro.props
         padding: 0;
         margin: 0;
     }
+
     li { margin: 0.75rem 0; }
 
     a {
         text-decoration: none;
-        color: #555;
-        transition: all 0.1s;
+        color: var(--color-text-muted);
+        transition: all var(--transition-speed) ease;
         display: block;
         padding: 0.25rem 0.5rem;
-        border-radius: 10px;
+        border-radius: var(--border-radius);
     }
+
+    a.active {
+        color: var(--color-text);
+        background: var(--color-accent);
+        font-weight: 500;
+    }
+
     a:hover {
-        color: #000;
-        background: #fff;
+        color: var(--color-text);
+        background: var(--color-primary);
     }
-    .brand a { color: #000; }
+
+    .brand a { color: var(--color-text); }
 </style>

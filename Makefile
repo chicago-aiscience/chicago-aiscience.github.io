@@ -22,5 +22,8 @@ distclean:
 	# was handy for debugging pages deployment Sharp issues
 	# rm -f deno.lock
 
-
 .PHONY: install run check clean distclean
+
+
+scraper-check:
+	deno test --config packages/scraper/deno.json

@@ -1,5 +1,6 @@
 # AI in Science
 
+
 ## Resources
 
 - https://github.com/actions/upload-pages-artifact
@@ -18,11 +19,20 @@
   - Astro framework: https://docs.astro.build/en/getting-started/
   - MDN CSS: https://developer.mozilla.org/en-US/docs/Web/CSS
 
+- sink:
+  - 
+
+
 ## Notes
 
 - In case of syntax highlighting issues, ensure `"types": ["astro/client"]` is
   in `tsconfig.json` and then run `<cmd> + <shift> + p` +
   `Developer: Reload Window`
   - usually need after `make distclean`
-- Did route type wrong the first time, far too rigid. Implementing fix, not sure
+- (2024/11/11) Did route type wrong the first time, far too rigid. Implementing fix, not sure
   if it's right yet.
+  - Definitely some annoyances around configuring the "page config" and "site config".
+    Distinction maybe isn't clear, will need to work to document it sufficiently, but it gets the page up, and I trust that links are validated.
+    (Page config configures sidebar and internal routes in ever page, site config holds this info for base page + used as defaults for missing on other pages.)
+    Must export full
+- (2024/11/12)

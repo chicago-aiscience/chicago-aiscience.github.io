@@ -11,19 +11,26 @@ const { name, imageUrl, cohort, githubUser } = Astro.props
 <style>
     .fellow-card {
         width: 200px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius);
         overflow: hidden;
+        background: var(--color-primary);
+        transition: transform var(--transition-speed) ease;
+    }
+
+    .fellow-card:hover {
+        transform: translate(-2px);
     }
 
     .fellow-image {
         width: 100%;
         height: 200px;
-        background: #eee;
+        background: var(--color-secondary);
         display: flex;
         align-items: center;
         justify-content: center;
     }
+
     .fellow-image img {
         width: 100%;
         height: 100%;
@@ -33,19 +40,25 @@ const { name, imageUrl, cohort, githubUser } = Astro.props
     .fellow-info {
         padding: 0.5rem;
     }
+
     .fellow-info h3 {
-        margin-top: 0
+        margin-top: 0;
+        color: var(--color-text);
     }
+
     .fellow-info p {
         padding: 0;
         margin: 0;
+        color: var(--color-text-muted);
     }
+
     .fellow-info a {
         padding: 0;
         margin: 0;
         color: inherit;
         text-decoration: none;
     }
+
     .fellow-info a:hover {
         text-decoration: underline;
     }

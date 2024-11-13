@@ -1,178 +1,178 @@
 [
-  {
-    "name": "Anthony Badea",
-    "cohort": "2",
-    "githubUser": ["badeaa3"],
-    "semScholarId": ["101374356"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Anthony-Badea-2.png"
-    ]
-  },
-  {
-    "name": "William Denault",
-    "cohort": "2",
-    "githubUser": ["william-denault"],
-    "semScholarId": ["84557452"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/William-Denault-2.png"
-    ]
-  },
-  {
-    "name": "Rui Ding",
-    "cohort": "2",
-    "githubUser": ["ruiding-uchicago"],
-    "semScholarId": ["2058085088"],
-    "imageUrl": ["https://aiscience.uchicago.edu/files/2024/07/Rui-Ding-2.png"]
-  },
-  {
-    "name": "Martin Falk",
-    "cohort": "2",
-    "semScholarId": ["49842676"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Martin-Falk-1.png"
-    ]
-  },
-  {
-    "name": "Adam Fouda",
-    "cohort": "2",
-    "semScholarId": ["31661679"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Adam-Fouda-2.png"
-    ]
-  },
-  {
-    "name": "Aditya Nandy",
-    "cohort": "2",
-    "semScholarId": ["36554532"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Aditya-Nandy-2.png"
-    ]
-  },
-  {
-    "name": "Colm Talbott",
-    "cohort": "2",
-    "githubUser": ["colmtalbot"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Colm-Talbot-1.png"
-    ]
-  },
-  {
-    "name": "Georgios Valogiannis",
-    "cohort": "2",
-    "semScholarId": ["90625960"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Georgios-Valogiannis-2.png"
-    ]
-  },
-  {
-    "name": "Thomas Callister",
-    "cohort": "1",
-    "githubUser": ["tcallister"],
-    "semScholarId": ["153888407"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Thomas-Callister-1.png"
-    ]
-  },
-  {
-    "name": "Madeline Durkee",
-    "cohort": "1",
-    "githubUser": ["durkeems13"],
-    "semScholarId": ["40045245"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Madeline-Durkee-2.png"
-    ]
-  },
-  {
-    "name": "Ritesh Kumar",
-    "cohort": "1",
-    "githubUser": ["ritesh001"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Ritesh-Kumar-2.png"
-    ]
-  },
-  {
-    "name": "Peter Lu",
-    "cohort": "1",
-    "githubUser": ["peterparity"],
-    "semScholarId": ["48985656"],
-    "imageUrl": ["https://aiscience.uchicago.edu/files/2024/07/peter1.png"]
-  },
-  {
-    "name": "Ludwig Schneider",
-    "cohort": "1",
-    "githubUser": ["InnocentBug"],
-    "semScholarId": ["17715369"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Ludwig-Schneider-2.png"
-    ]
-  },
-  {
-    "name": "Shailaja Seetharaman",
-    "cohort": "1",
-    "semScholarId": ["7672498"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Shailaja-Seetharaman-2.png"
-    ]
-  },
-  {
-    "name": "Jordan Shivers",
-    "cohort": "1",
-    "githubUser": ["jordanshivers"],
-    "semScholarId": ["66132368"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Jordon-Shivers.png"
-    ]
-  },
-  {
-    "name": "Ramanujan Srinath",
-    "cohort": "1",
-    "githubUser": ["ramanujansrinath"],
-    "semScholarId": ["32366430"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Ramanujan-Srinath-2.png"
-    ]
-  },
-  {
-    "name": "Yihang Wang",
-    "cohort": "1",
-    "githubUser": ["yhwang17"],
-    "semScholarId": ["2108927025"],
-    "imageUrl": ["https://aiscience.uchicago.edu/files/2024/07/yihang1.png"]
-  },
-  {
-    "name": "Judit Prat Marti",
-    "cohort": "1",
-    "githubUser": ["jpratmarti"],
-    "imageUrl": [
-      "https://aiscience.uchicago.edu/files/2024/07/Judit-Prat-Marti-2.png"
-    ]
-  },
-  {
-    "name": "Chun-Hao To",
-    "cohort": "3",
-    "githubUser": ["chto"],
-    "imageUrl": [
-      "https://d3qi0qp55mx5f5.cloudfront.net/astrophysics/i/people/to.87.png?mtime=1725374008"
-    ]
-  },
-  {
-    "name": "Shira Lupkin",
-    "cohort": "3",
-    "githubUser": ["shiralupkin"],
-    "imageUrl": [
-      "https://monkeylogic.uchicago.edu/wp-content/uploads/2021/08/IMG_9643.jpg"
-    ]
-  },
-  {
-    "name": "Alexander Wikner",
-    "cohort": "3"
-  },
-  {
-    "name": "Kyle Crocker",
-    "cohort": "3"
-  },
-  {
-    "name": "Stephan Ihle",
-    "cohort": "3"
-  }
+    {
+        "name": "Anthony Badea",
+        "cohort": "2",
+        "githubUser": ["badeaa3"],
+        "semScholarId": ["101374356"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Anthony-Badea-2.png"
+        ]
+    },
+    {
+        "name": "William Denault",
+        "cohort": "2",
+        "githubUser": ["william-denault"],
+        "semScholarId": ["84557452"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/William-Denault-2.png"
+        ]
+    },
+    {
+        "name": "Rui Ding",
+        "cohort": "2",
+        "githubUser": ["ruiding-uchicago"],
+        "semScholarId": ["2058085088"],
+        "imageUrl": ["https://aiscience.uchicago.edu/files/2024/07/Rui-Ding-2.png"]
+    },
+    {
+        "name": "Martin Falk",
+        "cohort": "2",
+        "semScholarId": ["49842676"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Martin-Falk-1.png"
+        ]
+    },
+    {
+        "name": "Adam Fouda",
+        "cohort": "2",
+        "semScholarId": ["31661679"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Adam-Fouda-2.png"
+        ]
+    },
+    {
+        "name": "Aditya Nandy",
+        "cohort": "2",
+        "semScholarId": ["36554532"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Aditya-Nandy-2.png"
+        ]
+    },
+    {
+        "name": "Colm Talbott",
+        "cohort": "2",
+        "githubUser": ["colmtalbot"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Colm-Talbot-1.png"
+        ]
+    },
+    {
+        "name": "Georgios Valogiannis",
+        "cohort": "2",
+        "semScholarId": ["90625960"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Georgios-Valogiannis-2.png"
+        ]
+    },
+    {
+        "name": "Thomas Callister",
+        "cohort": "1",
+        "githubUser": ["tcallister"],
+        "semScholarId": ["153888407"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Thomas-Callister-1.png"
+        ]
+    },
+    {
+        "name": "Madeline Durkee",
+        "cohort": "1",
+        "githubUser": ["durkeems13"],
+        "semScholarId": ["40045245"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Madeline-Durkee-2.png"
+        ]
+    },
+    {
+        "name": "Ritesh Kumar",
+        "cohort": "1",
+        "githubUser": ["ritesh001"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Ritesh-Kumar-2.png"
+        ]
+    },
+    {
+        "name": "Peter Lu",
+        "cohort": "1",
+        "githubUser": ["peterparity"],
+        "semScholarId": ["48985656"],
+        "imageUrl": ["https://aiscience.uchicago.edu/files/2024/07/peter1.png"]
+    },
+    {
+        "name": "Ludwig Schneider",
+        "cohort": "1",
+        "githubUser": ["InnocentBug"],
+        "semScholarId": ["17715369"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Ludwig-Schneider-2.png"
+        ]
+    },
+    {
+        "name": "Shailaja Seetharaman",
+        "cohort": "1",
+        "semScholarId": ["7672498"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Shailaja-Seetharaman-2.png"
+        ]
+    },
+    {
+        "name": "Jordan Shivers",
+        "cohort": "1",
+        "githubUser": ["jordanshivers"],
+        "semScholarId": ["66132368"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Jordon-Shivers.png"
+        ]
+    },
+    {
+        "name": "Ramanujan Srinath",
+        "cohort": "1",
+        "githubUser": ["ramanujansrinath"],
+        "semScholarId": ["32366430"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Ramanujan-Srinath-2.png"
+        ]
+    },
+    {
+        "name": "Yihang Wang",
+        "cohort": "1",
+        "githubUser": ["yhwang17"],
+        "semScholarId": ["2108927025"],
+        "imageUrl": ["https://aiscience.uchicago.edu/files/2024/07/yihang1.png"]
+    },
+    {
+        "name": "Judit Prat Marti",
+        "cohort": "1",
+        "githubUser": ["jpratmarti"],
+        "imageUrl": [
+            "https://aiscience.uchicago.edu/files/2024/07/Judit-Prat-Marti-2.png"
+        ]
+    },
+    {
+        "name": "Chun-Hao To",
+        "cohort": "3",
+        "githubUser": ["chto"],
+        "imageUrl": [
+            "https://d3qi0qp55mx5f5.cloudfront.net/astrophysics/i/people/to.87.png?mtime=1725374008"
+        ]
+    },
+    {
+        "name": "Shira Lupkin",
+        "cohort": "3",
+        "githubUser": ["shiralupkin"],
+        "imageUrl": [
+            "https://monkeylogic.uchicago.edu/wp-content/uploads/2021/08/IMG_9643.jpg"
+        ]
+    },
+    {
+        "name": "Alexander Wikner",
+        "cohort": "3"
+    },
+    {
+        "name": "Kyle Crocker",
+        "cohort": "3"
+    },
+    {
+        "name": "Stephan Ihle",
+        "cohort": "3"
+    }
 ]

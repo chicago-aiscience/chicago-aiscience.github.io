@@ -6,6 +6,7 @@ import { getCollection } from 'astro:content';
 // TODO: Figure out Zod type validation
 const fellows = await getCollection('fellows')
 ---
+
 <BaseLayout key="fellows">
     <div class="fellow-grid">
         {fellows.map(fellow => (

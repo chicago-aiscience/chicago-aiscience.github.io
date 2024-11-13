@@ -15,6 +15,7 @@ lint:
 clean:
 
 distclean:
+	rm -rf .astro/
 	rm -rf node_modules/
 	rm -rf dist/
 
@@ -26,4 +27,4 @@ distclean:
 
 
 scraper-check:
-	deno test --config packages/scraper/deno.json
+	deno test --config packages/scraper/deno.json --allow-read

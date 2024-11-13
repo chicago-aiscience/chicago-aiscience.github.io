@@ -1,11 +1,11 @@
-import { fellowSchema } from "@/schemas";
-import { defineCollection } from "astro:content";
+import { fellowSchema } from '../schemas.ts';
+import { defineCollection } from 'astro:content';
 
 const fellowsCollection = defineCollection({
-  type: "content",
-  schema: fellowSchema,
+    type: 'content',
+    schema: fellowSchema,
 });
 
 export const collections = {
-  fellows: fellowsCollection,
+    fellows: fellowsCollection,
 };

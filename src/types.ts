@@ -1,18 +1,18 @@
 export type PageConfig = {
-  title: string;
-  path: string;
-  description: string;
+    title: string;
+    path: string;
+    description: string;
 };
 
 export type Pages = {
-  [K: string]: PageConfig;
+    [K: string]: PageConfig;
 };
 
 export type SiteConfig<P extends Pages> = NonNullable<PageConfig> & {
-  path: "/";
-  brand: string;
-  navItems: Array<keyof P>;
+    path: '/';
+    brand: string;
+    navItems: Array<keyof P>;
 };
 
-export const HOME = Symbol("home");
+export const HOME = Symbol('home');
 export type HomeKey = typeof HOME;

@@ -145,7 +145,8 @@
         "githubUser": ["jpratmarti"],
         "imageUrl": [
             "https://aiscience.uchicago.edu/files/2024/07/Judit-Prat-Marti-2.png"
-        ]
+        ],
+        "activeFellow": false
     },
     {
         "name": "Chun-Hao To",
@@ -169,7 +170,8 @@
     },
     {
         "name": "Kyle Crocker",
-        "cohort": "3"
+        "cohort": "3",
+        "githubUser": ["https://github.com/kyle-crocker"]
     },
     {
         "name": "Stephan Ihle",

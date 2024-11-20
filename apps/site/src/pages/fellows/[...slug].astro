@@ -1,0 +1,24 @@
+---
+import { getCollection } from 'astro:content'
+import type { CollectionEntry } from 'astro:content'
+import ResearcherLayout from '../../layouts/ResearcherLayout.astro'
+
+export async function getStaticPaths() {
+    const fellows = await getCollection('fellows')
+    return fellows.map((fellow: CollectionEntry<'fellows'>) => ({
+        params: { slug: fellow.slug },
+        props: { fellow }
+    }))
+}
+
+interface Props {
+    fellow: CollectionEntry<'fellows'>
+}
+
+const { fellow } = Astro.props
+const { Content } = await fellow.render()
+---
+
+<ResearcherLayout fellow={fellow}>
+    <Content />
+</ResearcherLayout>

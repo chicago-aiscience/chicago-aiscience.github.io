@@ -1,0 +1,32 @@
+---
+import type { CollectionEntry } from "astro:content"
+import BasicCard from "../layouts/BasicCard.astro"
+// import type { FellowEntry } from "src/env"
+
+interface Props {
+    fellow: CollectionEntry<'fellows'>
+}
+const { fellow } = Astro.props
+const { name, idCohort, idGithub, metaImageUrl } = fellow.data
+---
+
+<style>
+    h3 { margin: 0; }
+</style>
+
+<BasicCard
+    imageUrl={metaImageUrl?.[0]}
+    data-fallback={metaImageUrl?.[1]}
+    referentia={[
+        { text: `Cohort ${idCohort}`},
+        ...idGithub?.map((user: string) => ({
+            text: `GitHub: ${user}`,
+            href: `https://github.com/${user}`
+        }
+        )) ?? []
+    ]}
+>
+    <h3 slot="header">
+        <a href={`/fellows/${fellow.slug}`}>{name}</a>
+    </h3>
+</BasicCard>

@@ -1,34 +1,37 @@
 {
-    "name": "@chicago-aiscience/github-io",
     "type": "module",
     "version": "0.0.1",
-    "exports": "./mod.ts",
-    "tasks": {
-        "dev": "astro dev",
-        "start": "astro dev",
-        "build": "astro check && astro build",
-        "preview": "astro preview",
-        "astro": "astro",
-        "test": "vitest"
-    },
+    "nodeModulesDir": "auto",
+    "workspace": ["./packages/schema", "./apps/site", "./apps/scraper"],
     "imports": {
-        "@/*": "./src/*",
+        "@fontsource/roboto": "npm:@fontsource/roboto@^5.1.0",
         "astro": "npm:astro@^4.16.10",
         "astro:content": "npm:astro@^4.16.10/content/runtime",
         "typescript": "npm:typescript@^5.6.3",
         "@astrojs/check": "npm:@astrojs/check@^0.9.4",
+        "@astrojs/tailwind": "npm:@astrojs/tailwind@^5.1.2",
+        "tailwindcss": "npm:tailwindcss@^3.4.15",
         "@std/assert": "jsr:@std/assert@1",
-        "vitest": "npm:vitest@^2.1.4"
+        "vitest": "npm:vitest@^2.1.4",
+        "zod": "npm:zod@^3.23.8"
+    },
+    "compilerOptions": {
+        "strict": true,
+        "types": [
+            "astro/client"
+        ]
     },
     "fmt": {
+        "include": ["./packages/**/*.ts"],
+        "exclude": ["**/.astro/*"],
         "lineWidth": 100,
         "semiColons": true,
         "singleQuote": true,
         "indentWidth": 4
+
     },
-    "compilerOptions": {
-        "types": [
-            "astro/client"
-        ]
+    "lint": {
+        "include": ["./packages/**/*.ts"],
+        "exclude": ["**/.astro/*"]
     }
 }

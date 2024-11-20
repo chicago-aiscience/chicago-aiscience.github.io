@@ -15,6 +15,7 @@
 - core docs:
   - Astro framework: https://docs.astro.build/en/getting-started/
   - MDN CSS: https://developer.mozilla.org/en-US/docs/Web/CSS
+  - Tailwind: https://tailwindcss.com/docs/display
 
 - sink:
 
@@ -30,4 +31,3 @@
     trust that links are validated. (Page config configures sidebar and internal routes in ever
     page, site config holds this info for base page + used as defaults for missing on other pages.)
     Must export full
-- (2024/11/12)

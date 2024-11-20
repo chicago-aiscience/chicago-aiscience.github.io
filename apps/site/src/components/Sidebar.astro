@@ -1,0 +1,26 @@
+---
+import { siteConfig, pages } from '../config'
+
+interface Props {
+    nav?: typeof siteConfig.navItems
+}
+
+const { nav = siteConfig.navItems } = Astro.props
+const { pathname } = Astro.url
+---
+
+<header>
+    <a href="/">{siteConfig.brand}</a>
+</header>
+<ul>
+    {nav.map(key => (
+        <li>
+            <a
+                href={pages[key].path}
+                aria-current={pathname === pages[key].path ? 'page' : undefined}
+            >
+                {pages[key].title}
+            </a>
+        </li>
+    ))}
+</ul>

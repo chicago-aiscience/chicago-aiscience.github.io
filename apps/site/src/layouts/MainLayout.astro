@@ -1,0 +1,23 @@
+---
+import Sidebar from '../components/Sidebar.astro';
+import { pages, siteConfig } from '../config'
+import LayoutBase from '../layouts/LayoutBase.astro'
+import { HOME } from '../types';
+
+interface Props {
+    key: keyof typeof pages | typeof HOME
+}
+
+const { key } = Astro.props;
+const config = key === HOME ? siteConfig : pages[key];
+---
+
+<LayoutBase title={config.title} description={config.description}>
+    <Sidebar slot="sidebar" />
+
+    <h1 slot="header">{config.title}</h1>
+
+    <slot>
+        <p>{config.description}</p>
+    </slot>
+</LayoutBase>

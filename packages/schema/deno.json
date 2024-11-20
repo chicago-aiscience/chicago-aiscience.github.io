@@ -1,0 +1,7 @@
+{
+    "name": "@repo/schema",
+    "exports": "./mod.ts",
+    "tasks": {
+        "test": "deno test"
+    }
+}

@@ -23,7 +23,7 @@
     },
     "fmt": {
         "include": ["./packages/**/*.ts"],
-        "exclude": ["**/.astro/*"],
+        "exclude": ["**/.astro/*", "**/*.css"],
         "lineWidth": 100,
         "semiColons": true,
         "singleQuote": true,

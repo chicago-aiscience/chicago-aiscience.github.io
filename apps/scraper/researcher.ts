@@ -1,73 +1,103 @@
-import type { Events, ResearcherIdentifier, TheEvent } from './domain.ts';
-import type { Detail, Researcher } from '../../packages/schema/mod.ts';
+import type { AggregateConfig, ResearcherEvent, TheEvent } from './domain.ts';
+import type { Detail, Researcher, ResearcherBuilder } from '../../packages/schema/mod.ts';
 
 export interface Projection {
     apply(event: TheEvent): void;
-    getState(): Map<string, Researcher>;
+    getState(): Map<string, ResearcherBuilder>;
 }
 
 export class ResearcherAggregate {
-    private state: Omit<Researcher, 'name'> & { name?: string } = {
-        name: undefined,
+    private state: ResearcherBuilder = {
         idGithub: [],
         idSemScholar: [],
         idOrc: [],
-        refPublicationDoi: [],
+        metaName: [],
         metaImageUrl: [],
         metaWebsite: [],
+        refPublicationDoi: [],
     };
-    private changes: TheEvent[] = [];
+    private changes: ResearcherEvent[] = [];
     private version = 0;
+    private identifierFields: AggregateConfig['RESEARCHER']['Identifiers']['type'][] = [
+        'idGithub',
+        'idSemScholar',
+        'idOrc',
+    ];
 
-    constructor(private id: string) {}
+    constructor(
+        private id: string,
+        identifiers: AggregateConfig['RESEARCHER']['Identifiers'][],
+    ) {
+        this.initIdentifiers(identifiers);
+    }
 
-    apply<T extends keyof Events>(event: TheEvent<T>): void {
-        switch (event.type) {
-            case 'RESEARCHER_CREATED': {
-                const payload = (event as TheEvent<'RESEARCHER_CREATED'>).payload;
-                const { name, identifier } = payload;
-                this.state.name = name;
-                this.state[identifier.type].push(identifier.id);
-                break;
-            }
-            case 'RESEARCHER_DETAIL_ADDED': {
-                const payload = (event as TheEvent<'RESEARCHER_DETAIL_ADDED'>).payload;
-                const { fresh } = payload;
-                if (Array.isArray(this.state[fresh.type])) {
-                    (this.state[fresh.type] as string[]).push(fresh.id);
-                } else {
-                    (this.state[fresh.type] as string) = fresh.id;
-                }
-                break;
-            }
-            case 'RESEARCHER_PUBLICATION_LINKED': {
-                const payload = (event as TheEvent<'RESEARCHER_PUBLICATION_LINKED'>).payload;
-                const { target } = payload;
-                this.state.refPublicationDoi.push(target.id);
-            }
+    private initIdentifiers(identifiers: AggregateConfig['RESEARCHER']['Identifiers'][]): void {
+        for (const id of identifiers) {
+            this.updateState(id);
         }
+    }
+
+    apply(event: ResearcherEvent): void {
+        switch (event.type) {
+            case 'RESEARCHER_CREATED':
+                this.updateState(event.payload.identifier);
+                break;
+            case 'RESEARCHER_DETAIL_ADDED':
+                this.updateState(event.payload.update);
+                break;
+            case 'RESEARCHER_PUBLICATION_LINKED':
+                this.state.refPublicationDoi.push(event.payload.target.value);
+                break;
+            case 'RESEARCHER_IDENTIFIER_MERGED':
+                for (const identifier of event.payload.mergedIdentifiers) {
+                    this.updateState(identifier);
+                }
+        }
+        this.changes.push(event);
         this.version++;
     }
 
-    load(events: TheEvent[]): void {
+    updateState({ type, value }: Detail<Researcher>): void {
+        if (!Array.isArray(value)) {
+            this.state[type].push(value);
+            return;
+        }
+        this.state[type] = [...this.state[type], ...value];
+    }
+
+    load(events: ResearcherEvent[]): void {
         events.forEach((event) => this.apply(event));
         this.version = events.length;
     }
 
-    commit(): TheEvent[] {
+    commit(): ResearcherEvent[] {
         const events = [...this.changes];
         this.changes = [];
         return events;
     }
 
-    create<T extends Researcher>(name: string, identifier: Detail<T>): void {
-        if (this.state.name) throw new Error('Already exists');
+    getIdentifier(): AggregateConfig['RESEARCHER']['Identifiers'] {
+        const identifiers = this.knownIdentifiers();
+        if (!identifiers) throw new Error('No identifiers present');
+        return identifiers[0];
+    }
 
+    knownIdentifiers(): AggregateConfig['RESEARCHER']['Identifiers'][] {
+        const identifiers: AggregateConfig['RESEARCHER']['Identifiers'][] = [];
+        for (const type of this.identifierFields) {
+            for (const value of this.state[type]) {
+                identifiers.push({ type, value });
+            }
+        }
+        return identifiers;
+    }
+
+    create(identifier: AggregateConfig['RESEARCHER']['Identifiers']): void {
         this.changes.push({
             id: String(this.version),
             type: 'RESEARCHER_CREATED',
             aggregateId: this.id,
-            payload: { name, identifier },
+            payload: { identifier },
             metadata: {
                 timestamp: new Date(),
                 sequence: this.version,
@@ -75,12 +105,15 @@ export class ResearcherAggregate {
         });
     }
 
-    addIdentifier(known: ResearcherIdentifier, newId: ResearcherIdentifier): void {
+    addDetail(update: Detail<Researcher>): void {
         this.changes.push({
             id: String(this.version),
             type: 'RESEARCHER_DETAIL_ADDED',
             aggregateId: this.id,
-            payload: { known, fresh: newId },
+            payload: {
+                identifier: this.getIdentifier(),
+                update,
+            },
             metadata: {
                 timestamp: new Date(),
                 sequence: this.version,
@@ -88,12 +121,18 @@ export class ResearcherAggregate {
         });
     }
 
-    linkAuthoredPublication(doi: string, authorId: ResearcherIdentifier) {
+    linkPublication(publicationDoi: string): void {
         this.changes.push({
             id: String(this.version),
             type: 'RESEARCHER_PUBLICATION_LINKED',
             aggregateId: this.id,
-            payload: {},
+            payload: {
+                source: this.getIdentifier(),
+                target: {
+                    type: 'idDoi',
+                    value: publicationDoi,
+                },
+            },
             metadata: {
                 timestamp: new Date(),
                 sequence: this.version,
@@ -103,33 +142,50 @@ export class ResearcherAggregate {
 }
 
 export class ResearcherProjection implements Projection {
-    private researchers = new Map<string, Researcher>();
+    private researchers = new Map<string, ResearcherBuilder>();
 
-    apply(event: TheEvent): void {
+    apply(event: ResearcherEvent): void {
         if (event.type === 'RESEARCHER_CREATED') {
-            const { name, identifier } = (event as TheEvent<'RESEARCHER_CREATED'>).payload;
-            const researcher: Researcher = {
-                name,
+            const { identifier } = event.payload;
+            const researcher = {
                 idGithub: [],
                 idSemScholar: [],
                 idOrc: [],
-                refPublicationDoi: [],
+                metaName: [],
                 metaImageUrl: [],
                 metaWebsite: [],
+                refPublicationDoi: [],
             };
-            researcher[identifier.type].push(identifier.id);
+            this.updateResearcherField(researcher, identifier);
             this.researchers.set(event.aggregateId, researcher);
-        }
-        if (event.type === 'RESEARCHER_DETAIL_ADDED') {
+        } else if (event.type === 'RESEARCHER_DETAIL_ADDED') {
             const researcher = this.researchers.get(event.aggregateId);
             if (researcher) {
-                const { fresh } = (event as TheEvent<'RESEARCHER_DETAIL_ADDED'>).payload;
-                researcher[fresh.type].push(newId.id);
+                const { update } = event.payload;
+                this.updateResearcherField(researcher, update);
+            }
+        } else if (event.type === 'RESEARCHER_IDENTIFIER_MERGED') {
+            const target = this.researchers.get(event.payload.targetId);
+            if (target) {
+                for (const identifier of event.payload.mergedIdentifiers) {
+                    this.updateResearcherField(target, identifier);
+                }
             }
         }
     }
 
-    getState(): Map<string, Researcher> {
+    private updateResearcherField<K extends keyof ResearcherBuilder>(
+        researcher: ResearcherBuilder,
+        { type, value }: Detail<Researcher>,
+    ): void {
+        if (Array.isArray(value)) {
+            researcher[type] = [...researcher[type], ...value];
+            return;
+        }
+        researcher[type] = [...researcher[type], value];
+    }
+
+    getState(): Map<string, ResearcherBuilder> {
         return new Map(this.researchers);
     }
 }

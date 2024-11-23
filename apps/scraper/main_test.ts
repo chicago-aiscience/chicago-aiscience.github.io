@@ -10,13 +10,14 @@ import { ResearcherService } from './services.ts';
 
 const sampleConfig = `[
   {
-    "name": "Alice Smith",
+    "metaName": "Alice Smith",
     "cohort": "2",
-    "githubIds": ["alicedev"],
-    "imageUrls": ["https://www.example.com/image.jpg"]
+    "idGithub": ["alicedev"],
+    "metaImageUrls": ["https://www.example.com/image.jpg"]
   }, {
-    "name": "Bob Smith",
-    "cohort": "3"
+    "metaName": "Bob Smith",
+    "cohort": "3",
+    "idOrc": "8675309"
   }
 ]`;
 
@@ -33,7 +34,7 @@ Deno.test('researcher ingestion', async () => {
         return Promise.resolve();
     });
 
-    const researchers = await service.ingestConfig(sampleConfig);
+    const researchers = await service.ingestProfiles(sampleConfig);
 
     console.log(publishedEvents);
     console.log(researchers);

@@ -51,17 +51,20 @@ export class InMemoryEventBus implements EventBus {
 }
 
 export interface ConfigParser {
-    parse(json: string): Researcher[];
+    parse(data: unknown): unknown;
 }
 
 export class JsonConfigParser implements ConfigParser {
-    parse(json: string): Researcher[] {
-        return JSON.parse(json) as Researcher[];
+    parse(data: unknown): unknown {
+        if (typeof data === 'string') {
+            return JSON.parse(data);
+        }
+        return data;
     }
 }
 
 export interface ConfigLoader {
-    loadConfig(source: string): Promise<string>;
+    loadConfig(source: string): Promise<unknown>;
 }
 
 export class FileConfigLoader implements ConfigLoader {
@@ -71,7 +74,7 @@ export class FileConfigLoader implements ConfigLoader {
 }
 
 export class StringConfigLoader implements ConfigLoader {
-    loadConfig(source: string): Promise<string> {
+    loadConfig(source: string): Promise<unknown> {
         return Promise.resolve(source);
     }
 }

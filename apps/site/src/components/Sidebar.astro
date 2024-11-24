@@ -29,10 +29,10 @@ const { pathname } = Astro.url
     </ul>
 </nav>
 <style>
-.sidebar__header { @apply mb-4 p-4 }
+.sidebar__header { @apply mb-4 p-4 border-b border-accent }
 .sidebar__brand-link { @apply no-underline hover:text-accent rounded; }
-.sidebar__nav-options { @apply space-y-4; }
-.sidebar__nav-link { @apply block px-8 hover:bg-accent rounded text-muted hover:text-text; }
+.sidebar__nav-options { @apply space-y-4 md:my-12; }
+.sidebar__nav-link { @apply block md:px-8 hover:bg-accent rounded text-muted hover:text-text; }
 .sidebar__nav-link[aria-current="page"] {
     @apply bg-accent font-semibold text-text;
 }

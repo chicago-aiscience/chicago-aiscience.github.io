@@ -35,7 +35,8 @@
     .layout__sidebar {
         @apply w-full md:w-52 md:sticky md:top-0 md:h-screen
         p-4
-        bg-secondary border-muted;
+        bg-secondary border-muted
+        border-muted border-b md:border-b-0 md:border-r;
     }
 
     .layout__content {
@@ -44,11 +45,11 @@
 
     .layout__header {
         @apply sticky top-0 z-10
-        p-4 my-8 mx-16;
+        p-4 md:my-8 md:mx-16;
     }
 
     .layout__main {
-        @apply max-w-screen-lg w-full mx-auto min-h-screen
+        @apply max-w-screen-md w-full mx-auto min-h-screen
         p-4 my-8;
     }
 

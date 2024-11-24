@@ -8,7 +8,7 @@ export default {
                 secondary: '#dadbdd',
                 accent: '#FFF',
                 surface: '#fafafb',
-                text: "#222",
+                text: '#222',
                 muted: '#555',
             },
             fontFamily: {

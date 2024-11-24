@@ -1,7 +1,8 @@
 ---
-name: Kyle Crocker
+metaName: Kyle Crocker
 idCohort: "3"
-idGithub: []
+idGithub: ['https://github.com/kyle-crocker']
 metaImageUrl: []
-title: Kyle Crocker
+metaTitle: Kyle Crocker
+isSchmidtFellow: true
 ---

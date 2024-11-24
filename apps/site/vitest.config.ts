@@ -7,5 +7,10 @@ export default getViteConfig({
         globals: true,
         include: ['./tests/**/*.ts'],
         exclude: ['./tests/fixtures/*'],
+        coverage: {
+            provider: 'istanbul',
+            reportsDirectory: '../../coverage/site/',
+            reporter: ['text', 'lcov', 'html'],
+        },
     },
 });

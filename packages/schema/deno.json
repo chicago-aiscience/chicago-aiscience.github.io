@@ -1,7 +1,10 @@
 {
     "name": "@repo/schema",
+    "version": "0.0.1",
     "exports": "./mod.ts",
     "tasks": {
-        "test": "deno test"
+        "typecheck": "deno check ./mod.ts ./tests/**/*.ts",
+        "test": "deno test --coverage=../../coverage/schema/",
+        "build": "vite build"
     }
 }

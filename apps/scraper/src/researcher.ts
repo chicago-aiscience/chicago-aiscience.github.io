@@ -1,5 +1,5 @@
 import type { AggregateConfig, ResearcherEvent, TheEvent } from './domain.ts';
-import type { Detail, Researcher, ResearcherBuilder } from '../../packages/schema/mod.ts';
+import type { Detail, Researcher, ResearcherBuilder } from '../../../packages/schema/mod.ts';
 
 export interface Projection {
     apply(event: TheEvent): void;
@@ -39,7 +39,7 @@ export class ResearcherAggregate {
 
     apply(event: ResearcherEvent): void {
         switch (event.type) {
-            case 'RESEARCHER_CREATED':
+            case 'RESEARCHER_FOUND':
                 this.updateState(event.payload.identifier);
                 break;
             case 'RESEARCHER_DETAIL_ADDED':
@@ -82,6 +82,7 @@ export class ResearcherAggregate {
         return identifiers[0];
     }
 
+    // TODO: this routine for getting ids feels sloppy
     knownIdentifiers(): AggregateConfig['RESEARCHER']['Identifiers'][] {
         const identifiers: AggregateConfig['RESEARCHER']['Identifiers'][] = [];
         for (const type of this.identifierFields) {
@@ -95,7 +96,7 @@ export class ResearcherAggregate {
     create(identifier: AggregateConfig['RESEARCHER']['Identifiers']): void {
         this.changes.push({
             id: String(this.version),
-            type: 'RESEARCHER_CREATED',
+            type: 'RESEARCHER_FOUND',
             aggregateId: this.id,
             payload: { identifier },
             metadata: {
@@ -145,7 +146,7 @@ export class ResearcherProjection implements Projection {
     private researchers = new Map<string, ResearcherBuilder>();
 
     apply(event: ResearcherEvent): void {
-        if (event.type === 'RESEARCHER_CREATED') {
+        if (event.type === 'RESEARCHER_FOUND') {
             const { identifier } = event.payload;
             const researcher = {
                 idGithub: [],

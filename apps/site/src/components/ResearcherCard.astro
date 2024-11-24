@@ -7,18 +7,14 @@ interface Props {
     fellow: CollectionEntry<'fellows'>
 }
 const { fellow } = Astro.props
-const { name, idCohort, idGithub, metaImageUrl } = fellow.data
+const { metaName, cohort, idGithub, metaImageUrl } = fellow.data
 ---
-
-<style>
-    h3 { margin: 0; }
-</style>
 
 <BasicCard
     imageUrl={metaImageUrl?.[0]}
     data-fallback={metaImageUrl?.[1]}
     referentia={[
-        { text: `Cohort ${idCohort}`},
+        { text: `Cohort ${cohort}`},
         ...idGithub?.map((user: string) => ({
             text: `GitHub: ${user}`,
             href: `https://github.com/${user}`
@@ -27,6 +23,6 @@ const { name, idCohort, idGithub, metaImageUrl } = fellow.data
     ]}
 >
     <h3 slot="header">
-        <a href={`/fellows/${fellow.slug}`}>{name}</a>
+        <a href={`/fellows/${fellow.slug}`}>{metaName}</a>
     </h3>
 </BasicCard>

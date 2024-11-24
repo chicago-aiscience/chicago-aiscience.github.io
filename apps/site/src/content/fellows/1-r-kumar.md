@@ -1,7 +1,8 @@
 ---
-name: Ritesh Kumar
+metaName: Ritesh Kumar
 idCohort: "1"
 idGithub: ['ritesh001']
 metaImageUrl: ['https://aiscience.uchicago.edu/files/2024/07/Ritesh-Kumar-2.png']
-title: Ritesh Kumar
+metaTitle: Ritesh Kumar
+isSchmidtFellow: true
 ---

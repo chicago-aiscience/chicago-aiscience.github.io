@@ -14,9 +14,6 @@ const config = key === HOME ? siteConfig : pages[key];
 
 <LayoutBase title={config.title} description={config.description}>
     <Sidebar slot="sidebar" />
-
-    <h1 slot="header">{config.title}</h1>
-
     <slot>
         <p>{config.description}</p>
     </slot>

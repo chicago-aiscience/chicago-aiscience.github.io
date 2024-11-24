@@ -1,9 +1,9 @@
 import { type Profile, profileSchema, type ResearcherBuilder } from '../../packages/schema/mod.ts';
-import { type AggregateConfig, filterResearcherEvents } from './domain.ts';
+import { type AggregateConfig, filterResearcherEvents } from './src/domain.ts';
 // import { CreateResearcherHandler } from './handlers.ts';
-import type { ConfigLoader, ConfigParser, EventBus, EventStore } from './infrasructure.ts';
-import { ResearcherProjection } from './researcher.ts';
-import { ResearcherAggregate } from './researcher.ts';
+import type { ConfigLoader, ConfigParser, EventBus, EventStore } from './src/infrasructure.ts';
+import { ResearcherProjection } from './src/researcher.ts';
+import { ResearcherAggregate } from './src/researcher.ts';
 
 export interface ResearcherIngestionService {
     ingestProfiles(path: string): Promise<ResearcherBuilder[]>;
@@ -49,13 +49,16 @@ export class ResearcherService implements ResearcherIngestionService {
         return aggregate;
     }
 
-    async ingestProfiles(path: string, isSchmidtFellowsConfig = false): Promise<ResearcherBuilder[]> {
+    async ingestProfiles(
+        path: string,
+        isSchmidtFellowsConfig = false,
+    ): Promise<ResearcherBuilder[]> {
         const data = await this.loader.loadConfig(path);
         const json = this.parser.parse(data);
-        if (!Array.isArray(json)) throw new Error('Config is not an array')
+        if (!Array.isArray(json)) throw new Error('Config is not an array');
 
         const profiles = profileSchema.array().parse(json.map(
-            p => ({ ...p, isSchmidtFellow: isSchmidtFellowsConfig })
+            (p) => ({ ...p, isSchmidtFellow: isSchmidtFellowsConfig }),
         ));
         const projection = new ResearcherProjection();
 

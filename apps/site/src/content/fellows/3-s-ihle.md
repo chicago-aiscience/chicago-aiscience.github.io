@@ -1,7 +1,8 @@
 ---
-name: Stephan Ihle
+metaName: Stephan Ihle
 idCohort: "3"
 idGithub: []
 metaImageUrl: []
-title: Stephan Ihle
+metaTitle: Stephan Ihle
+isSchmidtFellow: true
 ---

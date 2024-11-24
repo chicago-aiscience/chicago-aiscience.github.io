@@ -5,14 +5,17 @@
     "workspace": ["./packages/schema", "./apps/site", "./apps/scraper"],
     "imports": {
         "@fontsource/roboto": "npm:@fontsource/roboto@^5.1.0",
+        "@vitest/coverage-istanbul": "npm:@vitest/coverage-istanbul@^2.1.5",
         "astro": "npm:astro@^4.16.10",
         "astro:content": "npm:astro@^4.16.10/content/runtime",
+        "p-limit": "npm:p-limit@^6.1.0",
         "typescript": "npm:typescript@^5.6.3",
         "@astrojs/check": "npm:@astrojs/check@^0.9.4",
         "@astrojs/tailwind": "npm:@astrojs/tailwind@^5.1.2",
         "tailwindcss": "npm:tailwindcss@^3.4.15",
         "@std/assert": "jsr:@std/assert@1",
-        "vitest": "npm:vitest@^2.1.4",
+        "vite": "npm:vite@^5.4.11",
+        "vitest": "npm:vitest@^2.1.5",
         "zod": "npm:zod@^3.23.8"
     },
     "compilerOptions": {

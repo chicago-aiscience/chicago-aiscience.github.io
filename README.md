@@ -16,6 +16,7 @@
   - Astro framework: https://docs.astro.build/en/getting-started/
   - MDN CSS: https://developer.mozilla.org/en-US/docs/Web/CSS
   - Tailwind: https://tailwindcss.com/docs/display
+  - Vitest: https://vitest.dev/guide/
 
 - sink:
 

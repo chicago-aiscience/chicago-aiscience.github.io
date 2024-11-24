@@ -8,19 +8,32 @@ interface Props {
 const { nav = siteConfig.navItems } = Astro.props
 const { pathname } = Astro.url
 ---
-
-<header>
-    <a href="/">{siteConfig.brand}</a>
+<header class="sidebar__header">
+    <h5 class="sidebar__brand">
+        <a href="/" class="sidebar__brand-link">{siteConfig.brand}</a>
+    </h5>
 </header>
-<ul>
-    {nav.map(key => (
-        <li>
-            <a
-                href={pages[key].path}
-                aria-current={pathname === pages[key].path ? 'page' : undefined}
-            >
-                {pages[key].title}
-            </a>
-        </li>
-    ))}
-</ul>
+<nav class="sidebar__nav">
+    <ul class="sidebar__nav-options">
+        {nav.map(key => (
+            <li class="sidebar__nav-item">
+                <a
+                    class="sidebar__nav-link"
+                    href={pages[key].path}
+                    aria-current={pathname === pages[key].path ? 'page' : undefined}
+                >
+                    {pages[key].title}
+                </a>
+            </li>
+        ))}
+    </ul>
+</nav>
+<style>
+.sidebar__header { @apply mb-4 p-4 }
+.sidebar__brand-link { @apply no-underline hover:text-accent rounded; }
+.sidebar__nav-options { @apply space-y-2; }
+.sidebar__nav-link { @apply block px-8 hover:bg-accent rounded text-muted hover:text-text; }
+.sidebar__nav-link[aria-current="page"] {
+    @apply bg-accent font-semibold text-text;
+}
+</style>

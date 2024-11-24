@@ -1,7 +1,9 @@
 {
     "tasks": {
         "dev": "deno run --watch main.ts",
-        "test": "deno test --allow-read",
-        "start": "deno run --allow-read main.ts"
+        "typecheck": "deno check ./main.ts ./tests/**/*.ts",
+        "test": "deno test --allow-read --coverage=../../coverage/scraper/",
+        "start": "deno run --allow-read main.ts",
+        "build": "vite build"
     }
 }

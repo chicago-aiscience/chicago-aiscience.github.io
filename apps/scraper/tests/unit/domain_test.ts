@@ -1,8 +1,8 @@
 import { assertEquals } from '@std/assert/equals';
-import type { EventPayload } from './domain.ts';
+import type { EventPayload } from '../../src/domain.ts';
 
 Deno.test('instantiate create event', () => {
-    const createCmd: EventPayload['RESEARCHER_CREATED'] = {
+    const createCmd: EventPayload['RESEARCHER_FOUND'] = {
         identifier: { type: 'idGithub', value: 'alice12345' },
     };
     assertEquals(createCmd.identifier.type, 'idGithub');

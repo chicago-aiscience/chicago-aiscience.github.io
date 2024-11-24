@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content'
-import BaseLayout from './BaseLayout.astro'
+import LayoutBase from './LayoutBase.astro'
 
 interface Props {
     fellow: CollectionEntry<'fellows'>
@@ -8,7 +8,7 @@ interface Props {
 
 const { fellow } = Astro.props
 const {
-    data: { name, metaImageUrl, idCohort: cohort, idGithub }
+    data: { metaName, metaImageUrl, cohort, idGithub }
 } = fellow;
 const referentia = [
     { text: `Cohort ${cohort}` },
@@ -16,48 +16,22 @@ const referentia = [
 ]
 ---
 
-<BaseLayout
-    title={name}
-    description={`Profile of ${name}, cohort ${cohort}`}
+<LayoutBase
+    title={metaName}
+    description={`Profile of ${metaName}, cohort ${cohort}`}
 >
     <article class="profile">
         <header class="profile-header">
-            <h1>{name}</h1>
+            <h1>{metaName}</h1>
             <div class="profile-referentia">
                 {referentia.map(ref => (
                     <span>{ref.href ? <a href={ref.href}>{ref.text}</a> : ref.text}</span>
                 ))}
             </div>
-            {metaImageUrl?.[0] && (<img src={metaImageUrl[0]} alt={name} />)}
+            {metaImageUrl?.[0] && (<img src={metaImageUrl[0]} alt={metaName} />)}
         </header>
         <div class="profile-content">
             <slot />
         </div>
     </article>
-</BaseLayout>
-
-<style>
-.profile {
-    max-width: var(--max-width);
-    margin: 0 auto;
-}
-
-.profile-header {
-    display: grid;
-    grid-template-columns: 3fr 2fr;
-    align-items: center;
-}
-
-.profile-header img {
-    width: 100%;
-    border-radius: var(--border-radius);
-    box-shadow: var(--color-secondary) 4px 4px;
-    grid-column: 2;
-    grid-row: 1/3;
-}
-
-.profile-referentia {
-    display: flex;
-    grid-column: 1 / -1;
-}
-</style>
+</LayoutBase>

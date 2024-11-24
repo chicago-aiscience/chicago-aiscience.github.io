@@ -1,7 +1,8 @@
 ---
-name: Alexander Wikner
+metaName: Alexander Wikner
 idCohort: "3"
 idGithub: []
 metaImageUrl: []
-title: Alexander Wikner
+metaTitle: Alexander Wikner
+isSchmidtFellow: true
 ---

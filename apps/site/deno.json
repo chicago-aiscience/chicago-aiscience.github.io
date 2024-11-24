@@ -8,7 +8,7 @@
         "start": "astro dev",
         "build": "astro check && astro build",
         "preview": "astro preview",
-        "test": "vitest --watch false",
+        "test": "vitest run --coverage",
         "astro": "astro"
     }
 }

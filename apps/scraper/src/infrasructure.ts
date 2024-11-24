@@ -1,4 +1,3 @@
-import type { Researcher } from '../../packages/schema/mod.ts';
 import type { EventType, TheEvent } from './domain.ts';
 
 export interface EventStore {

@@ -1,14 +1,15 @@
 ---
-import FooterV0 from '../components/Footer-v0.astro';
-import SidebarV0 from '../components/Sidebar-v0.astro';
+import Footer from '../components/Footer.astro';
+import Sidebar from '../components/Sidebar.astro';
 import '../styles/global.css'
 
 interface Props {
     title: string;
     description: string;
+    hasIntro?: boolean | undefined;
 }
 
-const { title, description } = Astro.props;
+const { title, description, hasIntro = false } = Astro.props;
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -18,42 +19,39 @@ const { title, description } = Astro.props;
     <meta name="description" content={description} />
     <title>{title}</title>
 </head>
-<body>
+<body class="layout">
 
-    <div class="layout">
+    <aside class='layout__sidebar'>
+        <slot name="sidebar">
+            <Sidebar />
+        </slot>
+    </aside>
 
-            <aside class=`layout__sidebar`>
-                <slot name="sidebar-aside">
-                    <SidebarV0 />
-                </slot>
-            </aside>
+    <div class="layout__content">
+        <header class="layout__header">
+            <h1>{title}</h1>
+            <slot name="header" />
+        </header>
 
-            <div class="layout__main">
-                <header class="layout__header">
-                    <h3>{title}</h3>
-                </header>
-
-
-                <main class="layout__content">
-                    <div class="layout__article">
-                        <slot />
-                    </div>
-
-
-                    <aside class={`layout__aside ${Astro.slots.has('aside') ? '' : 'layout__aside--hidden'}`}>
-                        <slot name="aside"></slot>
-                    </aside>
-                </main>
-
-                <footer class="layout__footer">
-                    <slot name="footer">
-                        <FooterV0 />
-                    </slot>
-                </footer>
+        {hasIntro && (
+            <div class="layout__intro">
+                <slot name="intro" />
             </div>
+        )}
 
+
+        <main class="layout__main">
+            <div class="layout__main-content">
+                <slot />
+            </div>
+        </main>
+
+        <footer class="layout__footer">
+            <slot name="footer">
+                <Footer />
+            </slot>
+        </footer>
     </div>
-
 
 </body>
 </html>

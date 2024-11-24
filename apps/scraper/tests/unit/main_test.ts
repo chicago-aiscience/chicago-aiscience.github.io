@@ -1,12 +1,12 @@
 import { assertEquals } from '@std/assert';
-import type { TheEvent } from './domain.ts';
+import type { TheEvent } from '../../src/domain.ts';
 import {
     InMemoryEventBus,
     InMemoryEventStore,
     JsonConfigParser,
     StringConfigLoader,
-} from './infrasructure.ts';
-import { ResearcherService } from './services.ts';
+} from '../../src/infrasructure.ts';
+import { ResearcherService } from '../../services.ts';
 
 const sampleConfig = `[
   {
@@ -29,15 +29,15 @@ Deno.test('researcher ingestion', async () => {
     const service = new ResearcherService(store, bus, parser, loader);
 
     const publishedEvents: TheEvent[] = [];
-    bus.subscribe('RESEARCHER_CREATED', (event) => {
+    bus.subscribe('RESEARCHER_FOUND', (event) => {
         publishedEvents.push(event);
         return Promise.resolve();
     });
 
     const researchers = await service.ingestProfiles(sampleConfig);
 
-    console.log(publishedEvents);
-    console.log(researchers);
+    console.log('\nPUBLISHED EVENTS:', publishedEvents);
+    console.log('\nRESEARCHERS:', researchers);
 
     assertEquals(researchers.length, 2);
 });

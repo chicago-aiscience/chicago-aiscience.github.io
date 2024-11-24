@@ -6,7 +6,7 @@ import tailwind from '@astrojs/tailwind';
 export default defineConfig({
     site: 'https://chicago-aiscience.github.io',
     srcDir: './src/',
-    outDir: '../../dist/',
+    outDir: '../../dist/site/',
     output: 'static',
 
     image: {

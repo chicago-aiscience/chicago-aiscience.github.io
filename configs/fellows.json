@@ -166,7 +166,8 @@
     },
     {
         "name": "Alexander Wikner",
-        "cohort": "3"
+        "cohort": "3",
+        "githubUser": ["awikner"]
     },
     {
         "name": "Kyle Crocker",

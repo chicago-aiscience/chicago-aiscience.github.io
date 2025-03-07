@@ -218,8 +218,10 @@ socialmedia:
 
 sass:
     sass_dir : _sass
-    style    : :compressed
-
+    quiet_deps: true
+    quietDeps: true
+    quiet: true
+    style: compressed
 
 #       ___                __      __  _
 #      /   |  ____  ____ _/ /_  __/ /_(_)_________

@@ -26,6 +26,9 @@ trace: build
 	docker run $(COMMON_DOCKER_ARGS) $(COMMON_PORT) $(IMAGE_NAME) $(JEKYLL_CMD) --trace
 
 clean:
-	docker volume rm jekyll_bundle_cache || true
+	-docker stop $$(docker ps -a --filter volume=jekyll_bundle_cache -q)
+	-docker rm $$(docker ps -a --filter volume=jekyll_bundle_cache -q)
+	-docker volume rm jekyll_bundle_cache
 
 rebuild: clean build serve
+	@echo "Rebuild"

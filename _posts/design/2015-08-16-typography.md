@@ -14,6 +14,7 @@ image:
     homepage: homepage_typography.jpg
     caption: Image by Antonio
     caption_url: "http://www.aisleone.net/"
+    path: "http://www.aisleone.net/"
 categories:
     - design
     - typography

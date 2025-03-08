@@ -1,22 +1,28 @@
 - name: GitHub
-  url: http://github.com/phlow
-  class: icon-github
-  title: Code und mehr...
+  url: https://github.com/chicago-aiscience
+  class: fab fa-github
+  title: University of Chicago AI + Science
+
+- name: TikTok
+  url: https://www.tiktok.com/@dsi_uchicago
+  class: fab fa-tiktok
+  title: 
 
 - name: YouTube
-  url: http://www.youtube.com/PhlowMedia
-  class: icon-youtube
-  title: "Videos, Video-Anleitungen und Filme von Phlow auf YouTube"
+  url: https://www.youtube.com/c/uchicagodatascienceinstitute
+  class: fab fa-youtube
+  title: University of Chicago Data Science Institute YouTube
 
 - name: Twitter
-  url: http://twitter.com/phlow
-  class: icon-twitter
-  title: "Immer das Neuste von Phlow gibt es auf Twitter"
+  url: https://x.com/DSI_UChicago/
+  class: fab fa-twitter
+  title: University of Chicago Data Science Institute Twitter
 
-- name: Mixcloud
-  url: http://www.mixcloud.com/phlow/
-  class: icon-cloud
-  title: "Mixe, was sonst?"
+- name: Instagram
+  url: https://www.instagram.com/dsi_uchicago/
+  class: fab fa-instagram
+  title: University of Chicago Data Science Institute Instagram
+
 
 # - name: Facebook
 #   url: http://www.facebook.com/
@@ -28,10 +34,6 @@
 #   class: icon-soundcloud
 #   title: ""
 
-# - name: Instagram
-#   url: http://instagram.com/
-#   class: icon-instagram
-#   title: ""
 
 # - name: Pinterest
 #   url: http://www.pinterest.com/

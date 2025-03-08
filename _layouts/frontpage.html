@@ -15,6 +15,12 @@ format: frontpage
 * First check, if widget is empty or not by checking if there is a title
 *
 {% endcomment %}
+
+<div class="row t60">
+    <div class="small-12 text-center columns">
+        <h1>Open Source Research Software Hub</h1>
+    </div>
+</div>
 <div class="row t60">
 	{% if page.widget1.image or page.widget1.video or page.widget1.title %}
 		{% include _frontpage-widget.html widget=page.widget1 %}

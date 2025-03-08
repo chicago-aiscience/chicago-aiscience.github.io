@@ -1,0 +1,43 @@
+---
+layout: default
+format: page
+# Don't forget to adjust the title in the front matter of the page
+---
+<div class="row">
+	<div class="medium-12 columns t30">
+		<!-- Introduction text section -->
+		<div class="panel radius">
+		  <h2>About Our Projects</h2>
+		  <p>[Spot #4]</p>
+		  <p>Put some stuff here....</p>
+		</div>
+	  </div>
+		
+	  <div class="medium-12 columns t30">
+		{% for project in site.projects %}
+		<div class="row t30">
+			<!-- Left side: Image column -->
+			<div class="medium-3 columns">
+				{% if project.image.title %}
+				<a href="{{ project.github_link }}" target="_blank">
+					<img src="{{ site.urlimg }}{{ project.image.title }}" width="100%" height="auto" style="max-width: 240px;" alt="{{ project.title | escape_once }}" itemprop="image">
+				</a>
+				{% endif %}
+			</div>
+			
+			<!-- Right side: Project information column -->
+			<div class="medium-9 columns">
+				<article>
+					<header>
+						<h2><a href="{{ project.github_link }}" target="_blank">{{ project.title }}</a></h2>
+					</header>
+					{% if project.teaser %}
+					<p class="teaser">{{ project.teaser }}</p>
+					{% endif %}
+					<a href="{{ project.github_link }}" class="button tiny radius" target="_blank">View on GitHub</a>
+				</article>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+</div>

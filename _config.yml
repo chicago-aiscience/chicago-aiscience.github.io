@@ -110,9 +110,9 @@ defaults:
       path: '' 				# an empty string here means all files in the project
       type: 'pages'
     values:
-      show_meta: false 	# Hide metadata for all pages
-      # sidebar:    		# Possible values › left, right › by default there will be no sidebar
-      comments: false
+      show_meta: false 	
+      sidebar: false   		# Possible values › left, right › by default there will be no sidebar
+      #comments: false
       author: University of Chicago DSI
   -
     scope:
@@ -123,8 +123,21 @@ defaults:
       # sidebar:        # Possible values › left, right › by default there will be no sidebar
       comments: false
       author: University of Chicago DSI     # Default author for posts
+  - 
+    scope:
+      path: ""
+      type: projects
+    values:
+      layout: page
+      show_meta: false
+      comments: false
+      author: University of Chicago DSI
+      sidebar: right
 
-
+collections:
+  projects:
+    output: true
+    permalink: /projects/:path/
 
 #       _   __            _             __  _
 #      / | / /___ __   __(_)___ _____ _/ /_(_)___  ____

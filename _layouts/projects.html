@@ -36,14 +36,14 @@ format: page
 		<article>
 		  <header>
 			<h2 style="margin-top: 0; margin-bottom: 5px;"><a href="{{ project.github_link }}" target="_blank">{{ project.title }}</a></h2>
-		  </header>
+		  </header>		  
 		  {% if project.authors %}
 		  <p class="authors" style="margin-bottom: 12px; font-style: italic; color: #666;">{{ project.authors }}</p>
-		  {% endif %}
+		  {% endif %}		  
 		  {% if project.teaser %}
 		  <p class="teaser" style="margin-bottom: 15px; line-height: 1.5;">{{ project.teaser }}</p>
 		  {% endif %}
-		  <a href="{{ project.github_link }}" class="button small radius" target="_blank">View on GitHub</a>
+		  <p><a href="{{ project.github_link }}" class="button small radius" target="_blank">View on GitHub</a></p>
 		</article>
 	  </div>
 	</div>

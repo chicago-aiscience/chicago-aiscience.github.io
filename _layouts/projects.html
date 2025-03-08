@@ -4,23 +4,31 @@ format: page
 # Don't forget to adjust the title in the front matter of the page
 ---
 <div class="row">
+
+	<div class="row t60">
+		<div class="small-12 text-center columns">
+			<h1>About our Projects</h1>
+		</div>
+	</div>
+	
 	<div class="medium-12 columns t30">
 		<!-- Introduction text section -->
 		<div class="panel radius">
-		  <h2>About Our Projects</h2>
 		  <p>[Spot #4]</p>
 		  <p>Put some stuff here....</p>
 		</div>
 	  </div>
 		
-	  <div class="medium-12 columns t30">
+	  <div class="row t30">
 		{% for project in site.projects %}
-		<div class="row t30">
-			<!-- Left side: Image column -->
+		<div class="row t30" style="margin-bottom: 30px;">
+			<!-- Left side: Image column with fixed dimensions -->
 			<div class="medium-3 columns">
 				{% if project.image.title %}
 				<a href="{{ project.github_link }}" target="_blank">
-					<img src="{{ site.urlimg }}{{ project.image.title }}" width="100%" height="auto" style="max-width: 240px;" alt="{{ project.title | escape_once }}" itemprop="image">
+					<img src="{{ site.urlimg }}{{ project.image.title }}" 
+						 style="width: 100%; height: 180px; object-fit: cover; border-radius: 4px;" 
+						 alt="{{ project.title | escape_once }}" itemprop="image">
 				</a>
 				{% endif %}
 			</div>
@@ -29,12 +37,15 @@ format: page
 			<div class="medium-9 columns">
 				<article>
 					<header>
-						<h2><a href="{{ project.github_link }}" target="_blank">{{ project.title }}</a></h2>
+						<h2 style="margin-top: 0; margin-bottom: 5px;"><a href="{{ project.github_link }}" target="_blank">{{ project.title }}</a></h2>
 					</header>
-					{% if project.teaser %}
-					<p class="teaser">{{ project.teaser }}</p>
+					{% if project.authors %}
+					<p class="authors" style="margin-bottom: 12px; font-style: italic; color: #666;">{{ project.authors }}</p>
 					{% endif %}
-					<a href="{{ project.github_link }}" class="button tiny radius" target="_blank">View on GitHub</a>
+					{% if project.teaser %}
+					<p class="teaser" style="margin-bottom: 15px; line-height: 1.5; max-height: 4.5em; overflow: hidden;">{{ project.teaser }}</p>
+					{% endif %}
+					<a href="{{ project.github_link }}" class="button small radius" target="_blank">View on GitHub</a>
 				</article>
 			</div>
 		</div>

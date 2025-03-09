@@ -23,6 +23,11 @@
   class: fab fa-instagram
   title: University of Chicago Data Science Institute Instagram
 
+- name: Bluesky
+  url: https://bsky.app/profile/dsi-uchicago.bsky.social
+  class: fab fa-bluesky
+  title: University of Chicago Data Science Institute Bluesky
+
 
 # - name: Facebook
 #   url: http://www.facebook.com/

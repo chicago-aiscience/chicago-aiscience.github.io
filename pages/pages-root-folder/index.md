@@ -10,17 +10,17 @@ header:
 widget1:
   title: "Program Information"
   url: 'https://datascience.uchicago.edu/research/ai-science/partnerships/schmidt-fellows/'
-  image: widget-1-302x182.jpg
-  text: '[Spot #1] need text and image (302X182) link to program info'
+  image: UChicago_Phoenix_Classic_2Color_Maroon_WhiteFill_RGB.png
+  text: '[Spot #1] need text and image (link to program info)'
 widget2:
-  title: "Available Software"
+  title: "Software Projects"
   url: '/projects/'
-  text: '[Spot #2] need text and image (302X182)'
-  video: '<a href="#" data-reveal-id="videoModal"><img src="http://phlow.github.io/feeling-responsive/images/start-video-feeling-responsive-302x182.jpg" width="302" height="182" alt=""/></a>'
+  text: '[Spot #2] need text and image (link to projects)'
+  image: widget-github-303x182.jpg
 widget3:
   title: "Program Fellows"
   url: 'https://aiscience.uchicago.edu/fellows/'
-  image: widget-github-303x182.jpg
+  image: fellows.png
   text: '[Spot #3] need text and image (302X182) link to the list of fellows'
 
 permalink: /index.html

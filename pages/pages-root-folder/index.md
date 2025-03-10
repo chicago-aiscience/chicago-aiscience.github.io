@@ -11,17 +11,17 @@ widget1:
   title: "Program Information"
   url: 'https://datascience.uchicago.edu/research/ai-science/partnerships/schmidt-fellows/'
   image: UChicago_Phoenix_Classic_2Color_Maroon_WhiteFill_RGB.png
-  text: '[Spot #1] need text and image (link to program info)'
+  text: '[Spot #1] Training scholars who seek to advance and accelerate the adoption of AI in the natural sciences'
 widget2:
   title: "Software Projects"
   url: '/projects/'
-  text: '[Spot #2] need text and image (link to projects)'
+  text: '[Spot #2] Text'
   image: widget-github-303x182.jpg
 widget3:
   title: "Program Fellows"
   url: 'https://aiscience.uchicago.edu/fellows/'
-  image: fellows.png
-  text: '[Spot #3] need text and image (302X182) link to the list of fellows'
+  image: fellows.jpg
+  text: '[Spot #3] Text'
 
 permalink: /index.html
 

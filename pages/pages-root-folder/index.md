@@ -6,22 +6,22 @@
 #
 layout: frontpage
 header:
-  image_fullwidth: header_unsplash_12.png
+  image_fullwidth: main_masthead.png
 widget1:
   title: "Program Information"
   url: 'https://datascience.uchicago.edu/research/ai-science/partnerships/schmidt-fellows/'
-  image: AISCILogo.png
-  text: '[Spot #1] Training scholars who seek to advance and accelerate the adoption of AI in the natural sciences'
+  image: AISCILogo_resized.png
+  text: 'Training scholars who seek to advance and accelerate the adoption of AI in the natural sciences'
 widget2:
   title: "Software Projects"
   url: '/projects/'
-  text: '[Spot #2] Software tools and packages developed by our research community that are freely available for academic and research purposes'
-  image: AISoftware.png
+  text: 'Software tools and packages developed by our research community that are freely available for academic and research purposes'
+  image: AISoftware_resized.png
 widget3:
   title: "Program Fellows"
   url: 'https://aiscience.uchicago.edu/fellows/'
-  image: fellows.jpg
-  text: "[Spot #3] Learn more about the Fellow's research"
+  image: fellows_resized.png
+  text: "Learn more about the Fellow's research"
 
 permalink: /index.html
 

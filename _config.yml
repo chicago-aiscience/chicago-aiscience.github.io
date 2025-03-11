@@ -47,7 +47,7 @@ logo: "logo.png"
 plugins:
     - jekyll-asciidoc
     - jekyll-gist
-    - jekyll-paginate
+    # - jekyll-paginate
     - jekyll-feed
 
 #       ____              _             __  _
@@ -57,11 +57,11 @@ plugins:
 #   /_/    \__,_/\__, /_/_/ /_/\__,_/\__/_/\____/_/ /_/
 #               /____/
 #
-paginate: 5                      # Paginates all X entries
-paginate_path: "blog/page:num"   # Pagination path › Important for blog page in /blog/ to work
+# paginate: 5                      # Paginates all X entries
+# paginate_path: "blog/page:num"   # Pagination path › Important for blog page in /blog/ to work
 
-feed:
-  disable: true
+# feed:
+#   disable: true
 
 # Theme works best with Kramdown (using the table of contents function)
 markdown           : kramdown
@@ -114,15 +114,6 @@ defaults:
       sidebar: false   		# Possible values › left, right › by default there will be no sidebar
       #comments: false
       author: University of Chicago DSI
-  -
-    scope:
-      path: ''
-      type: 'posts'
-    values:
-      show_meta: true   # Show metadata for all posts
-      # sidebar:        # Possible values › left, right › by default there will be no sidebar
-      comments: false
-      author: University of Chicago DSI     # Default author for posts
   - 
     scope:
       path: ""
@@ -157,8 +148,8 @@ collections:
 #   ___/ / /___/ /_/ /
 #  /____/_____/\____/    Verify Website to Webmaster Tools
 
-google_site_verification        : 'Vk0IOJ2jwG_qEoG7fuEXYqv0m2rLa8P778Fi_GrsgEQ'
-bing_webmastertools_id          : '0FB4C028ABCF07C908C54386ABD2D97F'
+# google_site_verification        : 'Vk0IOJ2jwG_qEoG7fuEXYqv0m2rLa8P778Fi_GrsgEQ'
+# bing_webmastertools_id          : '0FB4C028ABCF07C908C54386ABD2D97F'
 # yandex_site_verification      : ''
 # alexa_verify_id               : ''
 

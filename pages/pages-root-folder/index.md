@@ -10,18 +10,18 @@ header:
 widget1:
   title: "Program Information"
   url: 'https://datascience.uchicago.edu/research/ai-science/partnerships/schmidt-fellows/'
-  image: UChicago_Phoenix_Classic_2Color_Maroon_WhiteFill_RGB.png
+  image: AISCILogo.png
   text: '[Spot #1] Training scholars who seek to advance and accelerate the adoption of AI in the natural sciences'
 widget2:
   title: "Software Projects"
   url: '/projects/'
-  text: '[Spot #2] Text'
-  image: widget-github-303x182.jpg
+  text: '[Spot #2] Software tools and packages developed by our research community that are freely available for academic and research purposes'
+  image: AISoftware.png
 widget3:
   title: "Program Fellows"
   url: 'https://aiscience.uchicago.edu/fellows/'
   image: fellows.jpg
-  text: '[Spot #3] Text'
+  text: "[Spot #3] Learn more about the Fellow's research"
 
 permalink: /index.html
 

@@ -10,10 +10,6 @@ JEKYLL_CMD := bundle exec jekyll serve --config _config.yml,_config_local.yml --
 build: 
 	docker build . -t $(IMAGE_NAME)
 
-# Run with live reload
-reload: build
-	docker run $(COMMON_DOCKER_ARGS) $(COMMON_PORT) $(IMAGE_NAME) $(JEKYLL_CMD)
-
 # Run server (same as reload but with a different name)
 serve: build
 	docker run $(COMMON_DOCKER_ARGS) $(COMMON_PORT) $(IMAGE_NAME) $(JEKYLL_CMD)

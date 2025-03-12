@@ -4,7 +4,7 @@ COMMON_DOCKER_ARGS := -v $(PWD):/site -v jekyll_bundle_cache:/usr/local/bundle
 COMMON_PORT := -p 4000:4000
 JEKYLL_CMD := bundle exec jekyll serve --config _config.yml,_config_local.yml --livereload --host 0.0.0.0
 
-.PHONY: build reload server trace
+.PHONY: build serve inter clean trace
 
 # Build the Docker image
 build: 

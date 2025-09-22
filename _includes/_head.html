@@ -22,7 +22,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{{ title }}</title>
 
-    <link rel="stylesheet" type="text/css" href="{{ url }}/assets/css/styles_feeling_responsive.css">
+    <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}/assets/css/styles_feeling_responsive.css">
 	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/turbolinks/5.2.0/turbolinks.js"></script> -->
   {% if site.asciidoctor-enabled == true %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.0/css/font-awesome.min.css">
@@ -32,7 +32,7 @@
 	{% if site.asciidoctor-enabled != true %}
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 	{% endif %}
-	<script src="{{ url }}/assets/js/modernizr.min.js"></script>
+	<script src="{{ site.baseurl }}/assets/js/modernizr.min.js"></script>
 
 	<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.5.18/webfont.js"></script>
 	<script>
@@ -83,8 +83,8 @@
 
 	{% if page.mediaplayer == true %}
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-		<script src="{{ url }}/assets/mediaelement_js/mediaelement-and-player.min.js"></script>
-		<link rel="stylesheet" href="{{ url }}/assets/mediaelement_js/mediaelementplayer.min.css">
+		<script src="{{ site.baseurl }}/assets/mediaelement_js/mediaelement-and-player.min.js"></script>
+		<link rel="stylesheet" href="{{ site.baseurl }}/assets/mediaelement_js/mediaelementplayer.min.css">
 	{% endif %}
 
 	{% include _favicon.html %}

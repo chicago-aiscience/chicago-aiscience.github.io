@@ -56,7 +56,7 @@ format: frontpage
 {% if page.callforaction.url contains 'http' %}
 {% assign url = '' %}
 {% else %}
-{% capture url %}{{ site.url }}{{ site.baseurl }}{% endcapture %}
+{% capture url %}{{ site.baseurl }}{% endcapture %}
 {% endif %}
 {% if page.callforaction %}
     <div class="row t60 b60">

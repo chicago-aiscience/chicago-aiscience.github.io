@@ -18,6 +18,7 @@ format: page
 	</div>
 	  
 	{% for project in site.projects %}
+	  {% unless project.published == false %}
 	<div class="row t30" style="margin-bottom: 30px; display: flex; align-items: center;">
 	  <!-- Left side: Image column with fixed dimensions -->
 	  <div class="medium-3 columns" style="display: flex; align-items: center;">
@@ -46,5 +47,6 @@ format: page
 		</article>
 	  </div>
 	</div>
+	  {% endunless %}
 	{% endfor %}
   </div>

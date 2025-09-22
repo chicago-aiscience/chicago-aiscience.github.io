@@ -24,7 +24,7 @@
                 {% assign domain = '' %}
                 {% assign _baseurl = site.baseurl %}
               {% else %}
-                {% assign domain = site.url %}
+                {% assign domain = '' %}
                 {% assign _baseurl = site.baseurl %}
               {% endif %}
 
@@ -48,7 +48,7 @@
                       {% if dropdown_link.url contains 'http' %}
                         {% assign domain = '' %}
                         {% else %}
-                        {% assign domain = site.url %}
+                        {% assign domain = '' %}
                       {% endif %}
 
                       <li><a {% if dropdown_link.class %}class="{{dropdown_link.class}}"{% endif %} href="{{ domain }}{{ _baseurl }}{{ dropdown_link.url }}"{% if dropdown_link.url contains 'http' %} target="_blank"{% endif %}>{{ dropdown_link.title | escape }}</a></li>
@@ -84,7 +84,7 @@
                 {% assign domain = '' %}
                 {% assign _baseurl = site.baseurl %}
               {% else %}
-                {% assign domain = site.url %}
+                {% assign domain = '' %}
                 {% assign _baseurl = site.baseurl %}
               {% endif %}
 
@@ -110,7 +110,7 @@
                       {% if dropdown_link.url contains 'http' %}
                         {% assign domain = '' %}
                         {% else %}
-                        {% assign domain = site.url %}
+                        {% assign domain = '' %}
                       {% endif %}
 
                       <li><a {% if dropdown_link.class %}class="{{dropdown_link.class}}"{% endif %} href="{{ domain }}{{ _baseurl }}{{ dropdown_link.url }}"{% if dropdown_link.url contains 'http' %} target="_blank"{% endif %}>{{ dropdown_link.title | escape }}</a></li>

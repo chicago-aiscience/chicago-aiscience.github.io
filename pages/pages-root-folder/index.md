@@ -6,7 +6,7 @@
 #
 layout: frontpage
 header:
-  image_fullwidth: main_masthead.png
+  image_fullwidth: main_masthead_v1.png
 widget1:
   title: "Program Information"
   url: 'https://datascience.uchicago.edu/research/ai-science/partnerships/schmidt-fellows/'

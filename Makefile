@@ -7,7 +7,7 @@ JEKYLL_CMD := bundle exec jekyll serve --config _config.yml,_config_local.yml --
 .PHONY: build serve inter clean trace
 
 # Build the Docker image
-build: 
+build:
 	docker build . -t $(IMAGE_NAME)
 
 # Run server (same as reload but with a different name)

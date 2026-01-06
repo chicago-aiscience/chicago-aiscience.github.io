@@ -1,0 +1,9 @@
+[project]
+name = "chicago-aiscience-github-io"
+version = "1.0.0"
+description = "UChicago Data Science Institute Schmidt Sciences website for research software engineering"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "jupyter-book>=2.1.0",
+]

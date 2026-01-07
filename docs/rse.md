@@ -1,5 +1,5 @@
 ---
-title: Research Software Engineering
+title: Goals & Services
 ---
 
 This page details the goals and services offered by the Research Software Engineer to help guide and support Schmidt Fellows in their research software development.
@@ -26,27 +26,3 @@ The Research Software Engineer can help in a variety of ways and can support Sch
 - Evaluating or adopting new libraries and technologies
 
 These examples are intended as a starting point rather than a limitation.
-
-# Office Hours
-
-```{image} images/booking.png
-:link: https://calendar.app.google/XJzUy2dvXn4tKeoB9
-```
-
-Office hours are flexible to accommodate a wide range of research software engineering questions in support of developing high-quality, open-source, and sustainable research software aligned with Fellowship expectations.
-
-- Held Every **Thursday**
-- **Bookable** 30-minute time slots
-- [Booking Link](https://calendar.app.google/XJzUy2dvXn4tKeoB9)
-
-# Project Intake
-
-```{image} images/project_intake_form.png
-```
-
-In addition to office hours, we use a project intake form to help guide larger or longer-term research software engineering projects and collaborations.
-
-The form collects information about your technical goals, timelines, and software needs so we can better understand the scope of the work and plan appropriate support.
-
-Submitting the intake form helps ensure that requests are aligned with Fellowship expectations and allows us to prioritize effort, coordinate resources, and set realistic next steps for sustained collaboration.
-[Project intake form link.](https://docs.google.com/forms/d/e/1FAIpQLSdq0O1qz2xmegB7SBtazen1m-eGKProoUD1Hox2bAW1eTxFUQ/viewform?usp=header)

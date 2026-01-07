@@ -38,3 +38,38 @@ footer.article.footer a:hover {
         display: none;
     }
 }
+
+/* Horizontal card layout for profile cards */
+.card-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.card-horizontal img,
+.card-horizontal .image {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+/* Alternative: target card content directly */
+.card-horizontal > * {
+    flex: 0 0 auto;
+}
+
+.card-horizontal > *:first-child {
+    margin-right: 1rem;
+}
+
+/* Profile grid: make image column narrower */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Make the image card even more compact */
+.profile-grid > :first-child {
+    max-width: 200px;
+}

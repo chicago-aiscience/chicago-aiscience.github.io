@@ -1,7 +1,5 @@
-_site
-.bundle
-.DS_Store
-.jekyll-cache
-.jekyll-metadata
-.sass-cache
-Gemfile.lock
+# MyST build outputs
+_build
+
+# Virtual environment
+.venv

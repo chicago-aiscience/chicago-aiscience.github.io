@@ -1,30 +1,67 @@
 # Configuration
-IMAGE_NAME := jekyll
-COMMON_DOCKER_ARGS := -v $(PWD):/site -v jekyll_bundle_cache:/usr/local/bundle
-COMMON_PORT := -p 4000:4000
-JEKYLL_CMD := bundle exec jekyll serve --config _config.yml,_config_local.yml --livereload --host 0.0.0.0 --force_polling
+VENV := .venv
+DOCS_DIR := docs
+BUILD_DIR := $(DOCS_DIR)/_build
+HTML_DIR := $(BUILD_DIR)/html
+PORT := 8000
 
-.PHONY: build serve inter clean trace
+# Detect if uv is available
+UV := $(shell command -v uv 2> /dev/null)
+PYTHON := $(shell command -v python3 2> /dev/null || command -v python 2> /dev/null)
 
-# Build the Docker image
-build:
-	docker build . -t $(IMAGE_NAME)
+.PHONY: help install build serve clean rebuild check
 
-# Run server (same as reload but with a different name)
-serve: build
-	docker run $(COMMON_DOCKER_ARGS) $(COMMON_PORT) $(IMAGE_NAME) $(JEKYLL_CMD)
+# Default target
+help:
+	@echo "Available targets:"
+	@echo "  make install    - Install dependencies using uv"
+	@echo "  make build      - Build the Jupyter Book site"
+	@echo "  make serve      - Build and serve the site locally using 'jupyter book start'"
+	@echo "  make clean      - Remove build artifacts"
+	@echo "  make rebuild    - Clean and rebuild the site"
+	@echo "  make check      - Check for common issues"
 
-inter: build
-	docker run -it $(COMMON_DOCKER_ARGS) $(IMAGE_NAME) /bin/bash
+# Install dependencies
+install:
+ifeq ($(UV),)
+	@echo "Error: uv is not installed. Install it from https://github.com/astral-sh/uv"
+	@exit 1
+endif
+	@echo "Installing dependencies with uv..."
+	uv sync
+	@echo "Dependencies installed successfully!"
 
-# Run server with trace option for debugging
-trace: build
-	docker run $(COMMON_DOCKER_ARGS) $(COMMON_PORT) $(IMAGE_NAME) $(JEKYLL_CMD) --trace
+# Build the Jupyter Book site
+build: install
+	@echo "Building Jupyter Book site..."
+	cd $(DOCS_DIR) && $(if $(UV),uv run jupyter book build --html,jupyter book build --html)
+	@echo "Build complete! Output available in $(HTML_DIR)"
 
+# Serve the site locally (builds and hosts)
+serve: install
+	@echo "Starting Jupyter Book development server..."
+	@echo "The site will be available at http://localhost:8000 (or the next available port)"
+	@echo "Press Ctrl+C to stop the server"
+	cd $(DOCS_DIR) && $(if $(UV),uv run jupyter book start,jupyter book start)
+
+# Clean build artifacts
 clean:
-	-docker stop $$(docker ps -a --filter volume=jekyll_bundle_cache -q)
-	-docker rm $$(docker ps -a --filter volume=jekyll_bundle_cache -q)
-	-docker volume rm jekyll_bundle_cache
+	@echo "Cleaning build artifacts..."
+	rm -rf $(BUILD_DIR)
+	@echo "Clean complete!"
 
-rebuild: clean build serve
-	@echo "Rebuild"
+# Rebuild: clean and build
+rebuild: clean build
+
+# Check for common issues
+check:
+	@echo "Checking project setup..."
+	@echo -n "Python: "
+	@$(PYTHON) --version 2>/dev/null || echo "NOT FOUND"
+	@echo -n "uv: "
+	@$(if $(UV),echo "FOUND ($(UV))",echo "NOT FOUND - Install from https://github.com/astral-sh/uv")
+	@echo -n "Virtual environment: "
+	@test -d $(VENV) && echo "EXISTS" || echo "NOT FOUND (run 'make install' first)"
+	@echo -n "Build directory: "
+	@test -d $(HTML_DIR) && echo "EXISTS" || echo "NOT FOUND (run 'make build' first)"
+	@echo "Check complete!"

@@ -1,0 +1,75 @@
+/* Header image styling */
+.header-image img {
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+    border-radius: 6px;
+  }
+
+.header-image {
+    text-align: center;
+  }
+
+/* Foot styling */
+footer.article.footer p {
+  margin: 0;
+  text-align: center;
+}
+
+/* UChicago maroon links in the footer */
+footer.article.footer a {
+  color: #800000;
+  text-decoration: underline;
+}
+
+footer.article.footer a:hover {
+  color: #660000;
+}
+
+/* Optional: make header image span wider */
+@media (min-width: 992px) {
+    .header-image img {
+      width: 110%;
+      margin-left: -5%;
+    }
+  }
+
+@media (max-width: 576px) {
+    .header-image {
+        display: none;
+    }
+}
+
+/* Horizontal card layout for profile cards */
+.card-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.card-horizontal img,
+.card-horizontal .image {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+/* Alternative: target card content directly */
+.card-horizontal > * {
+    flex: 0 0 auto;
+}
+
+.card-horizontal > *:first-child {
+    margin-right: 1rem;
+}
+
+/* Profile grid: make image column narrower */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Make the image card even more compact */
+.profile-grid > :first-child {
+    max-width: 200px;
+}

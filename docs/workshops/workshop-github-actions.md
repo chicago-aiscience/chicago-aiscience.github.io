@@ -554,7 +554,7 @@ touch .github/workflows/deploy.yml
 
 - Notice the other `*.yml` files: There is one per job (e.g., lint-and-format, scan, test, version, release, etc.) defined in the `.github/workflows` directory
 - These are reusable workflows and allow us to simplify the workshop but still provide a full example that you can incorporate into your own codebases and are denoted as "(Internal)" so you know they are to be used in a top-level workflow
-- See the `.github/workflows/deploy-full-example.yml` file for the entire CI/CD pipeline
+- See the `.github/workflows/deploy-full-example.yml` file for the entire CI/CD pipeline but note this includes a scan job and a container job not covered here as it is useful to have
 
 ### 👉  **Step 3.** Define a name for the workflow and when it should be triggered
 

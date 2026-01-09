@@ -285,10 +285,16 @@ jobs:
     steps:
 ```
 
-> ✨ Pause for Reflection ✨
-> 1. How do you currently keep track of your code and the results you produce including figures and plots?
-> 2. How do you ensure reproducibility for publications?
-> 3. How would you use CI/CD or GitHub Actions in your codebase? What "jobs" do you think are the most useful?
+> ✨ Pause for Reflection #1 (3–4 min) ✨
+> Quick reset: Write short bullets, no full sentences needed. Please include your thoughts on this [Google doc](https://docs.google.com/document/d/19-28pXL77WDWhI6k-Yr0rrkQFG24mQcHeOBqfGG1Il4/edit?usp=sharing).
+> 1. **Where do your “results” live right now?**
+>     - e.g., figures/plots, tables, intermediate files, model weights, notebooks, manuscripts
+>     - What’s the “source of truth” when someone asks: “Which run produced Figure 2?”
+> 2. **Imagine it’s 6 months from now and you need to reproduce a key figure.** What are the top 2 things most likely to break?
+>    - (dependencies? data path? randomness? missing scripts?)
+> 3. **Pick 1 workflow job you’d want “future you” to have. Why?**
+>     - Lint/format, tests, versioning, release, container build, docs
+> 4. **Optional pair-share (1 min):** Tell your neighbor what your “biggest reproducibility failure mode” is—and which job would reduce it.
 
 ## GitHub Actions quotas and limitations
 
@@ -829,12 +835,14 @@ jobs:
 
 Next we will discuss how to introduce dependencies and define sequential job execution, executing on a list of items to generate jobs for each item in the list, and how to download and upload artifacts to communicate between jobs.
 
-> ✨ Pause for Reflection ✨
->
-> We have created a full GitHub Actions workflow using reusable workflows as jobs.
->
-> - Does this seem adaptable to your own code? What might be the most useful job?
-> - What seems hard or is a barrier to use (e.g., getting linting up and running and then resolving errors)? What doesn't make sense?
+> ✨ Pause for Reflection #2 (2–3 min) ✨
+> We’ve created a full GitHub Actions workflow using reusable workflows as jobs.
+> - **Most transferable piece:** Which job feels easiest to adopt in your own repo this week? Why?
+> - **Biggest friction point:** What feels like the main barrier right now?
+>     - setup effort, YAML syntax, dealing with lint errors, permissions/tokens, tests not existing, unclear versioning
+> - **One small next step:** What’s a “minimum viable CI” you’d actually commit to?
+>     - Example: “Just lint on every PR” or “Just compute version + create a release manually.”
+> **If you’re stuck:** Write down the one sentence you’d want CI to guarantee (e.g., “main always runs end-to-end without manual steps”).
 
 # Lesson 3: Job dependencies (sequential execution)
 
@@ -1189,12 +1197,13 @@ jobs:
 - But you don't want require the "Release" job to run before the code is scanned so you leave that out of the `needs` list.
 - Although it is probably a good idea to freeze your codebase on code that does not have vulnerabilities.
 
-> ✨ Pause for Reflection ✨
->
-> You are now able to creat ea relase and if you automate this (alongside a development brancing strategy)  you can automatically create releases without having to remember and include specific versions in publications, presentations, etc.
->
-> - Were there any pieces that didn't make sense or should be clarified?
-> - How could you implement this in your own code?
+> ✨ Pause for Reflection #3 (3 min) ✨
+> You now know how to create a release automatically after versioning so your codebase can be referenced precisely.
+> 1. What clicked, and what didn’t? Name one concept you feel solid on and one that’s still fuzzy.
+> 2. Where would you place this in your real workflow?
+>    - On every push to main? Only on tagged commits? Only when a PR is merged?
+> 3. What would you want included in your release “artifact set”?
+>    - source snapshot only, container image, generated figures, config files, environment lockfile, data manifest
 
 # Lesson 4: Executing on a list using `matrix` and using artifacts - BONUS
 
@@ -1590,11 +1599,11 @@ jobs:
       app_version: ${{ needs.version.outputs.app_version }}
 ```
 
-> ✨ Pause for Reflection ✨
->
-> You have learned a lot about GitHub Actions and CI/CD. Some of it maybe useful and while other pieces may be less applicable. Feel free to use any of the workflows in your own codebases. A good place to start may be with the "Version" and "Release" jobs.
->
-> Any questions on the `matrix` strategy or artifacts?
+> ✨ Pause for Reflection #4 (2–3 min) ✨
+> You’ve seen two powerful add-ons: matrix testing and artifacts.
+> 1. Matrix: Would testing multiple Python versions help your collaboration, or just add noise? Why?
+> 2. Artifacts: What’s one file you wish your workflow produced automatically every run?
+    - e.g., a plot, metrics JSON, model evaluation report, parameter summary, logs, a paper-ready figure
 
 # Lessons Summary
 

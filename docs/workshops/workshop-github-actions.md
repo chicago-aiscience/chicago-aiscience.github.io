@@ -1,6 +1,6 @@
 # GitHub Actions workflows for reproducible science [DRAFT]
 
-## Repository: https://github.com/chicago-aiscience/workshop-github-actions
+## Repository: https://github.com/chicago-aiscience/workshop-github-actions-2026-feb
 
 ## Objectives
 
@@ -19,7 +19,73 @@ By the end of this workshop, participants will be able to:
 
 - 👉 - Some action should be taken in the workshop steps (indicates interactive step)
 - 🧰 - A tip that might make something easier or provides further explanation
-- 🔍 - How to adapt the current workflow step to your own code base
+- 🔍 - How to adapt the current workflow step to your own codebase
+- ✨ - Time to pause for reflection and absorb content
+- 💬 - Indicates a time to pause for questions and open discussion during the live workshop
+
+## Pre-requisites
+
+This workshop assumes some familiarity with GitHub and Python, but no prior experience with GitHub Actions or CI/CD is required.
+
+Before attending, participants should complete the following:
+
+### Required
+
+- **A GitHub account**
+  - You must be able to clone repositories and push commits to GitHub.
+  - Public repositories are recommended so GitHub Actions runs are free.
+
+- **Basic Git and GitHub knowledge**
+  - You should be comfortable with:
+    - Cloning a repository
+    - Creating and committing files
+    - Pushing commits to a branch (e.g. `main`)
+  - You do *not* need advanced Git skills (rebasing, submodules, etc.).
+
+- **A local development environment**
+  - A laptop with macOS, Linux, or Windows
+  - A terminal or command prompt
+
+- **Python installed locally**
+  - **Python 3.10 or newer**
+  - You should be able to run:
+    ```bash
+    python --version
+    ```
+  - No prior experience with Python packaging is required.
+
+- **GitHub Personal Access Token (PAT)**
+  - You will need a **GitHub Personal Access Token** to allow workflows to authenticate with GitHub when creating commits, tags, or releases.
+  - Create a **fine-grained personal access token** or **classic token** with at least:
+    - `repo` asnd `workflow` (classic) **or**
+    - Repository **Contents: Read and write** (fine-grained)
+  - Save the token somewhere secure; you may need it when you push code up to your repository
+  - GitHub documentation:
+    https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
+  - See ["Appendix: Create a GitHub Personal Access Token"](#appendix-create-a-github-personal-access-token) for details
+
+### Recommended (but not strictly required)
+
+- **Familiarity with Python scripts**
+  - Understanding what a Python script does and how to run one
+  - You do *not* need to be an expert Python developer
+
+- **Basic understanding of configuration files**
+  - Some exposure to formats like YAML, TOML, or JSON is helpful
+  - YAML will be introduced during the workshop
+
+- **Text editor or IDE**
+  - Examples: VS Code, PyCharm, Vim, or similar
+  - Syntax highlighting for YAML is helpful but optional
+
+### Not Required
+
+- Prior experience with GitHub Actions or CI/CD
+- Experience publishing Python packages
+- Docker or container experience
+- HPC or cloud computing experience
+
+**Note:** All workflows are executed using GitHub-hosted runners. You will not need to configure any external infrastructure or credentials for the core workshop material.
 
 # Lesson 1: GitHub Actions introduction with a full example
 
@@ -38,11 +104,13 @@ But what does that mean for a scientific algorithm or workflow?
 - How do you tie code changes to results that are then referenced in a publication?
 - How do you support reproducible execution?
 
-A GitHub Actions workflow is a YAML file that defines automated tasks to run in response to events like pushes, pull requests, or manual triggers. GitHub Actions workflows can be used to support reproducible science in existing code bases borrowing from traditional deployment practices followed by Python package developers.
+We will work toward answering these questions throughout the workshop. The short answer is that CI/CD (which includes GitHub Actions) provides a practical framework for addressing them. However, to apply these ideas effectively to scientific code, we first need to build a foundation in how CI/CD works and how it can be adapted beyond traditional software packaging and deployment.
+
+At its core, a GitHub Actions workflow is a YAML file that defines automated tasks to run in response to events such as pushes, pull requests, or manual triggers. By borrowing established practices from Python package development and software engineering, these workflows can be used to support reproducible execution, connect code changes to results, and bring CI/CD concepts into existing scientific codebases.
 
 🧰 Throughout this workshop, remember: workflows define _when_ automation runs, jobs define _what_ runs, steps define _how_ it runs, and actions package reusable functionality that steps can run. This will become more clear as we work through examples.
 
-[This GitHub repository](https://github.com/chicago-aiscience/workshop-sst) contains implemented best practices and forms the foundation for the RSE workshop series. It contains:
+[This GitHub repository](https://github.com/chicago-aiscience/workshop-sst) contains _everything_!! It includes implemented best practices and forms the foundation for the RSE workshop series (this workshop's repository was created from it). It contains:
 
 - A toy, working example of predicting climate patterns in the tropical Pacific Ocean from sea surface temperature data. It is simple but demonstrates some key operations found in scientific algorithms: Data source aggregation, data processing, and data visualization
 - A fully defined GitHub Actions workflow following best practices and version control. (Does require use of GitHub secrets which is a more advanced topic.) [Full GitHub Actions definition file](https://github.com/chicago-aiscience/workshop-sst/blob/main/.github/workflows/deploy.yml)
@@ -54,6 +122,8 @@ A GitHub Actions workflow is a YAML file that defines automated tasks to run in 
 - Branch protections and other GitHub repository settings that support the long term development and maintenance of the codebase
 
 This workshop focuses on GitHub Actions workflows for reproducible science and so primary interest may lie in [the definition file]( https://github.com/chicago-aiscience/workshop-sst/blob/main/.github/workflows/deploy.yml). Let's walk through some of the workflow sections to better understand what you can do with GitHub actions and how it supports our goal of tying versions of code to results.
+
+-- 💬 *Pause for questions* --
 
 ## Workflow set up
 
@@ -68,7 +138,7 @@ on:
   push:
     branches: [ dev, main ]
 ```
-- You can automatically trigger workflow execution using different event types. In this case you can trigger it to run when ever a commit is pushed to the `dev` or `main` branches
+- You can automatically trigger workflow execution using different event types. In this case you can trigger it to run whenever a commit is pushed to the `dev` or `main` branches
 	- [Documentation for the `on` keyword](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#on)
 	- [Documentation on event types](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
 
@@ -93,9 +163,9 @@ jobs:
 
 ## Lint and Format Job
 
-The lint and format job uses `ruff` to lint and format the code base. Both linting and formatting are about code quality and help maintain a codebase over time keeping the code "clean" and formatted through versions.
+The lint and format job uses `ruff` to lint and format the codebase. Both linting and formatting are about code quality and help maintain a codebase over time keeping the code "clean" and formatted through versions.
 
-A linter will analyze code and flag bugs, error-prone patterns, unused variables and imports, violation of code rules.
+A linter will analyze code and flag bugs, error-prone patterns, unused variables and imports, and violations of code rules.
 
 A formatter rewrites your code's layout so it follows a standard style around indentation, spacing, line breaks, quote style, and brace placement.
 
@@ -109,7 +179,7 @@ This repo uses `ruff` for both linting and formatting. [The Ruff Formatter Docum
 
 ## Scan Job
 
-The scan job scans the code base for any security vulnerabilities and reports on them in the `Security` tab in the GitHub repository. This ensures anything to deploy to a HPC cluster, the cloud, or collaborators' laptops does not include vulnerabilities that could impact computing and risk data breaches.
+The scan job scans the codebase for any security vulnerabilities and reports on them in the `Security` tab in the GitHub repository. This ensures anything deployed to a HPC cluster, the cloud, or collaborators' laptops does not include vulnerabilities that could impact computing and risk data breaches.
 
 ```yaml
   scan:
@@ -124,7 +194,7 @@ This repo uses GitHub's code scanning. [GitHub code scanning documentation](http
 
 ## Test Job
 
-The test job executes existing unit tests located in the `test` directory on multiple Python versions using a `matrix` (more to follow in the workshop). This ensures any changes you made does not break previous functionality and execution of the code is performing as you would expect.
+The test job executes existing unit tests located in the `test` directory on multiple Python versions using a `matrix` (more to follow in the workshop). This ensures any changes you made do not break previous functionality and execution of the code is performing as you would expect.
 
 ```yaml
   test:
@@ -137,7 +207,7 @@ The test job executes existing unit tests located in the `test` directory on mul
 
 ## Version Job
 
-This step is a little bit complicated as version control can be hard! This steps takes the version as defined in the `pyproject.toml` file and updates it based on the current branch (as determined by the push trigger). So this job locates the next version of the application. This is super helpful in tying results to code as a version provides a numeric tag which can be used to identify code modifications and supports the creation of a release (the last step in the workflow).
+This step is a little bit complicated as version control can be hard! This steps takes the version as defined in the `pyproject.toml` file and updates it based on the current branch (as determined by the push trigger). So this job locates the next version of the application. **This is super helpful in tying results to code** as a version provides a numeric tag which can be used to identify code modifications and supports the creation of a release (the last step in the workflow).
 
 ```yaml
 version:
@@ -155,7 +225,9 @@ version:
 
 This job builds a Docker container, tags it with a specific version, and deploys it to the [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry). The resulting containerized executable captures a fixed snapshot of the code _and_ its dependencies, ensuring it can be run consistently across different environments.
 
-By versioning and hosting the container alongside the codebase, you create a stable, citable artifact that can be referenced to **reproduce the exact computational results used in a publication**. This makes it possible to rerun analyses, regenerate figures, and validate results long after the original development environment has changed—supporting transparency, reproducibility, and long-term research integrity. (Plus it is automated so you don't have to manually build a container with each release.)
+By versioning and hosting the container alongside the codebase, you create a stable, citable artifact that can be referenced to **reproduce the exact computational results used in a publication**.
+
+This makes it possible to rerun analyses, regenerate figures, and validate results long after the original development environment has changed supporting transparency, reproducibility, and long-term research integrity. (Plus it is automated so you don't have to manually build a container with each release.)
 
 ```yaml
 build-deploy:
@@ -172,7 +244,9 @@ build-deploy:
 
 The release job creates a release in the GitHub repository. A release generates compressed archives of your codebase that capture all modifications at the time the release is created. You can also include release notes, a list of contributors, and links to binary files. [See the documentation for more information](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
 
-This is really helpful for tying specific code modifications to results. By associating a particular version of your code with a release, you can support reproducible executions of your algorithms and reference that exact version in a publication. In our example, the release does not include a full executable since we rely on the container image for that, but it does allow us to retain compressed source archives that can be used to reproduce results from a specific version in the future.
+This is really helpful for tying specific code modifications to results. By associating a particular version of your code with a release, you can support reproducible executions of your algorithms and reference that exact version in a publication.
+
+In our example, the release does not include a full executable since we rely on the container image for that, but it does allow us to retain compressed source archives that can be used to connect results to a specific version.
 
 ```yaml
 release:
@@ -211,6 +285,17 @@ jobs:
     steps:
 ```
 
+> ✨ Pause for Reflection #1 (3–4 min) ✨
+> Quick reset: Write short bullets, no full sentences needed. Please include your thoughts on this [Google doc](https://docs.google.com/document/d/19-28pXL77WDWhI6k-Yr0rrkQFG24mQcHeOBqfGG1Il4/edit?usp=sharing).
+> 1. **Where do your “results” live right now?**
+>     - e.g., figures/plots, tables, intermediate files, model weights, notebooks, manuscripts
+>     - What’s the “source of truth” when someone asks: “Which run produced Figure 2?”
+> 2. **Imagine it’s 6 months from now and you need to reproduce a key figure.** What are the top 2 things most likely to break?
+>    - (dependencies? data path? randomness? missing scripts?)
+> 3. **Pick 1 workflow job you’d want “future you” to have. Why?**
+>     - Lint/format, tests, versioning, release, container build, docs
+> 4. **Optional pair-share (1 min):** Tell your neighbor what your “biggest reproducibility failure mode” is—and which job would reduce it.
+
 ## GitHub Actions quotas and limitations
 
 GitHub Actions usage is free for **public repositories**. Any usage beyond this is billed to your account. See [billing documentation](https://docs.github.com/en/billing/concepts/product-billing/github-actions) for more information.
@@ -239,19 +324,26 @@ You can now explain what GitHub Actions workflows are and identify the core comp
 
 The full example is pretty complex! For this workshop, we will use a simpler version that still includes all of the pieces from the complete example, but lets you start simple and add one piece at a time. The workshop content will also highlight checkpoints in the code  and point out (🔍) how to modify GitHub actions for existing code so that it may be applicable to your own codebases.
 
+-- 💬 *Pause for questions* --
+
 # Lesson 2: Getting started and defining a workflow
 
 This lesson will cover how to get started with GitHub Actions starting with some background information on YAML and the structure of GitHub Action workflow files. The lesson will then cover how to create your first GitHub Action workflow definition file and introduce key components as we add various operations to the file.
 
+This lesson marks the start of the hands-on portion of the workshop and focuses on this GitHub repository. The repository was created by distilling the larger example introduced in Lesson One into a simpler, more focused workflow. Its goal is to help build a solid foundation in GitHub Actions before layering on more complexity.
+
 ***Objectives:***
 - Create a `pyproject.toml` file to support project versioning
 - Define an initial GitHub Actions workflow file with a name, when it should be triggered, and permissions
-- Define a "Lint + Format" job that lints and formats the code base
+- Define a "Lint + Format" job that lints and formats the codebase
 - Define a "Version" job that provides versioning for the project
 
 ## YAML and defining a GitHub Action workflow
 
-GitHub Action workflows are defined in YAML. YAML is a human-readable data serialization standard. It includes a syntax that relies on indentation and key-value pairs. It represents data structures like lists (sequences) and dictionaries (mappings).
+GitHub Action workflows are defined in YAML:
+- YAML is a human-readable data serialization standard.
+- It includes a syntax that relies on indentation and key-value pairs.
+- It represents data structures like lists (sequences) and dictionaries (mappings).
 
 🧰 A YAML file indents can be defined with tabs or spaces but by convention it is best to define indents with two spaces.
 
@@ -296,7 +388,7 @@ A GitHub Actions workflow is a YAML file that tells GitHub what to do automat
 | `with`                | Provides input parameters to an action or reusable workflow.          | `with: python-version: "3.11"`        |
 | Environment variables | Key–value pairs available to jobs and steps.                          | `env: MY_VAR=value`                   |
 
-**Workflows contain jobs → jobs contain steps → steps run actions or commands.** Reusable workflows are workflows that call other workflows to avoid repetition.
+🧰 **Workflows contain jobs → jobs contain steps → steps run actions or commands.** Reusable workflows are workflows that call other workflows to avoid repetition.
 
 Remember, workflows define _when_ automation runs, jobs define _what_ runs, steps define _how_ it runs, and actions package reusable functionality that steps can run.
 
@@ -344,15 +436,57 @@ In order for the version step to execute correctly, we need a way to indicate a 
 
 **Brief note on project structure**
 
-The GitHub Actions workflow definition is broken into reusable workflows where there is one workflow per job. We will refer to these reusable workflows as jobs in the context of this workshop as they are intended for you to be able to plug into your own code bases and use. We will indicate when you can re-use a workflow job and what inputs and permissions are required with a 🔍 symbol.
+The GitHub Actions workflow definition is broken into reusable workflows where there is one workflow per job. We will refer to these reusable workflows as jobs in the context of this workshop as they are intended for you to be able to plug into your own codebases and use. We will indicate when you can re-use a workflow job and what inputs and permissions are required with a 🔍 symbol.
 
 🧰 It should be noted that typically, the jobs are all defined in a single file and there is no need to break these up by job unless you want to reuse specific definition files across repositories and projects. Example file without reusable workflow "jobs": https://github.com/chicago-aiscience/workshop-sst/blob/main/.github/workflows/deploy.yml
 
 🧰 Note on terminology: In GitHub Actions, a _reusable workflow_ is technically a workflow that calls another workflow. In this workshop, we refer to these reusable workflows as “jobs” because they behave like plug-in jobs you can reuse across repositories.
 
+-- 💬 *Pause for Questions* --
+
+## 👉 Step 0. Create a new repository
+
+Creating a new repostiry from the template workshop repo. Taken from ["Creating a repository from a template"](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template#creating-a-repository-from-a-template) GitHub documentation.
+
+*Note - This repository is the simplified version of the larger example given in Lesson One.*
+
+1. Navigate to the main page of the repository: https://github.com/chicago-aiscience/workshop-github-actions-2026-feb
+2. Above the file list and to the right next to the repository name, click "Use this template"
+
+![GitHub Actions](../images/workshop-github-actions/l2s0t2.png)
+
+3. Select "Create a new repository"
+
+![GitHub Actions](../images/workshop-github-actions/l2s0t3.png)
+
+4. Leave the "Start with a template" and "Include all branches" fields set to their defaults
+4. Check that your GitHub username is listed in the "Owner" dropdown menu
+5. Type a name for your repository: `workshop-github-actions-2026-feb`
+6. Include a description if you would like
+7. Leave the "Choose visibility" field set to "Public"
+8. Click "Create repository"
+
+![GitHub Actions](../images/workshop-github-actions/l2s0t8.png)
+
+9. Copy the link to clone your new repository by copying the "HTTPS" link from the "<> Code" dropdown
+
+![GitHub Actions](../images/workshop-github-actions/l2s0t9.png)
+
+10. Pick a location on your computer (replacing `<code-location>` with a path on your computer) and clone the repository you just created (replacing `<paste-link-here>` with the copied link)
+    ```bash
+    cd <code-location>
+    git clone <paste-link-here>
+    ```
+11. Navigate to the workshop directory by running the following command:
+    ```bash
+    cd workshop-github-actions-2026-feb
+    ```
+
+-- 💬 *Pause for Questions* --
+
 ## 👉 Step 1. Create a `pyproject.toml`
 
-A single place to define a Python project and how it should be installed and run. It defines details like:
+The `pyproject.toml` file is a single place to define a Python project and how it should be installed and run. It defines details like:
 
 - The name of your project
 - The version of your project
@@ -362,12 +496,12 @@ A single place to define a Python project and how it should be installed and run
 
 *Let's add a `pyproject.toml` file to the repository.*
 
-Here is a minimal example:
+Here is a minimal definition:
 
 ```toml
 [project]
 name = "sst"
-version = "0.6.6"
+version = "0.1.0"
 description = "A sea surface temperature ML prediction package for workshops (SST + ENSO)."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -391,20 +525,26 @@ sst = "sst.cli:app"
 
 ****Note the `version` key as that is important for the version GitHub Actions job.***
 
-> 🔍 Checkpoint #1: You can use the following examples as a template to create your own `project.toml` for your code base and fill in the necessary details for the project `[project]`, dependencies, and script entry point `[project.scripts]`.  Then you can implement versioning for your own projects. The minimum requirement for this workshop is to have a `version` key specified.
+🔍 Checkpoint #1: You can use the following examples as a template to create your own `pyproject.toml` for your codebase and fill in the necessary details for the project `[project]`, dependencies, and script entry point `[project.scripts]`.
+
+- Then you can implement versioning for your own projects. The minimum requirement for this workshop is to have a `version` key specified and an entrypoint `[project.scripts]` defined for testing.
 
 Steps to add the file to the GitHub repository:
 
 1. Create the file: `touch pyproject.toml`
 2. Open the file and copy and paste the above definition
-3. Let's change the version to: `0.6.4`
-4. Save the file
-5. Commit the file to the repository on the `main` branch
+3. Add your name to the `authors` list:
+    ```toml
+    authors = [{ name = "Nikki Tebaldi }, { name = "Your Name" }]
+    ```
+3. Save the file
+4. Commit the file to the repository on the `main` branch
+    ```bash
+    git add pyproject.toml
+    git commit -m "Define a pyproject file that points to a specific version"
+    ```
 
-```bash
-   git add pyproject.toml
-   git commit -m "Define a pyproject file that points to a specific version"
-```
+-- 💬 *Pause for Questions* --
 
 ## Define a GitHub Actions workflow file
 
@@ -412,15 +552,15 @@ Steps to add the file to the GitHub repository:
 
 ### 👉  **Step 2.** Create a definition file
 
-Make sure you run this from the root of the GitHub repository)
+Make sure you run this from the root of the GitHub repository
 
 ```bash
 touch .github/workflows/deploy.yml
 ```
 
 - Notice the other `*.yml` files: There is one per job (e.g., lint-and-format, scan, test, version, release, etc.) defined in the `.github/workflows` directory
-- These are reusable workflows and allow us to simplify the workshop but still provide a full example that you can incorporate into your own code bases and are denoted as "(Internal)" so you know they are to be used in a top-level workflow
-- See the `.github/workflows/deploy-full-example.yml` file for the entire CI/CD pipeline
+- These are reusable workflows and allow us to simplify the workshop but still provide a full example that you can incorporate into your own codebases and are denoted as "(Internal)" so you know they are to be used in a top-level workflow
+- See the `.github/workflows/deploy-full-example.yml` file for the entire CI/CD pipeline but note this includes a scan job and a container job not covered here as it is useful to have
 
 ### 👉  **Step 3.** Define a name for the workflow and when it should be triggered
 
@@ -452,19 +592,20 @@ Add this to the end of the `deploy.yml` file under the `workflow_dispatch` conte
 
 ```yaml
 permissions:
-  contents: write
+  contents: read
 ```
 
 Permissions control what the GitHub Actions runner is allowed to do on your behalf, such as creating releases or pushing tags. Using the minimum required permissions is a best practice for security and reproducibility.
 
 Some common permissions include:
 
-| Permission               | What it allows                                                 | Typical use in workflows                                             |     |
-| ------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------- | --- |
-| `actions: read`          | Read information about workflow runs and jobs.                 | Used by tools like CodeQL to report status and gather run metadata.  |     |
-| `contents: write`        | Read and modify repository contents (commits, tags, releases). | Required for version bumping, tagging, and creating GitHub releases. |     |
-| `packages: write`        | Publish packages to GitHub Package Registry (e.g. GHCR).       | Used to build and push Docker images to `ghcr.io`.                   |     |
-| `security-events: write` | Upload security scan results to GitHub.                        | Required for CodeQL code scanning and SARIF uploads.                 |     |
+| Permission               | What it allows                                                 | Typical use in workflows                                             |
+| ------------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `actions: read`          | Read information about workflow runs and jobs.                 | Used by tools like CodeQL to report status and gather run metadata.  |
+| `contents: read`         | Read repository contents (files, commits, tags).               | Required for checking out code, reading files, and running CI jobs.  |
+| `contents: write`        | Read and modify repository contents (commits, tags, releases). | Required for version bumping, tagging, and creating GitHub releases. |
+| `packages: write`        | Publish packages to GitHub Package Registry (e.g. GHCR).       | Used to build and push Docker images to `ghcr.io`.                   |
+| `security-events: write` | Upload security scan results to GitHub.                        | Required for CodeQL code scanning and SARIF uploads.                 |
 
 ### 👉  **Step 5.** Define the "Lint + Format" job
 
@@ -544,7 +685,7 @@ Add this to the `deploy.yml` file after the "Lint + Format" job:
     uses: ./.github/workflows/version.yml
 ```
 
-- The "Version" job is set up very similarly to the "Lint and Format" job note the use of `name` for the name of the job and `uses` to point to the reusable workflow file
+- The "Version" job is set up very similarly to the "Lint and Format" job. Note the use of `name` for the name of the job and `uses` to point to the reusable workflow file
 
 Looking at the job definition file:  `version.yml`
 
@@ -593,8 +734,8 @@ There are a few key things to notice that differ slightly from the "Lint and For
 2) The structure and use of `workflow_call`, `jobs`, `name`, `uses`, `run` are the same as the "Lint and Format" job
 3) The "Version" job uses `id` which is a unique way to identify a step in a job and reference later in the same job. This is useful if the step produces output that can be used by other steps
 	- The `id` field uniquely identifies the output from the "Get current version" step and the "Next app version (release)" step
-		- *A new version is only created when there is a push to the `main` branch creating a simple versioning scheme to track modifications*
-	- The output for each step is saved to `$GITHUB_OUTPUT` which is a special path provided by GitHub Actions that step can write output to in the form of key, value pairs
+		- *A new version is only created when there is a modification made to the `main` branch creating a simple versioning scheme to track modifications*
+	- The output for each step is saved to `$GITHUB_OUTPUT` which is a special path provided by GitHub Actions that a step can write output to in the form of key, value pairs
 4) `outputs` defines outputs for the entire job and can be referenced by other jobs
 	- In the "Version" job the `app_version` is saved so other jobs can reference the correct version
 	- The value of the expression that sets the `app_version` looks at the `release` step first to determine if a new version was detected and if not falls back to the `get_version` step
@@ -603,7 +744,7 @@ There are a few key things to notice that differ slightly from the "Lint and For
 
 Now that you have a complete `deploy.yml` file with the "Lint + Format" and "Version" jobs. Let's explore how to manually trigger the workflow in GitHub.
 
-Please see [[#Workflow set up]] for information on how to trigger a job automatically based on different events. For this workshop, we will manually trigger the workflow to keep things simple.
+Please see ["Workflow set up"](#workflow-set-up) for information on how to trigger a job automatically based on different events. For this workshop, we will manually trigger the workflow to keep things simple.
 
 1. Add and commit the `deploy.yml` file to the `git` repository on the `main` branch:
 
@@ -618,38 +759,42 @@ git commit -m "GitHub Actions workflow definition with linting, formatting, and 
 git push origin main
 ```
 
+-- 💬 *Pause For Questions* --
+
+*Note: There can be issues pushing to GitHub if you haven't set and used your Personal Access Token (PAT) previously. We will hold to work out any issues.*
+
 3. Navigate to the repository on GitHub and click on "Actions"
 
-![[Screenshot 2025-12-23 at 12.16.23.png]]
+![GitHub Actions](../images/workshop-github-actions/l2s7t3.png)
 
 
 4. You will see all of the workflows listed in the left column (1) and a message indicating that no workflows have been run yet. Click on "Deploy SST" (2) in the left column (this is the name we gave to our `deploy.yml` file)
 
-![[Screenshot 2025-12-23 at 13.21.01.png]]
+![GitHub Actions](../images/workshop-github-actions/l2s7t4.png)
 
 5. There will be zero workflow runs. Click on "Run workflow" (1), leave the branch to run the workflow on set to `main` (2), and click "Run workflow" (3)
 
-![[Screenshot 2025-12-23 at 13.22.30.png]]
+![GitHub Actions](../images/workshop-github-actions/l2s7t5.png)
 
 6. You should see the manual execution of the workflow running: `Deploy SST`. Click on "Deploy SST" (1)
 
-![[Screenshot 2025-12-23 at 13.25.22.png]]
+![GitHub Actions](../images/workshop-github-actions/l2s7t6.png)
 
 7. You can now view the details for the entire workflow
 
-![[Screenshot 2025-12-23 at 13.25.35.png]]
+![GitHub Actions](../images/workshop-github-actions/l2s7t7.png)
 
 8. You can click on each of the workflow jobs to view the details behind each step
 
-![[Screenshot 2025-12-23 at 13.25.46.png]]
+![GitHub Actions](../images/workshop-github-actions/l2s7t8.png)
 
 9. You can also view the logs generated for each step in the job
 
-![[Screenshot 2025-12-23 at 13.31.29.png]]
+![GitHub Actions](../images/workshop-github-actions/l2s7t9.png)
 
-10. The workflow should have executed successfully, indicated by the blue checkmark
+10. The workflow should have executed successfully, indicated by a checkmark
 
-![[Screenshot 2025-12-23 at 13.29.50.png]]
+![GitHub Actions](../images/workshop-github-actions/l2s7t10.png)
 
 ## Summary
 
@@ -657,7 +802,7 @@ git push origin main
 - You can now define dependencies between jobs and pass information between them using inputs and outputs.
 - You have set up a GitHub definition file: `deploy.yml`
 - The definition file includes a name, defines when the workflow should be triggered, and includes required permissions for each job
-- The definition file includes a "Lint  + Format" job which lints and formats the code base to keep it well organized and formatted over time
+- The definition file includes a "Lint  + Format" job which lints and formats the codebase to keep it well organized and formatted over time
 - The definition file also includes a "Version" job which increments the patch version of the project with each git push to `main`
 - All jobs run in parallel by default and since we did not define any dependencies, the "Lint + Format" and "Version" jobs will execute in parallel
 - You ran the first version of the `deploy.yml` file in GitHub
@@ -684,15 +829,26 @@ jobs:
     uses: ./.github/workflows/version.yml
 ```
 
-> 🔍 Checkpoint #2: You can create a `deploy.yml` file for your own project and include the "Lint + Format" and "Version" jobs as they are designed to be reusable across repositories. This is the case for all of the reusable workflow jobs included in the [workshop repository](https://github.com/chicago-aiscience/workshop-github-actions/tree/main/.github/workflows).
->
-> Just follow the workflow steps to create your first file and then adapt it to your code base. You may want to update the trigger so the workflow is automatically run when some repository event occurs, like pushing the `main` branch. See [[#Workflow set up]]
+🔍 Checkpoint #2: You can create a `deploy.yml` file for your own project and include the "Lint + Format" and "Version" jobs as they are designed to be reusable across repositories. This is the case for all of the reusable workflow jobs included in the [workshop repository](https://github.com/chicago-aiscience/workshop-github-actions/tree/main/.github/workflows).
+
+- Just follow the workflow steps to create your first file and then adapt it to your codebase. You may want to update the trigger so the workflow is automatically run when some repository event occurs, like pushing the `main` branch. See "["Workflow set up"](#workflow-set-up)
 
 Next we will discuss how to introduce dependencies and define sequential job execution, executing on a list of items to generate jobs for each item in the list, and how to download and upload artifacts to communicate between jobs.
 
+> ✨ Pause for Reflection #2 (2–3 min) ✨
+> We’ve created a full GitHub Actions workflow using reusable workflows as jobs.
+> - **Most transferable piece:** Which job feels easiest to adopt in your own repo this week? Why?
+> - **Biggest friction point:** What feels like the main barrier right now?
+>     - setup effort, YAML syntax, dealing with lint errors, permissions/tokens, tests not existing, unclear versioning
+> - **One small next step:** What’s a “minimum viable CI” you’d actually commit to?
+>     - Example: “Just lint on every PR” or “Just compute version + create a release manually.”
+> **If you’re stuck:** Write down the one sentence you’d want CI to guarantee (e.g., “main always runs end-to-end without manual steps”).
+
 # Lesson 3: Job dependencies (sequential execution)
 
-Up until now all of the jobs we defined in the `deploy.yml` file have executed in parallel. But how do we define dependencies between jobs so that they execute sequentially? This lesson will cover how to define a dependency between the first two jobs ("Lint + Format" and "Version") and a new job that we will define to create a GitHub release.
+Up until now all of the jobs we defined in the `deploy.yml` file have executed in parallel. But how do we define dependencies between jobs so that they execute sequentially?
+
+This lesson will cover how to define a dependency between the first two jobs ("Lint + Format" and "Version") and a new job that we will define to create a GitHub release.
 
 ***Objectives:***
 - Define a "Release" job that freezes code at its current state and creates a GitHub release
@@ -701,7 +857,7 @@ Up until now all of the jobs we defined in the `deploy.yml` file have executed i
 - Pass the `app_version` created in the "Version" job to the "Release" job
 - Execute and test the final workflow `deploy.yml` in GitHub
 
-### 👉 **Step 8.** Define a "Release" job
+## 👉 **Step 8.** Define a "Release" job
 
 The “Release” job ties a specific snapshot of your code to a version, so you can clearly identify which version produced a given set of results.
 
@@ -714,12 +870,14 @@ Add this to the end of the `deploy.yml` file after the "Version" job:
 ```
 
 This will run the "Release" reusable workflow job which tags and creates a GitHub release. A GitHub release is a published snapshot of your repository at a specific point in time, usually tied to a Git tag. It can include:
-- A git tag, like: `v0.6.2`
+- A git tag, like: `v0.1.0`
 - Release metadata: The title (often the version), Release notes or a change log, marked to indicate latest release or prerelease
-- Optional assets: Compiled binaries, compressed archives of the code base, installers, docs, etc.
+- Optional assets: Compiled binaries, compressed archives of the codebase, installers, docs, etc.
 - [GitHub releases documentation](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
 
-🧰 A release allows you to freeze your code and tag it with a specific version. This release can be included in publications to link specific versions and therefore specific states of your code base that produces specific results. It is a great way to provide reproducibility to your codebase, although it is not as convenient as creating and hosting a Docker container image on the GitHub container repository. The container image can be easily pulled down and executed without having to worry about setting up Python library dependencies.
+🧰 A release allows you to freeze your code and tag it with a specific version. This release can be included in publications to link specific versions and therefore specific states of your codebase that produces specific results.
+
+A release is a great way to provide reproducibility to your codebase, although it is not as convenient as creating and hosting a Docker container image on the GitHub container repository. The container image can be easily pulled down and executed without having to worry about setting up Python library dependencies.
 
 Let's take a deeper look at the `release.yml`:
 
@@ -776,16 +934,16 @@ This job is set up similarly to the other jobs we have seen so far using the sam
 
 The "Release" job performs a few tasks in order to create a GitHub release:
 1. Defines inputs to the `workflow_call` so that the "Release" job is passed the `app_version` from the "Version" job
-2. Check out repository: checks out the repository using a token:
+2. Checks out the repository using a token:
 	- `secrets.PAT_TOKEN` - This is a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) that you would create and save to [GitHub Secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets) (we won't delve into this in this workshop as it covers a more advanced use case)
 	- `secrets.GITHUB_TOKEN` - This is a short-lived authentication token that GitHub automatically creates for every workflow run. It lets your GitHub Actions workflow authenticate to the GitHub API as the repository itself. There is no further action needed to use this token.
-	- One of these is required because the release step will commit the new version to the code base
+	- One of these is required because the release step will commit the new version to the codebase
 2. Set up `uv` so it is available on the runner (underlying machine running the GitHub workflow)
 3. Bump and commit the version: This will set the version to the version created by the "Version" job and commit the changes made to the `pyproject.toml` and `uv.lock` files which track the current version
 4. Push tag - Creates and pushes a tag to the GitHub repository. A [tag](https://git-scm.com/book/en/v2/Git-Basics-Tagging) is a named pointer to a specific commit in your repository.
-5. Create GH release - Creates the [GitHub release](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases) with release notes, a name, and a tag (which is the same as the tag created in step 3)
+5. Create GH release - Creates the [GitHub release](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases) with release notes, a name, and a tag (which is the same as the tag created in the previous step)
 
-### 👉 **Step 9.** Update the permissions for the "Release" job
+## 👉 **Step 9.** Update the permissions for the "Release" job
 
 The permissions in the `release.yml` file are:
 
@@ -812,9 +970,9 @@ permissions:
   contents: write
 ```
 
-### 👉 **Step 10.** Define a job dependency and communicate the version
+## 👉 **Step 10.** Define a job dependency and communicate the version
 
-Now that we have an understanding to the "Release" job, how does it get the version number from the "Version" job and use it to update the version of the project, tag the current commit, and tag the release?
+Now that we added the "Release" job, how does it get the version number from the "Version" job and use it to update the version of the project, tag the current commit, and tag the release?
 
 We need to define the dependency between the "Release" job and all other jobs and then we can use that definition to set up the inputs to the "Release" job.
 
@@ -829,9 +987,10 @@ Modify the current "Release" definition in `deploy.yml` to add in `needs` and `w
       app_version: ${{ needs.version.outputs.app_version }}
 ```
 
-`needs` defines what other jobs need to run and complete before the current "Release" job can run. The "Release" job requires the "Version" job to complete before it runs as it requires the `app_version` as input but we also set the `lint-and-format` reference as we don't want to create a "Release" without running the "Lint + Format" job on the code base. This way we know the code is well formatted before freezing it in the release process.
-
-`with` provides input parameters to the "Release" job and connects the output of the "Version" job to the input of the "Release" job. The value references the `needs` field and in particular the `version` job outputs to retrieve the `app_version` from the "Version" job. Remember we had defined the outputs of the "Version" job like so:
+- `needs` defines what other jobs need to run and complete before the current "Release" job can run.
+  - The "Release" job requires the "Version" job to complete before it runs as it requires the `app_version` as input but we also set the `lint-and-format` reference as we don't want to create a "Release" without running the "Lint + Format" job on the codebase. This way we know the code is well formatted before freezing it in the release process.
+- `with` provides input parameters to the "Release" job and connects the output of the "Version" job to the input of the "Release" job.
+  - The value references the `needs` field and in particular the `version` job outputs to retrieve the `app_version` from the "Version" job. Remember we had defined the outputs of the "Version" job like so:
 
 ```yaml
 on:
@@ -854,12 +1013,15 @@ on:
 ```
 
 **Tying it all together**, we:
+
 1) Defined the `app_version` output in the "Version" job
 2) Defined the `app_version` input in the "Release" job
 3) Defined the `release` job in the `deploy.yml` file and set it's dependency on the "Version" job using the `needs` field
 4) Defined the `app_version` input to the "Release" job using `with`
 
-### 👉 **Step 11.** Execute a job conditionally using `if`
+-- 💬 *Pause for Questions* --
+
+## 👉 **Step 11.** Execute a job conditionally using `if`
 
 We now have a "Lint + Format", "Version", and "Release" jobs. The "Lint + Format" and "Version" jobs execute in parallel while the "Release" job executes sequentially after both jobs are complete. Here is the current definition file:
 
@@ -889,7 +1051,9 @@ jobs:
       app_version: ${{ needs.version.outputs.app_version }}
 ```
 
-What if the "Version" job fails to create the `app_version`, would we still want to create a "Release"? Probably not, as this might create an incomplete release that doesn't accurately capture the current state of the project and the version. This is where the conditional expression `if` comes in.
+What if the "Version" job fails to create the `app_version`, would we still want to create a "Release"?
+
+Probably not, as this might create an incomplete release that doesn't accurately capture the current state of the project and the version. This is where the conditional expression `if` comes in.
 
 Add the `if` key to the "Release" job in the `deploy.yml` file so the "Release" job only runs if the "Version" job completed successfully and the `app_version` variable is populated:
 
@@ -902,7 +1066,6 @@ Add the `if` key to the "Release" job in the `deploy.yml` file so the "Release" 
     with:
       app_version: ${{ needs.version.outputs.app_version }}
 ```
-
 
 ## 👉 **Step 12.**  Commit, push, and execute the updated workflow
 
@@ -943,7 +1106,7 @@ Let's test the workflow by committing, pushing, and executing the workflow.
 
 ```bash
 git add .github/workflows/deploy.yml
-git commit -m "Add a release step to freeze code base at a specific version"
+git commit -m "Add a release step to freeze codebase at a specific version"
 ```
 
 2. Push the commit up to GitHub
@@ -954,33 +1117,33 @@ git push origin main
 
 3. Go to the GitHub "Actions" tab for the project repository
 
-![[Screenshot 2025-12-23 at 13.39.45.png]]
+![GitHub Actions](../images/workshop-github-actions/l3s12t3.png)
 
-4. Run the "Deploy SST" workflow. See [[#👉 **Step 7.** Run the GitHub Actions workflow]] for details on how to execute the workflow manually
+4. Run the "Deploy SST" workflow. See ["Step 7. Run the GitHub Actions workflow](#-step-7-run-the-github-actions-workflow) for details on how to execute the workflow manually
 
-![[Screenshot 2025-12-23 at 13.46.09.png]]
+![GitHub Actions](../images/workshop-github-actions/l3s12t4.png)
 
 5. If you click on the workflow, you are directed to the "Summary" page where you will see the jobs executing. You should see the "Lint + Format" and "Compute version" job execute in parallel and then the "Release" job should execute sequentially.
 
-![[Screenshot 2025-12-23 at 13.47.51.png]]
+![GitHub Actions](../images/workshop-github-actions/l3s12t5.png)
 
 6. Click on the "Release version/release" job, you should see all of the "Release" job steps completed successfully. Feel free to explore each step's logs
 
-![[Screenshot 2025-12-23 at 13.48.51.png]]
+![GitHub Actions](../images/workshop-github-actions/l3s12t6.png)
 
 7. Verify the release was created. Navigate to the home page of the repository and look for the "Releases" section in the right column
 
-![[Screenshot 2025-12-23 at 14.41.56.png]]
+![GitHub Actions](../images/workshop-github-actions/l3s12t7.png)
 
 8. Click on the version tag, (e.g., `v0.6.6`) to view the full release details
 
-![[Screenshot 2025-12-23 at 14.42.12.png]]
-- You can view the full change log of commits or you can download compressed archives of the repository code base
+![GitHub Actions](../images/workshop-github-actions/l3s12t8.png)
+- You can view the full change log of commits or you can download compressed archives of the repository codebase
 
 ## Summary
 
-- You can now tie a specific version of your code to a release so you can identify which version produced a given set of results.
-- You defined a "Release" job that creates a GitHub release and freezes your code base at its current state
+- You can now tie a specific version of your code to a release so you can identify which version produced a given set of results
+- You defined a "Release" job that creates a GitHub release and freezes your codebase at its current state
 - You updated the permissions to the "Release" job so it can write to the contents of the repository
 - You defined a job dependency between the "Lint + Format" job, the "Version" job, and the "Release" job so that the "Release" job will only execute after the previous two have completed
 - You only execute the "Release" job if the "Version" job completed successfully and returns an `app_version`
@@ -1017,29 +1180,52 @@ jobs:
       app_version: ${{ needs.version.outputs.app_version }}
 ```
 
+🔍 Checkpoint #3: You can use any of the workflows listed as "(Internal)" in the `.github/workflows` directory in your own codebase but you will need to aggregate the permissions across all of these files and define them in the top-level `deploy.yml`. If you use all of the files the permissions would look like this:
 
-> 🔍 Checkpoint #3: You can use any of the workflows listed as "(Internal)" in the `.github/workflows` directory in your own code base but you will need to aggregate the permissions across all of these files and define them in the top-level `deploy.yml`. If you use all of the files the permissions would look like this:
-```yaml
-permissions:
-  actions: read
-  contents: write
-  packages: write
-  security-events: read
-```
-> See [[#👉 **Step 4.** Define workflow permissions]] for info on each of these permissions
+  ```yaml
+  permissions:
+    actions: read
+    contents: write
+    packages: write
+    security-events: read
+  ```
+> See ["Step 4. Define workflow permissions"](#-step-4-define-workflow-permissions) for info on each of these permissions
 
-> 🔍 Checkpoint #4: You can modify the `needs` field to include any of the jobs you may define in the `deploy.yml` and to suit your expectations of how the workflow jobs should run. For example, you may want to implement security scanning into your workflow, so you add in the "Scan" job (`scan.yml`). But you don't want require the "Release" job to run before the code is scanned so you leave that out of the `needs` list. (Although it is probably a good idea to freeze your code base on code that does not have vulnerabilities.)
+🔍 Checkpoint #4: You can modify the `needs` field to include any of the jobs you may define in the `deploy.yml` and to suit your expectations of how the workflow jobs should run.
+
+- For example, you may want to implement security scanning into your workflow, so you add in the "Scan" job (`scan.yml`).
+- But you don't want require the "Release" job to run before the code is scanned so you leave that out of the `needs` list.
+- Although it is probably a good idea to freeze your codebase on code that does not have vulnerabilities.
+
+> ✨ Pause for Reflection #3 (3 min) ✨
+> You now know how to create a release automatically after versioning so your codebase can be referenced precisely.
+> 1. What clicked, and what didn’t? Name one concept you feel solid on and one that’s still fuzzy.
+> 2. Where would you place this in your real workflow?
+>    - On every push to main? Only on tagged commits? Only when a PR is merged?
+> 3. What would you want included in your release “artifact set”?
+>    - source snapshot only, container image, generated figures, config files, environment lockfile, data manifest
 
 # Lesson 4: Executing on a list using `matrix` and using artifacts - BONUS
 
-This lesson also includes some extra bonus content on two other helpful GitHub Actions features: 1) Executing tests on multiple Python versions using `matrix` and 2) How to upload and download artifacts to communicate between jobs.
+This lesson includes some extra bonus content on two other helpful GitHub Actions features:
+
+1) Executing tests on multiple Python versions using `matrix`
+2) How to upload and download artifacts to communicate between jobs.
 
 ***Objectives***
+
 - Define a "Test" job that executes on multiple versions of Python using the `matrix` strategy
 - Understand how to upload artifacts so other jobs can access files created by job steps
 - Understand how to download artifacts in a job and access the downloaded file
 
 ## 👉 **Step 14.** Update `pyproject.toml` to include a build system so tests can be run
+
+First (prior to making any changes) pull down the recent changes made to the `main` branch from the previous GitHub Actions workflow executions
+
+```bash
+# Pull recent changes to `main` as this may have been modified by the "Release" job
+git pull origin main
+```
 
 Modify the `pyproject.toml` and replace the contents with this version:
 
@@ -1050,7 +1236,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sst"
-version = "0.6.6"
+version = "0.1.1"
 description = "A sea surface temperature ML prediction package for workshops (SST + ENSO)."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -1094,7 +1280,7 @@ Update the "Release" job in the `deploy.yml` to require the `test` job before ex
     name: Release version
     uses: ./.github/workflows/release.yml
     needs: [lint-and-format, version, test]
-    if: needs.version.result == 'success'
+    if: needs.version.result == 'success' && needs.version.outputs.app_version != ''
     with:
       app_version: ${{ needs.version.outputs.app_version }}
 ```
@@ -1150,7 +1336,7 @@ The "Test" job executes the unit tests defined in the `tests` directory using `p
 3. Then it sets up `uv` using the Python version defined in the matrix, `with` points to the specific matrix element that workflow is executing on : `matrix.python-version`
 4. `uv` is then used to install dependencies needed by the tests and then runs the tests using `pytest`
 5. The Python version is printed out as a test to ensure the `matrix` definition is working as intended
-6. We will discuss the creation of the predictions plot and upload in the section on "Artifacts"
+6. We will discuss the creation and upload of the predictions plot in the section on "Artifacts"
 
 🧰 Step 3 works well for our example because we use `uv` to run each test command. If you want to make a specific Python version available to all installed tools on the runner use the `actions.setup-python@v5`:
 
@@ -1202,26 +1388,25 @@ jobs:
 1. Commit and push recent changes to GitHub
 
 ```yaml
-# Pull recent changes to `main` as this may have been modified by the "Release" job
-git pull origin main
-
 # Commit and push recent changes
 git add .github/workflows/deploy.yml pyproject.toml
 git commit -m "Define a 'Test' job to execute on multiple Python versions"
+
+# Push recent changes up to GitHub
 git push origin main
 ```
 
-2. Test the workflow in GitHub. See [[#👉 **Step 7.** Run the GitHub Actions workflow]] for details on how to run the workflow.
+2. Test the workflow in GitHub. See ["Step 7. Run the GitHub Actions workflow"](#-step-7-run-the-github-actions-workflow) for details on how to run the workflow.
 
-![[Screenshot 2025-12-23 at 14.56.35.png]]
+![GitHub Actions](../images/workshop-github-actions/l4s16t2.png)
 
 3. Once the workflow has executed, review the "Test" jobs that were created and executed by clicking on "3 jobs completed" > "Tests/ test (3.12)"
 
-![[Screenshot 2025-12-23 at 15.00.32.png]]
+![GitHub Actions](../images/workshop-github-actions/l4s16t3.png)
 
 4.  Look at the logs for the "Check Python version" step and see that the Python version was: `Python 3.12.3`
 
-![[Screenshot 2025-12-23 at 15.01.01.png]]
+![GitHub Actions](../images/workshop-github-actions/l4s16t4.png)
 
 Feel free to view the logs for the other versions to make sure things look correct.
 
@@ -1229,7 +1414,7 @@ Feel free to view the logs for the other versions to make sure things look corre
 
 In step 15, we covered how to run tests on multiple Python versions and each of these versions uploads a plot created by the execution of the `sst` program.
 
-"Test" job definition highlight the upload operation:
+"Test" job definition highlight of the upload operation:
 
 ```yaml
       - name: Upload plot
@@ -1241,9 +1426,15 @@ In step 15, we covered how to run tests on multiple Python versions and each of 
 
 The `actions/upload-artifact@v4` takes files created during a job and saves them as downloadable artifacts attached to that workflow run. If you go back to the "Summary" page of the GitHub Actions workflow you executed in step 16, you should see "Artifacts" listed at the bottom of the summary.
 
-![[Screenshot 2025-12-23 at 15.10.07.png]]
+![GitHub Actions](../images/workshop-github-actions/l4s17.png)
 
 You can download them and review the plots. But what if you wanted to use these files in another GitHub Actions workflow job? Let's create a toy example that downloads the artifacts to a job (`download-artifact.yml`) and lists the available files after download.
+
+But first let's pull down any changes made by the "Release" job prior to making any file modifications in the repo:
+
+```bash
+git pull origin main    # Pull down any release changes
+```
 
 Add the "Download Test Artifacts" job to the `deploy.yml` file:
 
@@ -1254,7 +1445,7 @@ Add the "Download Test Artifacts" job to the `deploy.yml` file:
     uses: ./.github/workflows/download-artifact.yml
 ```
 
-- The `needs` is critical as it this job needs to run after the artifacts have been created and uploaded
+- The `needs` is critical as this job needs to run after the artifacts have been created and uploaded
 
 Let's review the `download-artifact.yml` file:
 
@@ -1346,19 +1537,18 @@ jobs:
 1. Commit and push the recent modifications to GitHub
 
 ```yaml
-git pull origin main    # Pull down any release changes
 git add .github/workflows/deploy.yml
 git commit -m "Add toy example to download artifacts from Test jobs"
 git push origin main
 ```
 
-2. Execute the workflow in GitHub, see [[#👉 **Step 7.** Run the GitHub Actions workflow]] for details on how to execute
+2. Execute the workflow in GitHub, see [Step 7. Run the GitHub Actions workflow](#-step-7-run-the-github-actions-workflow) for details on how to execute
 
-![[Screenshot 2025-12-23 at 15.22.29.png]]
+![GitHub Actions](../images/workshop-github-actions/l4s18t2.png)
 
 3. After execution completes, verify the plots were downloaded by clicking on "Downlo.../download-artifacts and viewing the logs for the "List downloaded artifacts" step
 
-![[Screenshot 2025-12-23 at 15.24.26.png]]
+![GitHub Actions](../images/workshop-github-actions/l4s18t3.png)
 
 * The "Download Test Artifacts" job downloaded all three `ml_predictions.png` plots for each Python version executed by the test
 
@@ -1408,6 +1598,12 @@ jobs:
     with:
       app_version: ${{ needs.version.outputs.app_version }}
 ```
+
+> ✨ Pause for Reflection #4 (2–3 min) ✨
+> You’ve seen two powerful add-ons: matrix testing and artifacts.
+> 1. Matrix: Would testing multiple Python versions help your collaboration, or just add noise? Why?
+> 2. Artifacts: What’s one file you wish your workflow produced automatically every run?
+    - e.g., a plot, metrics JSON, model evaluation report, parameter summary, logs, a paper-ready figure
 
 # Lessons Summary
 
@@ -1515,3 +1711,46 @@ By the end of the workshop, you should feel comfortable reading and modifying Gi
 - **`uv` Python package manager**
     [https://docs.astral.sh/uv/](https://docs.astral.sh/uv/)
     Documentation for the dependency and version management tool used in the workshop.
+
+# Appendix: Create a GitHub Personal Access Token
+
+This appendix walks through creating a token and storing it in your repository so GitHub Actions can authenticate when it needs to push commits/tags or create releases.
+
+GitHub supports **fine-grained** tokens (recommended) and **classic** tokens.
+
+## Option 1 (recommended): Fine-grained personal access token
+
+1. Go to GitHub → **Settings**
+2. Navigate to **Developer settings** → **Personal access tokens** → **Fine-grained tokens**
+3. Click **Generate new token**
+4. Set:
+   - **Token name**: something recognizable (e.g., `workshop-actions-release`)
+   - **Expiration**: choose an expiration that covers the workshop (e.g., 7–30 days)
+   - **Resource owner**: your GitHub account
+   - **Repository access**: select **Only select repositories** and choose the workshop repo (or the repo you will use)
+5. Under **Repository permissions**, set:
+   - **Actions** → **Read and write** (Under "Access" next to the permission)
+   - **Contents** → **Read and write** (Under "Access" next to the permission)
+6. Click **Generate token**
+7. Copy the token immediately and store it somewhere secure (you won’t be able to view it again).
+
+## Option 2: Classic personal access token
+
+1. Go to GitHub → **Settings**
+2. Navigate to **Developer settings** → **Personal access tokens** → **Tokens (classic)**
+3. Click **Generate new token (classic)**
+4. Set an **expiration**
+5. Select scopes:
+   - **`repo`** (required for committing/pushing, tags, and releases in private repos; also works for public repos)
+   - **`workflow`** (required to **add/update workflow files** under `.github/workflows/`)
+6. Click **Generate token**
+7. Copy the token immediately and store it somewhere secure.
+
+🧰 **When do you need the `workflow` scope?**
+
+Only if the workflow (or a script run by the workflow) will **create or modify files inside `.github/workflows/`**. For this workshop’s core release flow (bump version, push tag, create release), `repo` is typically sufficient.
+
+> Security note: Use the minimum permissions needed and set an expiration. Treat your PAT like a password.
+
+References:
+- Managing personal access tokens: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens

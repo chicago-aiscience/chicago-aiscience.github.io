@@ -21,7 +21,6 @@ By the end of this workshop, participants will be able to:
 - 🧰 - A tip that might make something easier or provides further explanation
 - 🔍 - How to adapt the current workflow step to your own codebase
 - ✨ - Time to pause for reflection and absorb content
-- 💬 - Indicates a time to pause for questions and open discussion during the live workshop
 
 ## Pre-requisites
 
@@ -82,7 +81,7 @@ Before attending, participants should complete the following:
 
 **Note:** All workflows are executed using GitHub-hosted runners. You will not need to configure any external infrastructure or credentials for the core workshop material.
 
-# Lesson 1: GitHub Actions introduction with a full example
+# Lesson 1: GitHub Actions introduction
 
 This lesson will cover an introduction to GitHub Actions and will walk through a full example to introduce the various components and terminology.
 
@@ -105,6 +104,8 @@ At its core, a GitHub Actions workflow is a YAML file that defines automated tas
 
 🧰 Throughout this workshop, remember: workflows define _when_ automation runs, jobs define _what_ runs, steps define _how_ it runs, and actions package reusable functionality that steps can run. This will become more clear as we work through examples.
 
+## Full GitHub Actions example
+
 [This GitHub repository](https://github.com/chicago-aiscience/workshop-sst) contains _everything_!! It includes implemented best practices and forms the foundation for the RSE workshop series (this workshop's repository was created from it). It contains:
 
 - A toy, working example of predicting climate patterns in the tropical Pacific Ocean from sea surface temperature data. It is simple but demonstrates some key operations found in scientific algorithms: Data source aggregation, data processing, and data visualization
@@ -116,11 +117,17 @@ At its core, a GitHub Actions workflow is a YAML file that defines automated tas
 - `Dockerfile` to build a containerized executable of the code SST processing code
 - Branch protections and other GitHub repository settings that support the long term development and maintenance of the codebase
 
-This workshop focuses on GitHub Actions workflows for reproducible science and so primary interest may lie in [the definition file]( https://github.com/chicago-aiscience/workshop-sst/blob/main/.github/workflows/deploy.yml). Let's walk through some of the workflow sections to better understand what you can do with GitHub actions and how it supports our goal of tying versions of code to results.
+## A simpler example for the workshop
 
--- 💬 *Pause for questions* --
+This workshop focuses on GitHub Actions workflows for reproducible science and so primary interest may lie in [the definition file]( https://github.com/chicago-aiscience/workshop-sst/blob/main/.github/workflows/deploy.yml). But the full example is pretty complex! For this workshop, we will use a simpler version that still includes all of the pieces from the complete example, but lets you start simple and add one piece at a time.
 
-## Workflow set up
+The workshop content will also highlight checkpoints in the code and point out (🔍) how to modify GitHub actions for existing code so that it may be applicable to your own codebases. We will highlight the major components first and then include additioanl component from the full example for completeness.
+
+Let's walk through some of the workflow sections to better understand what you can do with GitHub actions and how it supports our goal of tying versions of code to results. Don't worry about the technical details and definitions at this point as we will dive into those later in the workshop.
+
+## Workshop components
+
+### Workflow set up
 
 Set the name of your workflow:
 ```yaml
@@ -149,14 +156,14 @@ env:
 ```
 - [Documentation on environment variables](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#env)
 
-## Jobs
+### Jobs
 
 This sets up jobs to execute steps in the workflow:
 ```yaml
 jobs:
 ```
 
-## Lint and Format Job
+### Lint and Format Job
 
 The lint and format job uses `ruff` to lint and format the codebase. Both linting and formatting are about code quality and help maintain a codebase over time keeping the code "clean" and formatted through versions.
 
@@ -172,35 +179,7 @@ A formatter rewrites your code's layout so it follows a standard style around in
 
 This repo uses `ruff` for both linting and formatting. [The Ruff Formatter Documentation](https://docs.astral.sh/ruff/formatter/)
 
-## Scan Job
-
-The scan job scans the codebase for any security vulnerabilities and reports on them in the `Security` tab in the GitHub repository. This ensures anything deployed to a HPC cluster, the cloud, or collaborators' laptops does not include vulnerabilities that could impact computing and risk data breaches.
-
-```yaml
-  scan:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-```
-
-This repo uses GitHub's code scanning. [GitHub code scanning documentation](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning)
-
-## Test Job
-
-The test job executes existing unit tests located in the `test` directory on multiple Python versions using a `matrix` (more to follow in the workshop). This ensures any changes you made do not break previous functionality and execution of the code is performing as you would expect.
-
-```yaml
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10","3.11","3.12"]
-    steps:
-```
-
-## Version Job
+### Version Job
 
 This step is a little bit complicated as version control can be hard! This steps takes the version as defined in the `pyproject.toml` file and updates it based on the current branch (as determined by the push trigger). So this job locates the next version of the application. **This is super helpful in tying results to code** as a version provides a numeric tag which can be used to identify code modifications and supports the creation of a release (the last step in the workflow).
 
@@ -216,7 +195,57 @@ version:
     steps:
 ```
 
-## Build and deploy job
+### Release job
+
+The release job creates a release in the GitHub repository. A release generates compressed archives of your codebase that capture all modifications at the time the release is created. You can also include release notes, a list of contributors, and links to binary files. [See the documentation for more information](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
+
+This is really helpful for tying specific code modifications to results. By associating a particular version of your code with a release, you can support reproducible executions of your algorithms and reference that exact version in a publication.
+
+In our example, the release does not include a full executable since we rely on the container image for that, but it does allow us to retain compressed source archives that can be used to connect results to a specific version.
+
+```yaml
+release:
+    runs-on: ubuntu-latest
+    needs: [version, build-deploy]
+    permissions:
+      contents: write    # required to push commits/tags
+    if: needs.version.outputs.dev_ran == 'true' || needs.version.outputs.release_ran == 'true'
+    steps:
+```
+
+### Test Job (BONUS)
+
+The test job executes existing unit tests located in the `test` directory on multiple Python versions using a `matrix` (more to follow in the workshop). This ensures any changes you made do not break previous functionality and execution of the code is performing as you would expect.
+
+```yaml
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10","3.11","3.12"]
+    steps:
+```
+
+## Full example components
+
+The full example includes all of the above workshop components plus a few extra detailed below.
+
+### Scan Job
+
+The scan job scans the codebase for any security vulnerabilities and reports on them in the `Security` tab in the GitHub repository. This ensures anything deployed to a HPC cluster, the cloud, or collaborators' laptops does not include vulnerabilities that could impact computing and risk data breaches.
+
+```yaml
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+```
+
+This repo uses GitHub's code scanning. [GitHub code scanning documentation](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning)
+
+### Build and deploy job
 
 This job builds a Docker container, tags it with a specific version, and deploys it to the [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry). The resulting containerized executable captures a fixed snapshot of the code _and_ its dependencies, ensuring it can be run consistently across different environments.
 
@@ -235,25 +264,7 @@ build-deploy:
     steps:
 ```
 
-## Release job
-
-The release job creates a release in the GitHub repository. A release generates compressed archives of your codebase that capture all modifications at the time the release is created. You can also include release notes, a list of contributors, and links to binary files. [See the documentation for more information](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
-
-This is really helpful for tying specific code modifications to results. By associating a particular version of your code with a release, you can support reproducible executions of your algorithms and reference that exact version in a publication.
-
-In our example, the release does not include a full executable since we rely on the container image for that, but it does allow us to retain compressed source archives that can be used to connect results to a specific version.
-
-```yaml
-release:
-    runs-on: ubuntu-latest
-    needs: [version, build-deploy]
-    permissions:
-      contents: write    # required to push commits/tags
-    if: needs.version.outputs.dev_ran == 'true' || needs.version.outputs.release_ran == 'true'
-    steps:
-```
-
-## Documentation job (BONUS)
+### Documentation job
 
 You can create Markdown files to document how to install, set up, and use your codebase. These files can include Jupyter notebooks and detailed descriptions of specific functions or methods that align with content in a publication. You can also automatically generate documentation that includes function signatures, arguments, and return values. All of this documentation can be hosted on a [GitHub Pages website](https://docs.github.com/en/pages).
 
@@ -280,17 +291,6 @@ jobs:
     steps:
 ```
 
-> ✨ Pause for Reflection #1 (3–4 min) ✨
-> Quick reset: Write short bullets, no full sentences needed. Please include your thoughts on this [Google doc](https://docs.google.com/document/d/19-28pXL77WDWhI6k-Yr0rrkQFG24mQcHeOBqfGG1Il4/edit?usp=sharing).
-> 1. **Where do your “results” live right now?**
->     - e.g., figures/plots, tables, intermediate files, model weights, notebooks, manuscripts
->     - What’s the “source of truth” when someone asks: “Which run produced Figure 2?”
-> 2. **Imagine it’s 6 months from now and you need to reproduce a key figure.** What are the top 2 things most likely to break?
->    - (dependencies? data path? randomness? missing scripts?)
-> 3. **Pick 1 workflow job you’d want “future you” to have. Why?**
->     - Lint/format, tests, versioning, release, container build, docs
-> 4. **Optional pair-share (1 min):** Tell your neighbor what your “biggest reproducibility failure mode” is—and which job would reduce it.
-
 ## GitHub Actions quotas and limitations
 
 GitHub Actions usage is free for **public repositories**. Any usage beyond this is billed to your account. See [billing documentation](https://docs.github.com/en/billing/concepts/product-billing/github-actions) for more information.
@@ -315,11 +315,16 @@ You also explored why GitHub Actions are useful in the context of scientific and
 
 You can now explain what GitHub Actions workflows are and identify the core components of a workflow.
 
-## Next steps: A simpler example
-
-The full example is pretty complex! For this workshop, we will use a simpler version that still includes all of the pieces from the complete example, but lets you start simple and add one piece at a time. The workshop content will also highlight checkpoints in the code  and point out (🔍) how to modify GitHub actions for existing code so that it may be applicable to your own codebases.
-
--- 💬 *Pause for questions* --
+## ✨Reflection Pause #1 (3-4 min)✨
+Grab a piece of paper or sticky note and write short bullets, no full sentences needed.
+ 1. **Where do your “results” live right now?**
+     - e.g., figures/plots, tables, intermediate files, model weights, notebooks, manuscripts
+     - What’s the “source of truth” when someone asks: “Which run produced Figure 2?”
+ 2. **Imagine it’s 6 months from now and you need to reproduce a key figure.** What are the top 2 things most likely to break?
+    - (dependencies? data path? randomness? missing scripts?)
+ 3. **Pick 1 workflow job you’d want “future you” to have. Why?**
+     - Lint/format, tests, versioning, release, container build, docs
+ 4. **Optional pair-share (1 min):** Tell your neighbor what your “biggest reproducibility failure mode” is—and which job would reduce it.
 
 # Lesson 2: Getting started and defining a workflow
 
@@ -437,8 +442,6 @@ The GitHub Actions workflow definition is broken into reusable workflows where t
 
 🧰 Note on terminology: In GitHub Actions, a _reusable workflow_ is technically a workflow that calls another workflow. In this workshop, we refer to these reusable workflows as “jobs” because they behave like plug-in jobs you can reuse across repositories.
 
--- 💬 *Pause for Questions* --
-
 ## 👉 Step 0. Create a new repository
 
 Creating a new repostiry from the template workshop repo. Taken from ["Creating a repository from a template"](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template#creating-a-repository-from-a-template) GitHub documentation.
@@ -477,7 +480,11 @@ Creating a new repostiry from the template workshop repo. Taken from ["Creating 
     cd workshop-github-actions-2026-feb
     ```
 
--- 💬 *Pause for Questions* --
+## Verification Checkpoint
+
+You should have the `workshop-github-actions-2026-feb` GitHub repository stored locally on your computer.
+
+
 
 ## 👉 Step 1. Create a `pyproject.toml`
 
@@ -538,8 +545,6 @@ Steps to add the file to the GitHub repository:
     git add pyproject.toml
     git commit -m "Define a pyproject file that points to a specific version"
     ```
-
--- 💬 *Pause for Questions* --
 
 ## Define a GitHub Actions workflow file
 
@@ -754,7 +759,7 @@ git commit -m "GitHub Actions workflow definition with linting, formatting, and 
 git push origin main
 ```
 
--- 💬 *Pause For Questions* --
+
 
 *Note: There can be issues pushing to GitHub if you haven't set and used your Personal Access Token (PAT) previously. We will hold to work out any issues.*
 
@@ -1014,7 +1019,7 @@ on:
 3) Defined the `release` job in the `deploy.yml` file and set it's dependency on the "Version" job using the `needs` field
 4) Defined the `app_version` input to the "Release" job using `with`
 
--- 💬 *Pause for Questions* --
+
 
 ## 👉 **Step 11.** Execute a job conditionally using `if`
 
@@ -1707,15 +1712,17 @@ By the end of the workshop, you should feel comfortable reading and modifying Gi
     [https://docs.astral.sh/uv/](https://docs.astral.sh/uv/)
     Documentation for the dependency and version management tool used in the workshop.
 
-# Appendix: Install Git on Windows and macOS
+# Appendix
+
+## Install Git on Windows and macOS
 
 This workshop requires Git to be installed on your local machine. Follow the instructions below for your operating system.
 
 ---
 
-## A. Installing Git on **Windows**
+### A. Installing Git on **Windows**
 
-### Option 1: Install Git for Windows (recommended)
+#### Option 1: Install Git for Windows (recommended)
 
 1. Open a web browser and go to:
    https://git-scm.com/download/win
@@ -1737,15 +1744,15 @@ This workshop requires Git to be installed on your local machine. Follow the ins
    ```
    You should see a version number (e.g., `git version 2.44.0`).
 
-#### Notes for Windows users
+##### Notes for Windows users
 - **Git Bash** provides a Unix-like terminal and is recommended for this workshop.
 - Git will also be available from PowerShell and Command Prompt after installation.
 
 ---
 
-## B. Installing Git on **macOS**
+### B. Installing Git on **macOS**
 
-### Option 1: Install via Xcode Command Line Tools (simplest)
+#### Option 1: Install via Xcode Command Line Tools (simplest)
 
 1. Open **Terminal** (Applications → Utilities → Terminal).
 
@@ -1762,7 +1769,7 @@ This workshop requires Git to be installed on your local machine. Follow the ins
    git --version
    ```
 
-### Option 2: Install using Homebrew (recommended for developers)
+#### Option 2: Install using Homebrew (recommended for developers)
 
 If you already use Homebrew:
 
@@ -1778,7 +1785,7 @@ If you already use Homebrew:
 
 ---
 
-## C. Post-installation (All Platforms)
+### C. Post-installation (All Platforms)
 
 After installing Git, configure your name and email (required for commits):
 
@@ -1794,7 +1801,7 @@ git config --global --list
 
 ---
 
-## D. Troubleshooting
+### D. Troubleshooting
 
 - If `git --version` does not work:
   - Restart your terminal and try again.
@@ -1803,7 +1810,7 @@ git config --global --list
   https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
 
 
-# Appendix: Create a GitHub Personal Access Token
+## Create a GitHub Personal Access Token
 
 This appendix walks through creating a token and storing it in your repository so GitHub Actions can authenticate when it needs to push commits/tags or create releases.
 
@@ -1811,7 +1818,7 @@ GitHub supports **fine-grained** tokens (recommended) and **classic** tokens.
 
 ---
 
-## Option 1 (recommended): Fine-grained personal access token
+### Option 1 (recommended): Fine-grained personal access token
 
 1. Go to GitHub → **Settings**
 2. Navigate to **Developer settings** → **Personal access tokens** → **Fine-grained tokens**
@@ -1829,7 +1836,7 @@ GitHub supports **fine-grained** tokens (recommended) and **classic** tokens.
 
 ---
 
-## Option 2: Classic personal access token
+### Option 2: Classic personal access token
 
 1. Go to GitHub → **Settings**
 2. Navigate to **Developer settings** → **Personal access tokens** → **Tokens (classic)**

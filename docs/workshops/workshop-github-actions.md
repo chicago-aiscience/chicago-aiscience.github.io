@@ -31,30 +31,16 @@ Before attending, participants should complete the following:
 
 ### Required
 
-- **A GitHub account**
+- **1. A GitHub account**
   - You must be able to clone repositories and push commits to GitHub.
   - Public repositories are recommended so GitHub Actions runs are free.
 
-- **Basic Git and GitHub knowledge**
-  - You should be comfortable with:
-    - Cloning a repository
-    - Creating and committing files
-    - Pushing commits to a branch (e.g. `main`)
-  - You do *not* need advanced Git skills (rebasing, submodules, etc.).
-
-- **A local development environment**
+- **2. A local development environment with Git installed**
   - A laptop with macOS, Linux, or Windows
   - A terminal or command prompt
 
-- **Python installed locally**
-  - **Python 3.10 or newer**
-  - You should be able to run:
-    ```bash
-    python --version
-    ```
-  - No prior experience with Python packaging is required.
 
-- **GitHub Personal Access Token (PAT)**
+- **3. GitHub Personal Access Token (PAT)**
   - You will need a **GitHub Personal Access Token** to allow workflows to authenticate with GitHub when creating commits, tags, or releases.
   - Create a **fine-grained personal access token** or **classic token** with at least:
     - `repo` asnd `workflow` (classic) **or**
@@ -63,6 +49,15 @@ Before attending, participants should complete the following:
   - GitHub documentation:
     https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
   - See ["Appendix: Create a GitHub Personal Access Token"](#appendix-create-a-github-personal-access-token) for details
+
+- **4. Basic Git and GitHub knowledge**
+  - You should be comfortable with:
+    - Cloning a repository
+    - Creating and committing files
+    - Pushing commits to a branch (e.g. `main`)
+  - You do *not* need advanced Git skills (rebasing, submodules, etc.).
+  - Sofware Carpentry, "Version Control with Git" lesson: https://swcarpentry.github.io/git-novice/
+  - "Learn Git Branching": https://learngitbranching.js.org/?locale=en_US
 
 ### Recommended (but not strictly required)
 
@@ -1712,11 +1707,109 @@ By the end of the workshop, you should feel comfortable reading and modifying Gi
     [https://docs.astral.sh/uv/](https://docs.astral.sh/uv/)
     Documentation for the dependency and version management tool used in the workshop.
 
+# Appendix: Install Git on Windows and macOS
+
+This workshop requires Git to be installed on your local machine. Follow the instructions below for your operating system.
+
+---
+
+## A. Installing Git on **Windows**
+
+### Option 1: Install Git for Windows (recommended)
+
+1. Open a web browser and go to:
+   https://git-scm.com/download/win
+
+2. The installer (`Git-<version>-64-bit.exe`) should download automatically.
+   If not, click **“Click here to download manually.”**
+
+3. Run the installer and follow the setup wizard.
+   - You can accept the **default options** for almost all steps.
+   - When asked about the default editor, you may choose:
+     - **Nano** (simplest), or
+     - **VS Code** (recommended if you already use it).
+
+4. When installation is complete, open **Git Bash** (installed with Git).
+
+5. Verify the installation by running:
+   ```bash
+   git --version
+   ```
+   You should see a version number (e.g., `git version 2.44.0`).
+
+#### Notes for Windows users
+- **Git Bash** provides a Unix-like terminal and is recommended for this workshop.
+- Git will also be available from PowerShell and Command Prompt after installation.
+
+---
+
+## B. Installing Git on **macOS**
+
+### Option 1: Install via Xcode Command Line Tools (simplest)
+
+1. Open **Terminal** (Applications → Utilities → Terminal).
+
+2. Run:
+   ```bash
+   git --version
+   ```
+
+3. If Git is not installed, macOS will prompt you to install the **Command Line Developer Tools**.
+   - Click **Install** and follow the prompts.
+
+4. After installation completes, verify:
+   ```bash
+   git --version
+   ```
+
+### Option 2: Install using Homebrew (recommended for developers)
+
+If you already use Homebrew:
+
+1. Install Git:
+   ```bash
+   brew install git
+   ```
+
+2. Verify the installation:
+   ```bash
+   git --version
+   ```
+
+---
+
+## C. Post-installation (All Platforms)
+
+After installing Git, configure your name and email (required for commits):
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+```
+
+You can confirm your settings with:
+```bash
+git config --global --list
+```
+
+---
+
+## D. Troubleshooting
+
+- If `git --version` does not work:
+  - Restart your terminal and try again.
+  - On Windows, ensure you are using **Git Bash**.
+- If problems persist, see:
+  https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+
 # Appendix: Create a GitHub Personal Access Token
 
 This appendix walks through creating a token and storing it in your repository so GitHub Actions can authenticate when it needs to push commits/tags or create releases.
 
 GitHub supports **fine-grained** tokens (recommended) and **classic** tokens.
+
+---
 
 ## Option 1 (recommended): Fine-grained personal access token
 
@@ -1733,6 +1826,8 @@ GitHub supports **fine-grained** tokens (recommended) and **classic** tokens.
    - **Contents** → **Read and write** (Under "Access" next to the permission)
 6. Click **Generate token**
 7. Copy the token immediately and store it somewhere secure (you won’t be able to view it again).
+
+---
 
 ## Option 2: Classic personal access token
 

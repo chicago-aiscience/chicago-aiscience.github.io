@@ -73,3 +73,9 @@ footer.article.footer a:hover {
 .profile-grid > :first-child {
     max-width: 200px;
 }
+
+/* Workshop screenshots (MyST rewrites src paths) */
+article.content img[alt="GitHub Actions"] {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+}

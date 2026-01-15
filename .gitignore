@@ -3,3 +3,6 @@ _build
 
 # Virtual environment
 .venv
+
+# OS artifacts
+.DS_Store

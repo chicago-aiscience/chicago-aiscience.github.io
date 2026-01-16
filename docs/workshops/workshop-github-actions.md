@@ -358,7 +358,7 @@ You also explored why GitHub Actions are useful for scientific and research code
 
 In Lesson 2, we will move from recognizing workflows to modifying and creating them, and you will see how changes to a workflow affect automation, versioning, and reproducibility.
 
-## ✨Reflection Pause #1 (3-4 min)✨
+## ✨Pause for Reflection #1 (3-4 min)✨
 Grab a piece of paper or sticky note and write short bullets, no full sentences needed.
  1. **Where do your “results” live right now?**
      - e.g., figures/plots, tables, intermediate files, model weights, notebooks, manuscripts

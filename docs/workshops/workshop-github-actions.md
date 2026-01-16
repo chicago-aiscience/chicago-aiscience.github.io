@@ -61,7 +61,8 @@ Before attending, participants should complete the following:
   - A laptop with macOS, Linux, or Windows
   - A terminal or command prompt
   - Git installed and working (`git --version` should succeed)
-    See ["Install Git on Windows and macOS"](#install-git-on-windows-and-macos) for step-by-step instructions
+  - See ["Install Git on Windows, macOS, Linux"](#install-git-on-windows-macos-and-linux) for step-by-step instructions
+  - **For Windows users:** Windows participants should use Git Bash for all terminal commands
 
 - **3. GitHub Personal Access Token (PAT)**
   - You will need a **GitHub Personal Access Token** to allow workflows to authenticate with GitHub when creating commits, tags, or releases.
@@ -517,17 +518,31 @@ Create a new repository from the template workshop repo. The following steps wer
 - Running the following command from the repository root works without errors:
 
 ```bash
-pwd
 git status
 ```
 
 ### 👉 **Step 2.** Create a definition file
 
-Now we can create the file that defines the GitHub Actions workflow, we will call the file `hello.yml`. Make sure to run this command from the root of the GitHub repository to create the file:
+Now we can create the file that defines the GitHub Actions workflow, we will call the file `hello.yml`.
+
+**Create a file (terminal)**
+
+If you are using a Mac or Linux operating sytem you can run the `touch` command on the terminal. Make sure to run this command from the root of the GitHub repository to create the file:
 
 ```bash
 touch .github/workflows/hello.yml
 ```
+
+🧰 Note on file creation: Any step that asks you to create a file can be done directly in your IDE instead of using the terminal. Creating files via the editor works the same on Windows, macOS, and Linux and is recommended for this workshop.
+
+**Create a file (IDE)**
+
+If your are using a Windows operating system or do not want to run a command in terminal you can use an IDE to create the file:
+
+1. Open the repository folder in your IDE (VS Code, PyCharm, etc.)
+2. In the file explorer: Create a new file (right-click → New File)
+3. Name the file exactly as specified, (e.g. `hello.yml`)
+4. Save the file
 
 ### 👉 **Step 3.** Define the name and trigger for the workflow
 
@@ -666,7 +681,7 @@ The GitHub Actions workflow definition is broken into reusable workflows where t
 
 🧰 Note on terminology: In GitHub Actions, a _reusable workflow_ is technically a workflow that calls another workflow. In this workshop, we refer to these reusable workflows as “jobs” because they behave like plug-in jobs you can reuse across repositories.
 
-### 👉 **Step 7.** Create a `pyproject.toml`
+### 👉 **Step 7.** Define a `pyproject.toml`
 
 The `pyproject.toml` file is a single place to define a Python project and how it should be installed and run. It defines details like:
 
@@ -711,12 +726,13 @@ sst = "sst.cli:app"
 
 - Then you can implement versioning for your own projects. The minimum requirement for this workshop is to have a `version` key specified and an entrypoint `[project.scripts]` defined for testing.
 
-### 👉 **Step 8.** Add the `pyproject.toml` file to the Git repository:**
+### 👉 **Step 8.** Create the `pyproject.toml` file and add it to the Git repository:**
 
 1. Create the file:
     ```bash
     touch pyproject.toml
     ```
+    *a. If you cannot run the `touch` command (Windows users) then you may follow ["Step 2."](#-step-2-create-a-definition-file) to create a file via the IDE (make sure to call if `pyproject.toml`)*
 2. Open the file and copy and paste the above definition
 3. Add your name to the `authors` list:
     ```toml
@@ -750,7 +766,9 @@ Create the file by running the following command from the root of the GitHub rep
 touch .github/workflows/deploy.yml
 ```
 
-- Notice the other `*.yml` files: There is one per job (e.g., lint-and-format, scan, test, version, release, etc.) defined in the `.github/workflows` directory
+*If you cannot run the `touch` command (Windows users) then you may follow ["Step 2."](#-step-2-create-a-definition-file) to create a file via the IDE (make sure to call if `deploy.yml`)*
+
+- Notice the other `*.yml` files in the `.github/workflows` directory: There is one per job (e.g., lint-and-format, scan, test, version, release, etc.) defined in the `.github/workflows` directory
 - These are reusable workflows and allow us to simplify the workshop but still provide a full example that you can incorporate into your own codebases and are denoted as "(Internal)" so you know they are to be used in a top-level workflow
 - See the `.github/workflows/deploy-full-example.yml` file for the entire CI/CD pipeline but note this includes a scan job and a container job not covered but may be useful to have
 
@@ -2003,7 +2021,7 @@ Together, these lessons demonstrate how GitHub Actions can support reproducible 
 
 # Appendix
 
-## Install Git on Windows and macOS
+## Install Git on Windows, macOS, and Linux
 
 This workshop requires Git to be installed on your local machine. Follow the instructions below for your operating system.
 
@@ -2074,7 +2092,89 @@ If you already use Homebrew:
 
 ---
 
-### C. Post-installation (All Platforms)
+### C. Installing Git on **Linux**
+
+#### Option 1: Installing Git on **Ubuntu / Debian**
+
+1.  Open a terminal.
+
+2.  Update your package index:
+
+    ``` bash
+    sudo apt update
+    ```
+
+3.  Install Git:
+
+    ``` bash
+    sudo apt install git
+    ```
+
+4.  Verify the installation:
+
+    ``` bash
+    git --version
+    ```
+
+    You should see a version number (for example, `git version 2.43.0`).
+
+---
+
+#### Option 2: Installing Git on **Fedora / RHEL / Rocky / AlmaLinux**
+
+1.  Open a terminal.
+
+2.  Install Git:
+
+    ``` bash
+    sudo dnf install git
+    ```
+
+3.  Verify the installation:
+
+    ``` bash
+    git --version
+    ```
+
+---
+
+#### Option 3: Installing Git on **Arch Linux / Manjaro**
+
+1.  Open a terminal.
+
+2.  Install Git:
+
+    ``` bash
+    sudo pacman -S git
+    ```
+
+3.  Verify the installation:
+
+    ``` bash
+    git --version
+    ```
+
+---
+
+#### Option 4: Installing Git on **openSUSE**
+
+1.  Open a terminal.
+
+2.  Install Git:
+
+    ``` bash
+    sudo zypper install git
+    ```
+
+3.  Verify the installation:
+
+    ``` bash
+    git --version
+    ```
+
+---
+
+### D. Post-installation (All Platforms)
 
 After installing Git, configure your name and email (required for commits):
 
@@ -2090,7 +2190,7 @@ git config --global --list
 
 ---
 
-### D. Troubleshooting
+### E. Troubleshooting
 
 - If `git --version` does not work:
   - Restart your terminal and try again.

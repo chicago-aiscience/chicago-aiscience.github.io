@@ -200,7 +200,8 @@ env:
 
 ### Jobs (workshop core)
 
-This sets up jobs to execute steps in the workflow:
+Jobs execute steps in a workflow. You define `jobs` in the workflow file to indicate you are going to list all of the jobs:
+
 ```yaml
 jobs:
 ```
@@ -223,7 +224,7 @@ This repo uses `ruff` for both linting and formatting. [The Ruff Formatter Docum
 
 ### Version Job (workshop core)
 
-This step is a little bit complicated as version control can be hard! This step takes the version as defined in the `pyproject.toml` file and updates it based on the current branch (as determined by the push trigger). So this job locates the next version of the application. **This is super helpful in tying results to code** as a version provides a numeric tag which can be used to identify code modifications and supports the creation of a release (the last step in the workflow).
+This job is a little bit complicated as version control can be hard! This step takes the version as defined in the `pyproject.toml` file and updates it based on the current branch (as determined by the push trigger). So this job locates the next version of the application. **This is super helpful in tying results to code** as a version provides a numeric tag which can be used to identify code modifications and supports the creation of a release (the last step in the workflow).
 
 ```yaml
 version:
@@ -359,8 +360,10 @@ You also explored why GitHub Actions are useful for scientific and research code
 
 In Lesson 2, we will move from recognizing workflows to modifying and creating them, and you will see how changes to a workflow affect automation, versioning, and reproducibility.
 
-## ✨Pause for Reflection #1 (3-4 min)✨
+**✨Pause for Reflection #1 (3-4 min)✨**
+
 Grab a piece of paper or sticky note and write short bullets, no full sentences needed.
+
  1. **Where do your “results” live right now?**
      - e.g., figures/plots, tables, intermediate files, model weights, notebooks, manuscripts
      - What’s the “source of truth” when someone asks: “Which run produced Figure 2?”

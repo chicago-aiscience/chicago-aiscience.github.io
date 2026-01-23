@@ -16,7 +16,14 @@ project:
     - file: projects.md
     - title: Workshops
       children:
-        - file: workshops/workshop-github-actions.md
+        - title: GitHub Actions workflows for reproducible science [DRAFT]
+          children:
+            - file: workshops/workshop_github_actions/workshop-github-actions-l1.md
+            - file: workshops/workshop_github_actions/workshop-github-actions-l2.md
+            - file: workshops/workshop_github_actions/workshop-github-actions-l3.md
+            - file: workshops/workshop_github_actions/workshop-github-actions-l4.md
+            - file: workshops/workshop_github_actions/workshop-github-actions-summary.md
+            - file: workshops/workshop_github_actions/workshop-github-actions-appendix.md
 
 site:
   template: book-theme

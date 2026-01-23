@@ -14,7 +14,7 @@ By the end of the lesson, you’ll see how sequential execution allows earlier j
 - Pass the `app_version` created in the "Version" job to the "Release" job
 - Execute and test the final workflow `deploy.yml` in GitHub
 
-## 👉 **Step 17.** Define a "Release" job
+## 👉 **Step 16.** Define a "Release" job
 
 The “Release” job ties a specific snapshot of your code to a version, so you can clearly identify which version produced a given set of results.
 
@@ -100,7 +100,7 @@ The "Release" job performs a few tasks in order to create a GitHub release:
 4. Push tag - Creates and pushes a tag to the GitHub repository. A [tag](https://git-scm.com/book/en/v2/Git-Basics-Tagging) is a named pointer to a specific commit in your repository.
 5. Create GH release - Creates the [GitHub release](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases) with release notes, a name, and a tag (which is the same as the tag created in the previous step)
 
-## 👉 **Step 18.** Update the permissions for the "Release" job
+## 👉 **Step 17.** Update the permissions for the "Release" job
 
 The permissions in the `release.yml` file are:
 
@@ -127,7 +127,7 @@ permissions:
   contents: write
 ```
 
-## 👉 **Step 19.** Define a job dependency and communicate the version
+## 👉 **Step 18.** Define a job dependency and communicate the version
 
 Now that we added the "Release" job, how does it get the version number from the "Version" job and use it to update the version of the project, tag the current commit, and tag the release?
 
@@ -176,7 +176,7 @@ Modify the current "Release" definition in `deploy.yml` to add in `needs` and `w
 3) Defined the `release` job in the `deploy.yml` file and set it's dependency on the "Version" job using the `needs` field
 4) Defined the `app_version` input to the "Release" job using `with`
 
-## 👉 **Step 20.** Execute a job conditionally using `if`
+## 👉 **Step 19.** Execute a job conditionally using `if`
 
 We now have a "Lint + Format", "Version", and "Release" jobs. The "Lint + Format" and "Version" jobs execute in parallel while the "Release" job executes sequentially after both jobs are complete. Here is the current definition file:
 
@@ -222,7 +222,7 @@ Add the `if` key to the "Release" job in the `deploy.yml` file so the "Release" 
       app_version: ${{ needs.version.outputs.app_version }}
 ```
 
-## 👉 **Step 21.**  Commit and push the updated workflow
+## 👉 **Step 20.**  Commit and push the updated workflow
 
 We can test the workflow now that you have an updated `deploy.yml` with the "Release" job, dependencies, and `app_version` inputs/outputs defined.
 
@@ -288,7 +288,7 @@ git push origin main
     ```
 - The updated `deploy.yml` file has been committed and pushed
 
-## 👉 **Step 22.** Execute the updated workflow
+## 👉 **Step 21.** Execute the updated workflow
 
 1. Go to the GitHub "Actions" tab for the project repository
 

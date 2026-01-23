@@ -18,7 +18,7 @@ By the end of this workshop, participants will be able to:
 - **Lesson 2:** How to modify workflows to automate versioned execution
 - **Lesson 3:** How to produce and reference a released version of scientific code
 
-**GitHub Releases can be central to reproducibility**
+**GitHub Releases as central to reproducibility**
 
 ![GitHub Releases](./images/github-actions-releases.png)
 
@@ -284,14 +284,11 @@ This repo uses `ruff` for both linting and formatting. [The Ruff Formatter Docum
 This job is a little bit complicated as version control can be hard! This step takes the version as defined in the `pyproject.toml` file and updates it based on the current branch (as determined by the push trigger). So this job locates the next version of the application. **This is super helpful in tying results to code** as a version provides a numeric tag which can be used to identify code modifications and supports the creation of a release (the last step in the workflow).
 
 ```yaml
-version:
+jobs:
+  version:
     runs-on: ubuntu-latest
     outputs:
-      app_version: ${{ steps.dev.outputs.app_version != '' && steps.dev.outputs.app_version || steps.release.outputs.app_version }}
-      deploy_env: ${{ steps.dev.outputs.deploy_env != '' && steps.dev.outputs.deploy_env || steps.release.outputs.deploy_env }}
-      dev_ran: ${{ steps.dev.outcome == 'success' && 'true' || 'false' }}
-      release_ran: ${{ steps.release.outcome == 'success' && 'true' || 'false' }}
-      bump_type: ${{ steps.dev.outputs.bump_type != '' && steps.dev.outputs.bump_type || steps.release.outputs.bump_type }}
+      app_version: ${{ steps.release.outputs.app_version != '' && steps.release.outputs.app_version || steps.get_version.outputs.app_version }}
     steps:
 ```
 
@@ -304,12 +301,9 @@ This is really helpful for tying specific code modifications to results. By asso
 In our example, the release does not include a full executable since we rely on the container image for that, but it does allow us to retain compressed source archives that can be used to connect results to a specific version.
 
 ```yaml
-release:
+jobs:
+  release:
     runs-on: ubuntu-latest
-    needs: [version, build-deploy]
-    permissions:
-      contents: write    # required to push commits/tags
-    if: needs.version.outputs.dev_ran == 'true' || needs.version.outputs.release_ran == 'true'
     steps:
 ```
 

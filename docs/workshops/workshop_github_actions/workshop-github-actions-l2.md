@@ -580,7 +580,7 @@ There are a few key things to notice that differ slightly from the "Lint and For
     - In the "Version" job the `app_version` is saved so other jobs can reference the correct version
     - The value of the expression that sets the `app_version` looks at the `release` step first to determine if a new version was detected and if not falls back to the `get_version` step
 
-### 👉 **Step 15.** Add, commit, and push the `deploy.yml` to GitHub
+### 👉 **Step 14.** Add, commit, and push the `deploy.yml` to GitHub
 
 1. Add and commit the `deploy.yml` file to the `git` repository on the `main` branch:
 
@@ -645,7 +645,7 @@ You should now have a top-level workflow that GitHub recognizes and that correct
      ```
 
 (step-16-run-the-github-actions-workflow)=
-### 👉 **Step 16.** Run the GitHub Actions workflow
+### 👉 **Step 15.** Run the GitHub Actions workflow
 
 Now that you have a complete `deploy.yml` file with the "Lint + Format" and "Version" jobs. Let's explore how to manually trigger the workflow in GitHub.
 

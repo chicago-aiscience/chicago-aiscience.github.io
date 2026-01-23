@@ -13,7 +13,7 @@ These patterns build on the workflows you’ve already created and show how auto
 - Understand how to upload artifacts so other jobs can access files created by job steps
 - Understand how to download artifacts in a job and access the downloaded file
 
-## 👉 **Step 23.** Update `pyproject.toml` to include a build system so tests can be run
+## 👉 **Step 22.** Update `pyproject.toml` to include a build system so tests can be run
 
 First (prior to making any changes) pull down the recent changes made to the `main` branch from the previous GitHub Actions workflow executions
 
@@ -58,7 +58,7 @@ package-dir = { "" = "src" }
 
 This adds a `[build-system]` section which allows the `sst` repository to be installed as a package and used in the execution of the tests. We won't dive into this too far as there could be a whole other workshop on Python packaging.
 
-## 👉 **Step 24.** Define a "Test" job that executes on multiple versions of Python
+## 👉 **Step 23.** Define a "Test" job that executes on multiple versions of Python
 
 Update the `deploy.yml` file to include the "Test" job (`test.yml`)
 
@@ -142,7 +142,7 @@ The "Test" job executes the unit tests defined in the `tests` directory using `p
     python-version: ${{ matrix.python-version }}
 ```
 
-## 👉 **Step 25.** Commit, push, and execute the updated workflow
+## 👉 **Step 24.** Commit, push, and execute the updated workflow
 
 We can test the updated `deploy.yml` file to see if multiple "Test" jobs are run on the three defined Python versions.
 
@@ -215,7 +215,7 @@ Feel free to view the logs for the other versions to make sure things look corre
     - Completes successfully with a green checkmark
 - The workflow summary shows multiple Test jobs created from a single definition
 
-## 👉 **Step 26.** Download the artifacts created in the "Test" jobs
+## 👉 **Step 25.** Download the artifacts created in the "Test" jobs
 
 In step 15, we covered how to run tests on multiple Python versions and each of these versions uploads a plot created by the execution of the `sst` program.
 
@@ -294,7 +294,7 @@ jobs:
 - `with` defines the `name` of the plot and sets the `path` to download the plot to
 - The final step lists the available downloads to show the plots have been downloaded
 
-## 👉 **Step 27.** Commit, push, and execute the updated workflow
+## 👉 **Step 26.** Commit, push, and execute the updated workflow
 
 Let's test the final workflow to see if the plots get downloaded.
 
@@ -364,3 +364,60 @@ git push origin main
 - The job logs list downloaded files:
     - One plot for each Python version (e.g., `python-3.10`, `python-3.11`, `python-3.12`)
 - The listed files `include ml_predictions.png` in each directory
+
+## Summary
+
+In this bonus lesson, you extended your workflow to run jobs across multiple environments and share files between jobs. Using matrix and artifacts, you saw how GitHub Actions can capture both execution and results.
+
+**Key outcomes:**
+
+- Ran tests across multiple Python versions using matrix
+- Uploaded result files as artifacts during test runs
+- Downloaded artifacts in a downstream job
+- Verified one plot per Python version was retrieved successfully
+
+This pattern shows how workflows can automate not just code checks, but also the generation and reuse of scientific outputs.
+
+Final `deploy.yml`
+
+```yaml
+name: Deploy Workshop Workflow
+
+on:
+  workflow_dispatch:    # Allow manual triggering of the workflow
+
+permissions:
+  contents: write
+
+jobs:
+  lint-and-format:
+    name: Lint + format
+    uses: ./.github/workflows/lint-and-format.yml
+
+  version:
+    name: Compute version
+    uses: ./.github/workflows/version.yml
+
+  test:
+    name: Tests
+    uses: ./.github/workflows/test.yml
+
+  download-artifacts:
+    name: Download test artifacts
+    needs: test
+    uses: ./.github/workflows/download-artifact.yml
+
+  release:
+    name: Release version
+    uses: ./.github/workflows/release.yml
+    needs: [lint-and-format, version, test]
+    if: needs.version.result == 'success' && needs.version.outputs.app_version != ''
+    with:
+      app_version: ${{ needs.version.outputs.app_version }}
+```
+
+> ✨ Pause for Reflection #4 (2–3 min) ✨
+> You’ve seen two powerful add-ons: matrix testing and artifacts.
+> 1. Matrix: Would testing multiple Python versions help your collaboration, or just add noise? Why?
+> 2. Artifacts: What’s one file you wish your workflow produced automatically every run?
+    - e.g., a plot, metrics JSON, model evaluation report, parameter summary, logs, a paper-ready figure

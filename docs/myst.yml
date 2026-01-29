@@ -17,6 +17,15 @@ project:
     - title: Workshops
       children:
         - file: workshops/workshop-github-actions.md
+    - title: User Guide ⚠️ DRAFT ⚠️
+      children:
+        - file: user_guide/hpc-user-guide.md
+        - file: user_guide/quick-reference.md
+        - file: user_guide/commands.md
+        - file: user_guide/data-transfer.md
+        - file: user_guide/running-jobs.md
+        - file: user_guide/rcc.md
+        - file: user_guide/dsi.md
 
 site:
   template: book-theme

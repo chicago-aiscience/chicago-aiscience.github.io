@@ -17,7 +17,7 @@ project:
     - title: Workshops
       children:
         - file: workshops/workshop-github-actions.md
-    - title: User Guide [DRAFT, ⚠️ NOT TESTED]
+    - title: User Guide ⚠️ DRAFT ⚠️
       children:
         - file: user_guide/hpc-user-guide.md
         - file: user_guide/quick-reference.md

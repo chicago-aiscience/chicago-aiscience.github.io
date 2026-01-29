@@ -1,0 +1,16 @@
+# Sample input data for MPI job
+# This is a toy example - replace with your actual input data
+
+# Number of data points
+1000
+
+# Processing parameters
+batch_size=100
+iterations=10
+
+# Data values (example)
+1.5
+2.3
+4.7
+8.1
+3.2

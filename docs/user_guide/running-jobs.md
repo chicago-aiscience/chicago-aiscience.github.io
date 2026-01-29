@@ -33,11 +33,28 @@ Submit:
 sbatch scripts/gpu.sbatch
 ```
 
+You may want to determine what partitions you can run on by reviewing a list of available partitions on the cluster:
+
+```bash
+sinfo -a
+```
+
+*(RCC partitions: https://docs.rcc.uchicago.edu/partitions/)*
+
 File contents:
 
-```{literalinclude} scripts/gpu.sbatch
+```{literalinclude} scripts/gpu/gpu.sbatch
 :language: bash
 ```
+
+**See this repository directory for full example:** https://github.com/chicago-aiscience/chicago-aiscience.github.io/blob/main/docs/scripts/gpu
+
+:::{note}
+**Cluster-specific configuration:**
+
+- **RCC cluster**: Uncomment `##SBATCH --account=...` and set your account name
+- **DSI cluster**: Uncomment `##SBATCH --gres=local:...` if you need node-local storage (fast temporary storage that is deleted when the job ends)
+:::
 
 ### Job arrays
 
@@ -50,9 +67,11 @@ sbatch scripts/array.sbatch
 
 File contents:
 
-```{literalinclude} scripts/array.sbatch
+```{literalinclude} scripts/array/array.sbatch
 :language: bash
 ```
+
+**See this repository directory for full example:** https://github.com/chicago-aiscience/chicago-aiscience.github.io/blob/main/docs/scripts/array
 
 ### Multi-node MPI jobs
 
@@ -63,11 +82,19 @@ Submit:
 sbatch scripts/mpi.sbatch
 ```
 
-File contents:
+RCC Cluster submission file contents:
 
-```{literalinclude} scripts/mpi.sbatch
+```{literalinclude} scripts/mpi/mpi-rcc.sbatch
 :language: bash
 ```
+
+DSI Cluster submission file contents:
+
+```{literalinclude} scripts/mpi/mpi-dsi.sbatch
+:language: bash
+```
+
+**See this repository directory for full example:** https://github.com/chicago-aiscience/chicago-aiscience.github.io/blob/main/docs/scripts/mpi
 
 ## `srun` Interactive jobs
 
@@ -159,7 +186,7 @@ Open OnDemand still submits jobs through **SLURM**—it does *not* bypass schedu
 
 **Accessing Open OnDemand**
 
-1. Go to: https://ondemand.rcc.uchicago.edu
+1. Go to: https://midway3-ondemand.rcc.uchicago.edu
 2. Log in with your UChicago credentials
 3. Choose an app or interactive session from the menu
 
@@ -205,118 +232,4 @@ Exit when finished:
 ```bash
 exit
 ```
-:::
-
-## SLURM Email Notifications
-
-SLURM can automatically email you when a job **starts**, **ends**, or **fails**. This is strongly recommended for long-running or unattended jobs.
-
-SLURM documentation (email): https://slurm.schedmd.com/sbatch.html#OPT_mail-type
-
-**When email notifications are most useful**
-
-Use SLURM email notifications when:
-- Jobs run longer than ~30 minutes
-- You submit jobs before leaving for the day
-- You are debugging jobs that fail intermittently
-- You are running large job arrays
-
-:::{warning}
-**For very large job arrays, consider:**
-```bash
-#SBATCH --mail-type=FAIL
-```
-***to avoid email overload.*** Otherwise you may recieve a *very large number* of emails and it will be difficult to sort through them in your inbox. See "Job arrays and email volume below".
-:::
-
----
-
-***Basic SBATCH options***
-
-Add the following lines to your `*.sbatch` file:
-
-```bash
-#SBATCH --mail-user=YOUR_EMAIL@uchicago.edu
-#SBATCH --mail-type=END,FAIL
-```
-
-Common `--mail-type` values:
-
-- `BEGIN` – email when the job starts
-- `END` – email when the job finishes successfully
-- `FAIL` – email if the job fails
-- `ALL` – email on all events
-
-Recommended default:
-```bash
-#SBATCH --mail-type=END,FAIL
-```
-
----
-
-**Example: GPU job with email notifications**
-
-```bash
-#SBATCH --job-name=gpu_example
-#SBATCH --partition=schmidt-gpu
-#SBATCH --gres=gpu:1
-#SBATCH --time=02:00:00
-#SBATCH --mem=32G
-#SBATCH --mail-user=YOUR_EMAIL@uchicago.edu
-#SBATCH --mail-type=END,FAIL
-```
-
-This ensures you are notified if:
-- the job crashes
-- the job completes while you are away
-
----
-
-**Setting a default email address**
-
-You can avoid repeating `--mail-user` by configuring SLURM once.
-
-Check your current account settings:
-```bash
-sacctmgr show user $USER format=User,Email
-```
-
-If no email is set, ask RCC or DSI support to add one for you.
-
----
-
-**Troubleshooting**
-
-If you do not receive emails:
-- Check spam/junk folders
-- Verify your email address is correct
-- Confirm the cluster allows outbound email (RCC and DSI do)
-- Ask support to verify your SLURM account email
-
----
-
-**Job arrays and email volume**
-
-Be careful when enabling email notifications for **job arrays**.
-
-If you submit an array with many tasks (e.g. 100–1,000), SLURM can send **one email per task**, which quickly becomes overwhelming.
-
-Use **FAIL only** so you are notified *only* when something goes wrong:
-
-```bash
-#SBATCH --array=0-99
-#SBATCH --mail-user=YOUR_EMAIL@uchicago.edu
-#SBATCH --mail-type=FAIL
-```
-
-This way:
-- You receive an email if **any task fails**
-- You avoid dozens (or hundreds) of completion emails
-
-:::{tip}
-For very large arrays, consider monitoring progress with:
-```bash
-squeue -u $USER
-```
-and reviewing output logs after completion. ***Do not use email.***
 :::

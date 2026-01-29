@@ -30,6 +30,7 @@ This site is a guide for UChicago Schmidt Fellows using University HPC resources
 
 ### First login
 - [ ] SSH into RCC login node
+- [ ] SSH into DSI login node (if obtained account)
 - [ ] Open Open OnDemand and confirm you can browse files
 - [ ] Verify `$HOME` and scratch directories exist
 

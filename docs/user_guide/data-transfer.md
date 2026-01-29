@@ -61,6 +61,24 @@ put -r DIR    # upload directory
 bye           # exit
 ```
 
+**Examples:**
+
+Download a directory from remote to local:
+```bash
+sftp> cd /project/myproject
+sftp> lcd ~/Downloads
+sftp> get -r results
+# Downloads the 'results' directory to ~/Downloads/results
+```
+
+Upload a directory from local to remote:
+```bash
+sftp> cd /project/myproject
+sftp> lcd ~/Documents/mycode
+sftp> put -r src
+# Uploads the 'src' directory to /project/myproject/src
+```
+
 Tip: GUI clients like **FileZilla** also speak SFTP if you prefer point-and-click.
 
 ---
@@ -94,32 +112,6 @@ Common options:
 References:
 - RCC rsync examples (in SSH docs): https://docs.rcc.uchicago.edu/ssh/main/
 - DSI rsync/scp guide: https://cluster-policy.ds.uchicago.edu/advanced-topics/rsync-scp/
-
----
-
-## Samba (RCC): Map RCC storage as a network drive (Windows)
-
-RCC provides Samba access to mount your **home** and **project** directories as a network drive.
-
-RCC Samba guide (authoritative):
-- https://docs.rcc.uchicago.edu/samba/
-
-Important notes:
-- Works **only on campus network** or via **UChicago VPN**
-- Use **Globus** for large transfers (Samba can be slow and impacts others)
-
-**Windows 10/11: Map a network drive**
-
-1. Connect to the **UChicago VPN** if off campus
-2. Open **File Explorer**
-3. Right-click **This PC** → **Map network drive**
-4. Choose a drive letter (e.g., `R:`)
-5. Enter the network path shown in RCC’s Samba guide (example format):
-   - `\\<samba-server>\<share>`
-6. Check **Reconnect at sign-in** (optional)
-7. When prompted, authenticate with your UChicago credentials as instructed by RCC
-
-If you’re unfamiliar with the Windows mapping UI, UChicago IT has a general walkthrough: https://uchicago.service-now.com/it?id=kb_article_view&sysparm_article=KB00015585
 
 ---
 
@@ -180,13 +172,24 @@ You can define short host aliases in `~/.ssh/config` to avoid typing long hostna
 Example `~/.ssh/config`:
 
 ```text
+# RCC
 Host midway3
     HostName midway3.rcc.uchicago.edu
     User YOUR_CNETID
 
-Host dsi
-    HostName login.ds.uchicago.edu
-    User YOUR_CNETID
+# DSI
+Host fe.ds*
+  HostName fe01.ds.uchicago.edu
+  IdentityFile PATH_TO_PRIVATE_KEY
+  ForwardAgent yes
+  User YOUR_CNETID
+
+Host *.ds !fe.ds
+  HostName %h.uchicago.edu
+  IdentityFile PATH_TO_PRIVATE_KEY
+  ForwardAgent yes
+  User YOUR_CNETID
+  ProxyJump fe.ds
 ```
 
 After this, you can shorten commands:
@@ -196,6 +199,7 @@ After this, you can shorten commands:
 ssh midway3
 
 rsync -av data/ midway3:/scratch/midways3/$USER/data/
+
 scp results.csv dsi:/scratch/$USER/
 ```
 

@@ -47,7 +47,7 @@ File contents:
 :language: bash
 ```
 
-**See this repository directory for full example:** https://github.com/chicago-aiscience/chicago-aiscience.github.io/blob/main/docs/scripts/gpu
+**See this repository directory for full example:** https://github.com/chicago-aiscience/chicago-aiscience.github.io/tree/main/docs/user_guide/scripts/gpu
 
 :::{note}
 **Cluster-specific configuration:**
@@ -71,7 +71,7 @@ File contents:
 :language: bash
 ```
 
-**See this repository directory for full example:** https://github.com/chicago-aiscience/chicago-aiscience.github.io/blob/main/docs/scripts/array
+**See this repository directory for full example:** https://github.com/chicago-aiscience/chicago-aiscience.github.io/tree/main/docs/user_guide/scripts/array
 
 ### Multi-node MPI jobs
 
@@ -94,7 +94,7 @@ DSI Cluster submission file contents:
 :language: bash
 ```
 
-**See this repository directory for full example:** https://github.com/chicago-aiscience/chicago-aiscience.github.io/blob/main/docs/scripts/mpi
+**See this repository directory for full example:** https://github.com/chicago-aiscience/chicago-aiscience.github.io/tree/main/docs/user_guide/scripts/mpi
 
 ## `srun` Interactive jobs
 

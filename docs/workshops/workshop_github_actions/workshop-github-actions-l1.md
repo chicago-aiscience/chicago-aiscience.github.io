@@ -62,7 +62,7 @@ Before attending, participants should complete the following:
   - A terminal or command prompt
   - Git installed and working (`git --version` should succeed)
   - See ["Install Git on Windows, macOS, Linux"](./workshop-github-actions-appendix.md#install-git-on-windows-macos-and-linux) for step-by-step instructions
-  - **For Windows users:** Windows participants should use Git Bash for all terminal commands
+  - **For Windows users:** Windows participants should use **Git Bash** or **WSL (Windows Subsystem for Linux)** for all terminal commands
 
 - **3. GitHub Personal Access Token (PAT)**
   - You will need a **GitHub Personal Access Token** to allow workflows to authenticate with GitHub when creating commits, tags, or releases.

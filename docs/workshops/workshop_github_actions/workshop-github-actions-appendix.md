@@ -9,7 +9,7 @@ This workshop requires Git to be installed on your local machine. Follow the ins
 
 ### A. Installing Git on **Windows**
 
-#### Option 1: Install Git for Windows (recommended)
+#### Option 1: Install Git for Windows
 
 1. Open a web browser and go to:
    https://git-scm.com/download/win
@@ -31,9 +31,65 @@ This workshop requires Git to be installed on your local machine. Follow the ins
    ```
    You should see a version number (e.g., `git version 2.44.0`).
 
+---
+
+#### Optional: Install WSL (Windows Subsystem for Linux)
+
+**WSL** provides a full Linux environment on Windows and is an excellent alternative to Git Bash, especially if you're comfortable with Linux commands or plan to do more development work.
+
+**Prerequisites:**
+- Windows 10 version 2004 or higher, or Windows 11
+- Administrator access
+
+**Installation steps:**
+
+1. **Install WSL:**
+   - Open PowerShell or Command Prompt **as Administrator**
+   - Run:
+     ```powershell
+     wsl --install
+     ```
+   - Restart your computer when prompted
+
+2. **After restart, set up your Linux distribution:**
+   - A terminal window will open automatically
+   - Create a username and password when prompted
+   - This will be your Linux user account (separate from your Windows account)
+
+3. **Install Git in WSL:**
+   - Open your WSL terminal (Ubuntu, or your chosen distribution)
+   - Update package lists:
+     ```bash
+     sudo apt update
+     ```
+   - Install Git:
+     ```bash
+     sudo apt install git
+     ```
+
+4. **Verify the installation:**
+   ```bash
+   git --version
+   ```
+   You should see a version number (e.g., `git version 2.43.0`).
+
+5. **Configure Git** (see [Post-installation](#d-post-installation-all-platforms) section below)
+
+**Accessing your Windows files from WSL:**
+- Windows drives are mounted at `/mnt/` (e.g., `C:\` is `/mnt/c/`)
+- Your Windows user directory: `/mnt/c/Users/YourUsername/`
+- You can navigate between Windows and Linux file systems seamlessly
+
+**Opening WSL:**
+- Type `wsl` in Windows Start menu, or
+- Type `ubuntu` (or your distribution name) in Start menu, or
+- Open from VS Code: File → Open Folder → Select a folder → Choose "Open in WSL"
+
 ##### Notes for Windows users
-- **Git Bash** provides a Unix-like terminal and is recommended for this workshop.
-- Git will also be available from PowerShell and Command Prompt after installation.
+- **Git Bash** provides a Unix-like terminal and works well for this workshop.
+- **WSL** (optional) provides a full Linux environment and is recommended if you prefer Linux commands or plan to do more development work.
+- Both options work equally well for this workshop—choose based on your preference.
+- Git will also be available from PowerShell and Command Prompt after installing Git for Windows.
 
 ---
 
@@ -174,9 +230,18 @@ git config --global --list
 
 - If `git --version` does not work:
   - Restart your terminal and try again.
-  - On Windows, ensure you are using **Git Bash**.
+  - On Windows, ensure you are using **Git Bash** or **WSL**.
+  - If using WSL, make sure you're running commands in the WSL terminal, not PowerShell or Command Prompt.
 - If problems persist, see:
   https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+**WSL-specific troubleshooting:**
+- If `wsl --install` fails, you may need to enable WSL features manually:
+  1. Open "Turn Windows features on or off"
+  2. Enable "Windows Subsystem for Linux" and "Virtual Machine Platform"
+  3. Restart and try `wsl --install` again
+- If you can't access Windows files from WSL, check that you're using the correct path format (`/mnt/c/` instead of `C:\`)
+- For more WSL help, see: https://learn.microsoft.com/en-us/windows/wsl/
 
 (create-a-github-personal-access-token)=
 ## Create a GitHub Personal Access Token

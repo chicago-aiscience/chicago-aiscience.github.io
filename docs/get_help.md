@@ -36,9 +36,7 @@ I am also active on the `Schmidt Futures AI in Science Postdocs at UChicago` Sla
 
 # Office Hours
 
-```{image} images/booking.png
-:link: https://calendar.app.google/XJzUy2dvXn4tKeoB9
-```
+[![Booking Calendar](images/booking.png)](https://calendar.app.google/XJzUy2dvXn4tKeoB9)
 
 Office hours are flexible to accommodate a wide range of research software engineering questions in support of developing high-quality, open-source, and sustainable research software aligned with Fellowship expectations.
 

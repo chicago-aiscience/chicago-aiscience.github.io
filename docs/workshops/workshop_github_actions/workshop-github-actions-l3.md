@@ -321,9 +321,9 @@ git push origin main
 - Lint + Format and Compute version run first (in parallel)
 - Release version runs after both jobs complete
 - A new GitHub release is created:
-- Visible under the repository’s Releases section
-- Tagged with the expected version (e.g., v0.1.1)
-- The release page shows release notes and downloadable source archives
+    - Visible under the repository’s Releases section
+    - Tagged with the expected version (e.g., v0.1.1)
+    - The release page shows release notes and downloadable source archives
 
 ## Summary
 

@@ -73,7 +73,7 @@ This workshop requires Git to be installed on your local machine. Follow the ins
    ```
    You should see a version number (e.g., `git version 2.43.0`).
 
-5. **Configure Git** (see [Post-installation](#d-post-installation-all-platforms) section below)
+5. **Configure Git** (see [Post-installation](#post-installation-all-platforms) section below)
 
 **Accessing your Windows files from WSL:**
 - Windows drives are mounted at `/mnt/` (e.g., `C:\` is `/mnt/c/`)
@@ -210,6 +210,7 @@ If you already use Homebrew:
 
 ---
 
+(post-installation-all-platforms)=
 ### D. Post-installation (All Platforms)
 
 After installing Git, configure your name and email (required for commits):

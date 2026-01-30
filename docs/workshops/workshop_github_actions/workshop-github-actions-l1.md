@@ -134,7 +134,7 @@ Before we dive into building workflows ourselves, it helps to see how GitHub Act
 
 ### Confluence (MetroMan)
 
-Confluence is a scientific workflow that produces river discharge estimates from satellite data. It is composed of multiple modules, one of which—**MetroMan**—implements a core hydrological algorithm.
+Confluence is a scientific workflow that produces river discharge estimates from satellite data. It is composed of multiple modules, one of which (**MetroMan**) implements a core hydrological algorithm.
 
 This repository is a strong example of how a **scientific algorithm can use GitHub Actions to deploy to cloud infrastructure**.
 

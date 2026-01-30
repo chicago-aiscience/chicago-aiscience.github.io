@@ -44,7 +44,7 @@ srun --partition general --nodes=1 --ntasks=1 --cpus-per-task=2 --mem=4GB --time
 srun -p general --gres=gpu:a100:1 --mem=32G -t 01:30:00 --pty /bin/bash
 ```
 
-Note: You may have to locate how to reference available GPUs: ["View node and GPU information"](#view-node-and-gpu-information)
+Note: You may have to locate how to reference available GPUs: [View node and GPU information](#view-node-and-gpu-information)
 
 # View your jobs
 
@@ -64,6 +64,7 @@ scancel <job_id>
 scontrol show job $SLURM_JOB_ID
 ```
 
+(view-node-and-gpu-information)=
 # View node and GPU information
 
 ```bash

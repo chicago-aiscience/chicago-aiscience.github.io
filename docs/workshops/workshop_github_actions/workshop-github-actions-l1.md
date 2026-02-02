@@ -60,6 +60,7 @@ Before attending, participants should complete the following:
 - **2. A local development environment with Git installed**
   - A laptop with macOS, Linux, or Windows
   - A terminal or command prompt
+  - An IDE (VS Code, PyCharm) or a text editor (Atom, Sublime Text)
   - Git installed and working (`git --version` should succeed)
   - See ["Install Git on Windows, macOS, Linux"](./workshop-github-actions-appendix.md#install-git-on-windows-macos-and-linux) for step-by-step instructions
   - **For Windows users:** Windows participants should use **Git Bash** or **WSL (Windows Subsystem for Linux)** for all terminal commands

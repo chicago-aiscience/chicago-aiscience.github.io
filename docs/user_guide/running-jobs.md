@@ -233,3 +233,49 @@ Exit when finished:
 exit
 ```
 :::
+
+# Software Modules
+
+On RCC clusters (like Midway2 / Midway3) and to some extent the DSI cluster, most scientific software isn’t available in your shell by default.
+
+Instead, packaged tools, languages, libraries, and compilers are managed through Environment Modules which is a system that lets you load, unload, and switch software versions cleanly.
+
+A module is basically a script that sets up your environment (e.g., `PATH`, `LD_LIBRARY_PATH`) so a specific software package and its dependencies become available in your session.
+
+You use the module command (`module avail`, `module load`, etc.) to interact with these.
+
+**The benefit:** no conflicting software versions, easy switching between versions, and reproducibility across compute sessions.
+
+**Modules may also provide:**
+
+- Libraries (e.g., FFTW, MKL) used by other software
+- Developer tools (CMake, debugger/profilers)
+- Language environments (Perl, Java)
+
+These support both building complex codes and running them smoothly on compute nodes.
+
+## How to run software modules
+
+1. See what’s available:
+
+  ```bash
+  module avail
+  ```
+
+2. Load what you need:
+
+  ```bash
+  module load <software>/<version>
+  ```
+
+3. Check what’s loaded:
+
+```bash
+module list
+```
+
+4. Run your code inside a job script or interactive session.
+
+:::{tip}
+Key point: Loading a module adjusts your environment so the software just works without manual path juggling.
+:::

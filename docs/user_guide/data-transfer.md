@@ -10,7 +10,7 @@ You may need to move data to/from HPC; use the right tool for the size and type 
 
 ---
 
-## scp (Secure Copy)
+## `scp` (Secure Copy)
 
 Use `scp` to copy files over SSH. Good for small-to-moderate transfers.
 
@@ -38,7 +38,7 @@ scp <CNetID>@midway3.rcc.uchicago.edu:/scratch/midways3/<CNetID>/results.csv .
 :::
 ---
 
-## sftp (Secure File Transfer Protocol)
+## `sftp` (Secure File Transfer Protocol)
 
 `sftp` is like an interactive file browser over SSH.
 
@@ -83,7 +83,7 @@ Tip: GUI clients like **FileZilla** also speak SFTP if you prefer point-and-clic
 
 ---
 
-## rsync (fast syncing over SSH)
+## `rsync` (fast syncing over SSH)
 
 `rsync` is usually the best choice when:
 - you are syncing directories repeatedly
@@ -206,3 +206,59 @@ scp results.csv dsi:/scratch/$USER/
 :::{tip}
 You can add multiple `Host` entries (e.g., `midway3-gpu`, `midway3-login`) if useful.
 :::
+
+
+# `sshfs` (Local File SystemMount)
+
+`sshfs` lets you mount a directory on an RCC system as a local folder on your computer using SSH. This allows you to browse, copy, and edit files without repeatedly running `scp` or `rsync`.
+
+:::{warning}
+Homebrew’s `sshfs` formula on macOS is effectively broken because macOS removed kernel-level FUSE support, and the formula hasn’t been updated to work around that. There are ways to install `sshfs` on macOS but it is unclear how well supported they are and will not be included here.
+:::
+
+## When to Use `sshfs`
+- Browsing output files or logs
+- Transferring small to moderate amounts of data
+- Editing small text files interactively
+
+**Not recommended** for large data transfers or performance‑intensive I/O.
+
+## Requirements (Windows and Linux only)
+- SSH access to RCC login nodes
+- `sshfs` installed locally
+  - Linux: system package manager
+  - Windows: via WSL or FUSE-based tools
+
+## Basic Usage
+
+### Create a local mount point
+```bash
+mkdir ~/rcc_home
+```
+
+### Mount your RCC home directory
+```bash
+sshfs <CNetID>@midway3.rcc.uchicago.edu:/home/<CNetID> ~/rcc_home
+```
+
+Authenticate with your password and Duo when prompted.
+
+### Unmount when finished
+- Linux:
+  ```bash
+  fusermount -u ~/rcc_home
+  ```
+
+## Performance and Best Practices
+- `sshfs` is much slower than native filesystem access
+- Connect only to **login nodes**
+- Avoid large directory trees and many small file operations
+- Always unmount before closing your laptop or changing networks
+- Use `rsync`, `scp`, or Globus for large transfers
+
+:::{tip}
+Use sshfs for convenience, not for throughput.
+:::
+
+## Summary
+`sshfs` is a convenient tool for lightweight, interactive access to RCC files. Use it for convenience, not throughput.

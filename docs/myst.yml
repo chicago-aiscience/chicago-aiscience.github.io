@@ -24,7 +24,7 @@ project:
             - file: workshops/workshop_github_actions/workshop-github-actions-l4.md
             - file: workshops/workshop_github_actions/workshop-github-actions-summary.md
             - file: workshops/workshop_github_actions/workshop-github-actions-appendix.md
-    - title: User Guide ⚠️ DRAFT ⚠️
+    - title: User Guide
       children:
         - file: user_guide/hpc-user-guide.md
         - file: user_guide/quick-reference.md

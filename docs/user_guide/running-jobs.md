@@ -279,3 +279,42 @@ module list
 :::{tip}
 Key point: Loading a module adjusts your environment so the software just works without manual path juggling.
 :::
+
+# Monitoring Jobs
+
+Once you submit a job, Slurm provides several commands to help you track its status, priority, and resource usage on RCC clusters.
+
+## Check Job Status: `squeue`
+
+View your running and pending jobs:
+
+```bash
+squeue -u $USER
+```
+
+Key fields include job ID, state (`PD` = pending, `R` = running), elapsed time, and node or pending reason.
+
+For a custom view:
+```bash
+squeue -u $USER -o "%.18i %.9P %.8j %.2t %.10M %.6D %R"
+```
+
+## Check Job Priority: `sprio`
+
+If a job is pending, use `sprio` to understand its scheduling priority:
+
+```bash
+sprio -u $USER
+```
+
+*Only prints output for pending jobs.* This shows how factors like job age, fairshare, and job size affect when your job will start.
+
+## Check Job Efficiency: `seff`
+
+After a job finishes, summarize how efficiently it used resources:
+
+```bash
+seff <JOBID>
+```
+
+Use CPU and memory efficiency to adjust future job requests.

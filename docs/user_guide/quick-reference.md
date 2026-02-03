@@ -117,11 +117,26 @@ sftp midway3:/home/$USER/
 ## 6. Monitor and manage jobs
 
 ```bash
+# See your jobs
 squeue -u $USER
-scancel <JOBID>
-scontrol show job <JOBID>
-```
 
+# Get details on a job
+scontrol show job <JOBID>
+
+# Cancel a job
+scancel <JOBID>
+
+# Check job priority
+sprio -u $USER
+
+# Check job efficiency (after completion)
+seff <JOBID>
+```
+:::{tip}
+- Large jobs may wait longer in the queue
+- Over-requesting memory or CPUs can reduce priority
+- Use `seff` output to right-size future jobs
+:::
 ---
 
 ## 7. Where to go next

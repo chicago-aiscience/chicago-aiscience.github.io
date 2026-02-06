@@ -119,7 +119,6 @@ References:
 
 Globus is the best choice for:
 - very large datasets
-- transfers that need to resume automatically
 - moving data between institutional systems (RCC ↔ lab server ↔ cloud VM endpoints, etc.)
 
 RCC Globus docs:

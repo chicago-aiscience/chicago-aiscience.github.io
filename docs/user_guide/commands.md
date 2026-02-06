@@ -82,3 +82,5 @@ srun --jobid=<JOBID> --pty /bin/bash
 ```bash
 nvidia-smi
 ```
+
+*(Do not run on the login node as it will not give you information for the GPUs attached to compute nodes.)*

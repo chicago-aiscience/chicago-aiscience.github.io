@@ -69,5 +69,8 @@ This site is a guide for UChicago Schmidt Fellows using University HPC resources
 ### When to ask for help
 Ask for help **before** running large jobs if:
 - Your job fails immediately
-- You are unsure which partition to use
+- You are unsure which partition to use.
+    - General rule for Schmidt Sciences fellows:
+        - On the RCC, use: `schmidt-gpu`
+        - On the DSI, use: `ai+s`
 - You need longer wall time or more resources

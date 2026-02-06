@@ -16,7 +16,7 @@ This site is a guide for UChicago Schmidt Fellows using University HPC resources
 |------|----|----|
 | Primary audience | Campus-wide research | DSI-affiliated research |
 | Scheduler | SLURM | SLURM |
-| GPUs | Yes (Schmidt + others) | Limited / varies |
+| GPUs | Yes (Schmidt + others) | Yes (Schmidt + others) |
 | Containers | Singularity supported | Singularity/Podman allowed but unsupported |
 | Max job time | 36 hours | 12 hours |
 | Best for | Large-scale, long-running jobs | Moderate-scale, fast iteration |

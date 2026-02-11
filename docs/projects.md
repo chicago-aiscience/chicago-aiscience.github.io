@@ -2,7 +2,7 @@
 title: Software Projects
 ---
 
-::::{grid} 1
+::::{grid} 2
 
 :::{card}
 :link: https://github.com/chicago-aiscience/schneider-bigsmiles-gen
@@ -59,7 +59,7 @@ title: Software Projects
 
 > Authors: Rui Ding
 
-{button}`GitHub Repository <https://github.com/ruiding-uchicago/DToR_deep_research>`
+<!-- {button}`GitHub Repository <https://github.com/ruiding-uchicago/DToR_deep_research>` -->
 
 *DToR is a LangGraph-based research assistant that generates comprehensive reports for research topics. It supports both single-path research loops and Deep Tree of Research (DToR) routing, enabling multi-branch exploration of research questions with automated synthesis and reflection.*
 :::
@@ -77,6 +77,21 @@ title: Software Projects
 {button}`GitHub Repository <https://github.com/chicago-aiscience/lu-neural-chaos>`
 
 *This is the implementation for the NeurIPS 2023 paper "Training neural operators to preserve invariant measures of chaotic attractors".*
+:::
+
+:::{card}
+:link: https://github.com/chicago-aiscience/lu-neural-chaos
+:header: `diff-inst`
+```{image} images/diff_inst.png
+```
+
+# Diffusive Instabilities in Dusty Disks
+
+> Authors: Konstantin Gerbig
+
+{button}`GitHub Repository <https://github.com/KonstantinGerbig/diff-inst>`
+
+*Fast, reproducible 1D axisymmetric experiments for the diffusive instability in dusty disks ([Gerbig et al. 2024](https://iopscience.iop.org/article/10.3847/1538-4357/ad1114), Gerbig & Lin, submitted), including an incompressible, viscous gas that responds azimuthally and couples to the dust via drag backreaction.*
 :::
 
 ::::

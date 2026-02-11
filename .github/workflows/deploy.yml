@@ -42,12 +42,10 @@ jobs:
         run: jupyter-book build --html
       - name: Inject Umami Analytics
         run: |
-          SCRIPT='<script defer src="https://analytics.ds.uchicago.edu/script.js" data-website-id="ce6fa5bc-db99-40d6-8f31-32c4e2c549f2"></script>'
-          while IFS= read -r -d '' f; do
-            if ! grep -q 'data-website-id="ce6fa5bc-db99-40d6-8f31-32c4e2c549f2"' "$f"; then
-              echo "$SCRIPT" >> "$f"
-            fi
-          done < <(find ./docs/_build/html -name '*.html' -print0)
+          ENTRY=$(find ./docs/_build/html/build -name 'entry.client-*.js' | head -1)
+          if [ -n "$ENTRY" ]; then
+            printf '\n;(function(){var s=document.createElement("script");s.defer=true;s.src="https://analytics.ds.uchicago.edu/script.js";s.dataset.websiteId="ce6fa5bc-db99-40d6-8f31-32c4e2c549f2";document.head.appendChild(s)})();' >> "$ENTRY"
+          fi
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

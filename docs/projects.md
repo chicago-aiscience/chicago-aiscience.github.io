@@ -2,7 +2,9 @@
 title: Software Projects
 ---
 
-::::{grid} 2
+::::{grid} 1 1 2 2
+:gutter: 3
+:margin: 2 2 0 0
 
 :::{card}
 :link: https://github.com/chicago-aiscience/schneider-bigsmiles-gen

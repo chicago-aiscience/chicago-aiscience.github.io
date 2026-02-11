@@ -42,9 +42,13 @@ jobs:
         run: jupyter-book build --html
       - name: Inject Umami Analytics
         run: |
-          ENTRY=$(find ./docs/_build/html/build -name 'entry.client-*.js' | head -1)
+          ENTRY=$(find ./docs/_build/html -name 'entry.client-*.js' | head -1)
           if [ -n "$ENTRY" ]; then
-            printf '\n;(function(){var s=document.createElement("script");s.defer=true;s.src="https://analytics.ds.uchicago.edu/script.js";s.dataset.websiteId="ce6fa5bc-db99-40d6-8f31-32c4e2c549f2";document.head.appendChild(s)})();' >> "$ENTRY"
+            echo "Found entry client at: $ENTRY"
+            printf '\n;window.addEventListener("load",function(){var s=document.createElement("script");s.src="https://analytics.ds.uchicago.edu/script.js";s.dataset.websiteId="ce6fa5bc-db99-40d6-8f31-32c4e2c549f2";document.head.appendChild(s)});' >> "$ENTRY"
+          else
+            echo "ERROR: Could not find entry.client-*.js in build output"
+            exit 1
           fi
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

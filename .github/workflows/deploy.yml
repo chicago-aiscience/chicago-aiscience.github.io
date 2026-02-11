@@ -45,7 +45,7 @@ jobs:
           SCRIPT='<script defer src="https://analytics.ds.uchicago.edu/script.js" data-website-id="ce6fa5bc-db99-40d6-8f31-32c4e2c549f2"></script>'
           while IFS= read -r -d '' f; do
             if ! grep -q 'data-website-id="ce6fa5bc-db99-40d6-8f31-32c4e2c549f2"' "$f"; then
-              sed -i "s|</head>|$SCRIPT</head>|" "$f"
+              echo "$SCRIPT" >> "$f"
             fi
           done < <(find ./docs/_build/html -name '*.html' -print0)
       - name: Upload artifact

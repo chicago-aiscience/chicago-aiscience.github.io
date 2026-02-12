@@ -7,35 +7,9 @@ This workshop requires Git to be installed on your local machine. Follow the ins
 
 ---
 
-### A. Installing Git on **Windows**
+### Windows (WSL)
 
-#### Option 1: Install Git for Windows
-
-1. Open a web browser and go to:
-   https://git-scm.com/download/win
-
-2. The installer (`Git-<version>-64-bit.exe`) should download automatically.
-   If not, click **“Click here to download manually.”**
-
-3. Run the installer and follow the setup wizard.
-   - You can accept the **default options** for almost all steps.
-   - When asked about the default editor, you may choose:
-     - **Nano** (simplest), or
-     - **VS Code** (recommended if you already use it).
-
-4. When installation is complete, open **Git Bash** (installed with Git).
-
-5. Verify the installation by running:
-   ```bash
-   git --version
-   ```
-   You should see a version number (e.g., `git version 2.44.0`).
-
----
-
-#### Optional: Install WSL (Windows Subsystem for Linux)
-
-**WSL** provides a full Linux environment on Windows and is an excellent alternative to Git Bash, especially if you're comfortable with Linux commands or plan to do more development work.
+**WSL** provides a full Linux environment on Windows and is recommended for this workshop.
 
 **Prerequisites:**
 - Windows 10 version 2004 or higher, or Windows 11
@@ -50,6 +24,10 @@ This workshop requires Git to be installed on your local machine. Follow the ins
      wsl --install
      ```
    - Restart your computer when prompted
+
+```{tip}
+If you are having difficulty installing WSL please see the [complete Windows documentation](https://learn.microsoft.com/en-us/windows/wsl/install)
+```
 
 2. **After restart, set up your Linux distribution:**
    - A terminal window will open automatically
@@ -78,22 +56,16 @@ This workshop requires Git to be installed on your local machine. Follow the ins
 **Accessing your Windows files from WSL:**
 - Windows drives are mounted at `/mnt/` (e.g., `C:\` is `/mnt/c/`)
 - Your Windows user directory: `/mnt/c/Users/YourUsername/`
-- You can navigate between Windows and Linux file systems seamlessly
+- You can navigate between Windows and Linux file systems from within WSL
 
 **Opening WSL:**
 - Type `wsl` in Windows Start menu, or
 - Type `ubuntu` (or your distribution name) in Start menu, or
 - Open from VS Code: File → Open Folder → Select a folder → Choose "Open in WSL"
 
-##### Notes for Windows users
-- **Git Bash** provides a Unix-like terminal and works well for this workshop.
-- **WSL** (optional) provides a full Linux environment and is recommended if you prefer Linux commands or plan to do more development work.
-- Both options work equally well for this workshop—choose based on your preference.
-- Git will also be available from PowerShell and Command Prompt after installing Git for Windows.
-
 ---
 
-### B. Installing Git on **macOS**
+### macOS
 
 #### Option 1: Install via Xcode Command Line Tools (simplest)
 
@@ -128,7 +100,7 @@ If you already use Homebrew:
 
 ---
 
-### C. Installing Git on **Linux**
+### Linux
 
 #### Option 1: Installing Git on **Ubuntu / Debian**
 
@@ -231,7 +203,7 @@ git config --global --list
 
 - If `git --version` does not work:
   - Restart your terminal and try again.
-  - On Windows, ensure you are using **Git Bash** or **WSL**.
+  - On Windows, ensure you are using **WSL**.
   - If using WSL, make sure you're running commands in the WSL terminal, not PowerShell or Command Prompt.
 - If problems persist, see:
   https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
@@ -244,50 +216,127 @@ git config --global --list
 - If you can't access Windows files from WSL, check that you're using the correct path format (`/mnt/c/` instead of `C:\`)
 - For more WSL help, see: https://learn.microsoft.com/en-us/windows/wsl/
 
-(create-a-github-personal-access-token)=
-## Create a GitHub Personal Access Token
+(configure-ssh-authentication-github)=
+## Configure SSH Authentication with GitHub
 
-This appendix walks through creating a token and storing it in your repository so GitHub Actions can authenticate when it needs to push commits/tags or create releases.
-
-GitHub supports **fine-grained** tokens (recommended) and **classic** tokens.
+This section shows how to create and configure an SSH key so you can push commits from your local machine to GitHub.
 
 ---
 
-### Option 1 (recommended): Fine-grained personal access token
+### Step 1. Install and/or enable SSH on your laptop
 
-1. Go to GitHub → **Settings**
-2. Navigate to **Developer settings** → **Personal access tokens** → **Fine-grained tokens**
-3. Click **Generate new token**
-4. Set:
-   - **Token name**: something recognizable (e.g., `workshop-actions-release`)
-   - **Expiration**: choose an expiration that covers the workshop (e.g., 7–30 days)
-   - **Resource owner**: your GitHub account
-   - **Repository access**: select **Only select repositories** and choose the workshop repo (or the repo you will use)
-5. Under **Repository permissions**, set:
-   - **Actions** → **Read and write** (Under "Access" next to the permission)
-   - **Contents** → **Read and write** (Under "Access" next to the permission)
-6. Click **Generate token**
-7. Copy the token immediately and store it somewhere secure (you won’t be able to view it again).
+#### Windows (WSL)
 
----
+WSL provides a Linux-like environment that was installed in the section ["Installing Git on **Windows**"](./workshop-github-actions-appendix.md#windows-wsl)
 
-### Option 2: Classic personal access token
+**Open your WSL distro (e.g., Ubuntu)**, then:
 
-1. Go to GitHub → **Settings**
-2. Navigate to **Developer settings** → **Personal access tokens** → **Tokens (classic)**
-3. Click **Generate new token (classic)**
-4. Set an **expiration**
-5. Select scopes:
-   - **`repo`** (required for committing/pushing, tags, and releases in private repos; also works for public repos)
-   - **`workflow`** (required to **add/update workflow files** under `.github/workflows/`)
-6. Click **Generate token**
-7. Copy the token immediately and store it somewhere secure.
+```bash
+sudo apt update
+sudo apt install git openssh-client
+```
 
-🧰 **When do you need the `workflow` scope?**
+#### macOS
 
-Only if the workflow (or a script run by the workflow) will **create or modify files inside `.github/workflows/`**. For this workshop’s core release flow (bump version, push tag, create release), `repo` is typically sufficient.
+Most macOS systems include Git and SSH via Apple’s command line tools.
 
-> Security note: Use the minimum permissions needed and set an expiration. Treat your PAT like a password.
+Verify:
 
-References:
-- Managing personal access tokens: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
+```bash
+git --version
+ssh -V
+```
+
+If needed:
+
+```bash
+xcode-select --install
+```
+
+#### Linux (Ubuntu/Debian)
+
+```bash
+sudo apt update
+sudo apt install git openssh-client
+```
+
+### Step. 2 Generate an SSH key
+
+In a terminal, run the following command to create the key:
+
+```bash
+ssh-keygen -t ed25519 -C "your_email@example.com"
+```
+
+- Press **Enter** to accept the default file location
+- Optionally set a passphrase
+
+```{important} SSH keys on Windows
+Because we are running Git inside WSL, generate your SSH keys **inside WSL**.
+
+Windows and WSL have separate SSH environments, so keys created in PowerShell won’t automatically be available inside WSL.
+
+To launch WSL:
+
+- Type `wsl` in Windows Start menu, or
+- Type `ubuntu` (or your distribution name) in Start menu
+```
+
+### Step. 3 Start the SSH agent and add your key
+
+```bash
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+```
+
+```{warning}
+If `ssh-add` fails, you may be using a different key filename. Check `~/.ssh/` and adjust accordingly.
+```
+
+### Step. 4 Add your public key to GitHub
+
+Copy your public key:
+
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+
+Then in GitHub:
+
+1. Go to **GitHub → Settings**
+2. Click **SSH and GPG keys**
+3. Click **New SSH key**
+4. Paste the key
+5. Save
+
+### Step. 5 Make sure your repo remote uses SSH
+
+When cloning, use the SSH URL:
+
+```bash
+git clone git@github.com:USERNAME/REPO.git
+```
+
+If you already cloned with HTTPS, switch the `origin` remote:
+
+```bash
+git remote -v
+git remote set-url origin git@github.com:USERNAME/REPO.git
+git remote -v
+```
+
+### Step. 6 Test your SSH connection
+
+```bash
+ssh -T git@github.com
+```
+
+Expected output looks like:
+
+```
+Hi USERNAME! You've successfully authenticated...
+```
+
+```{tip}
+- First-time SSH connection prompts you to trust GitHub’s host key: type **yes**
+```

@@ -54,8 +54,8 @@ Before attending, participants should complete the following:
 ### Required
 
 - **1. A GitHub account**
-  - You must be able to clone repositories and push commits to GitHub.
-  - Public repositories are recommended so GitHub Actions runs are free.
+  - A GitHub account is required to participate.
+  - Public repositories are recommended (GitHub Actions runs are free).
 
 - **2. A local development environment with Git installed**
   - A laptop with macOS, Linux, or Windows
@@ -63,24 +63,22 @@ Before attending, participants should complete the following:
   - An IDE (VS Code, PyCharm) or a text editor (Atom, Sublime Text)
   - Git installed and working (`git --version` should succeed)
   - See ["Install Git on Windows, macOS, Linux"](./workshop-github-actions-appendix.md#install-git-on-windows-macos-and-linux) for step-by-step instructions
-  - **For Windows users:** Windows participants should use **Git Bash** or **WSL (Windows Subsystem for Linux)** for all terminal commands
+  - **For Windows users:** We recommend using **WSL (Windows Subsystem for Linux)** for all terminal commands.
 
-- **3. GitHub Personal Access Token (PAT)**
-  - You will need a **GitHub Personal Access Token** to allow workflows to authenticate with GitHub when creating commits, tags, or releases.
-  - Create a **fine-grained personal access token** or **classic token** with at least:
-    - `repo` and `workflow` (classic) **or**
-    - Repository **Contents: Read and write** (fine-grained)
-  - Save the token somewhere secure; you may need it when you push code up to your repository
-  - [GitHub documentation link](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
-  - See ["Create a GitHub Personal Access Token"](./workshop-github-actions-appendix.md#create-a-github-personal-access-token) for details
+- **3. Configure SSH Authentication with GitHub**
+  - This allows you to push commits to GitHub
+  - Set up an SSH key and add it to your GitHub account
+  - Use the SSH repository URL (e.g., git@github.com:username/repo.git)
+  - After setup, you can push without entering a password
+  - See: ["Set up SSH with GitHub"](./workshop-github-actions-appendix.md#configure-ssh-authentication-github) in the Appendix
 
 - **4. Basic Git and GitHub knowledge**
   - You should be comfortable with:
     - Cloning a repository
     - Creating and committing files
-    - Pushing commits to a branch (e.g. `main`)
+    - Pushing commits to a branch (e.g., `main`)
   - You do *not* need advanced Git skills (rebasing, submodules, etc.).
-  - [Sofware Carpentry, "Version Control with Git" lesson](https://swcarpentry.github.io/git-novice/)
+  - [Software Carpentry, "Version Control with Git" lesson](https://swcarpentry.github.io/git-novice/)
   - ["Learn Git Branching" interactive visual tutorial](https://learngitbranching.js.org/?locale=en_US)
 
 ### Recommended (but not strictly required)

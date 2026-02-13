@@ -216,6 +216,8 @@ git config --global --list
 - If you can't access Windows files from WSL, check that you're using the correct path format (`/mnt/c/` instead of `C:\`)
 - For more WSL help, see: https://learn.microsoft.com/en-us/windows/wsl/
 
+---
+
 (configure-ssh-authentication-github)=
 ## Configure SSH Authentication with GitHub
 
@@ -262,6 +264,8 @@ sudo apt install git openssh-client
 
 ### Step. 2 Generate an SSH key
 
+#### Create the key
+
 In a terminal, run the following command to create the key:
 
 ```bash
@@ -282,24 +286,52 @@ To launch WSL:
 - Type `ubuntu` (or your distribution name) in Start menu
 ```
 
+#### Set the key's permissions
+
+Set secure file permissions on your private key. SSH requires strict permissions on your key files and .ssh directory. Run the following commands:
+
+```bash
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/id_ed25519
+chmod 644 ~/.ssh/id_ed25519.pub
+```
+
+What these do:
+- `700 ~/.ssh` → Only you can access your SSH directory
+- `600 id_ed25519` → Private key is readable only by you
+- `644 id_ed25519.pub` → Public key can be read but not modified by others
+
+:::{warning}
+If permissions are too open, SSH will refuse to use the key and display an error such as:
+
+```bash
+WARNING: UNPROTECTED PRIVATE KEY FILE!
+Setting these permissions ensures SSH works correctly and securely.
+```
+
+:::
+
 ### Step. 3 Start the SSH agent and add your key
+
+Run the following commands to start the SSH agent process and then add your key to the process so you can authenticate with SSH.
 
 ```bash
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
 ```
 
-```{warning}
-If `ssh-add` fails, you may be using a different key filename. Check `~/.ssh/` and adjust accordingly.
-```
-
 ### Step. 4 Add your public key to GitHub
 
-Copy your public key:
+Copy your public key content by running the following command:
 
 ```bash
 cat ~/.ssh/id_ed25519.pub
 ```
+
+Copy the key content from the output of the command, it should look something like:
+
+`ssh-ed25519 AAAAAAAAAAfsjkldfaieaflkfnc4598035jnsdfksdlcnswef03248slffjklsfjklsd90 your_email@example.com`
+
 
 Then in GitHub:
 
@@ -307,25 +339,9 @@ Then in GitHub:
 2. Click **SSH and GPG keys**
 3. Click **New SSH key**
 4. Paste the key
-5. Save
+5. Click **Add SSH key**
 
-### Step. 5 Make sure your repo remote uses SSH
-
-When cloning, use the SSH URL:
-
-```bash
-git clone git@github.com:USERNAME/REPO.git
-```
-
-If you already cloned with HTTPS, switch the `origin` remote:
-
-```bash
-git remote -v
-git remote set-url origin git@github.com:USERNAME/REPO.git
-git remote -v
-```
-
-### Step. 6 Test your SSH connection
+### Step. 5 Test your SSH connection
 
 ```bash
 ssh -T git@github.com
@@ -339,4 +355,20 @@ Hi USERNAME! You've successfully authenticated...
 
 ```{tip}
 - First-time SSH connection prompts you to trust GitHub’s host key: type **yes**
+```
+
+### Step. 6 Make sure your repo remote uses SSH (optional)
+
+When cloning, use the SSH URL:
+
+```bash
+git clone git@github.com:USERNAME/REPO.git
+```
+
+If you already cloned with HTTPS, switch the `origin` remote:
+
+```bash
+git remote -v
+git remote set-url origin git@github.com:USERNAME/REPO.git
+git remote -v
 ```

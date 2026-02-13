@@ -16,7 +16,7 @@ project:
     - file: projects.md
     - title: Workshops
       children:
-        - title: GitHub Actions workflows for reproducible science ⚠️ DRAFT ⚠️
+        - title: GitHub Actions workflows for reproducible science
           children:
             - file: workshops/workshop_github_actions/workshop-github-actions-l1.md
             - file: workshops/workshop_github_actions/workshop-github-actions-l2.md

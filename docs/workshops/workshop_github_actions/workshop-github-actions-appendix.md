@@ -264,8 +264,6 @@ sudo apt install git openssh-client
 
 ### Step. 2 Generate an SSH key
 
-#### Create the key
-
 In a terminal, run the following command to create the key:
 
 ```bash
@@ -286,7 +284,7 @@ To launch WSL:
 - Type `ubuntu` (or your distribution name) in Start menu
 ```
 
-#### Set the key's permissions
+### Step 3. Set the key's permissions
 
 Set secure file permissions on your private key. SSH requires strict permissions on your key files and .ssh directory. Run the following commands:
 
@@ -308,10 +306,9 @@ If permissions are too open, SSH will refuse to use the key and display an error
 WARNING: UNPROTECTED PRIVATE KEY FILE!
 Setting these permissions ensures SSH works correctly and securely.
 ```
-
 :::
 
-### Step. 3 Start the SSH agent and add your key
+### Step. 4 Start the SSH agent and add your key
 
 Run the following commands to start the SSH agent process and then add your key to the process so you can authenticate with SSH.
 
@@ -320,7 +317,7 @@ eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
 ```
 
-### Step. 4 Add your public key to GitHub
+### Step. 5 Add your public key to GitHub
 
 Copy your public key content by running the following command:
 
@@ -341,7 +338,7 @@ Then in GitHub:
 4. Paste the key
 5. Click **Add SSH key**
 
-### Step. 5 Test your SSH connection
+### Step. 6 Test your SSH connection
 
 ```bash
 ssh -T git@github.com
@@ -357,7 +354,7 @@ Hi USERNAME! You've successfully authenticated...
 - First-time SSH connection prompts you to trust GitHub’s host key: type **yes**
 ```
 
-### Step. 6 Make sure your repo remote uses SSH (optional)
+### Step. 7 Make sure your repo remote uses SSH (optional)
 
 When cloning, use the SSH URL:
 

@@ -125,7 +125,7 @@ Create a new repository from the template workshop repo. The following steps wer
 
 ![GitHub Actions](./images/l2s0t8.png)
 
-9. Copy the link to clone your new repository by copying the "HTTPS" link from the "<> Code" dropdown
+9. Copy the link to clone your new repository by copying the "SSH" link from the "<> Code" dropdown
 
 ![GitHub Actions](./images/l2s0t9.png)
 

@@ -237,8 +237,6 @@ git commit -m "GitHub Actions workflow hello world example"
 git push origin main
 ```
 
-*Note: There can be issues pushing to GitHub if you haven't set and used your Personal Access Token (PAT) previously. We will hold to work out any issues.*
-
 **✅ Verification Checkpoint**
 
 - A file exists at `.github/workflows/hello.yml`

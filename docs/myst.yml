@@ -38,6 +38,7 @@ project:
         - file: user_guide/commands.md
         - file: user_guide/data-transfer.md
         - file: user_guide/running-jobs.md
+        - file: user_guide/checkpointing.md
         - file: user_guide/rcc.md
         - file: user_guide/dsi.md
 

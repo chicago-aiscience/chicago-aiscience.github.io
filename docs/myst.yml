@@ -14,6 +14,13 @@ project:
     - file: get_help.md
     - file: rse.md
     - file: projects.md
+      children:
+        - file: projects/bigsmiles.md
+        - file: projects/blackholes.md
+        - file: projects/ding-dash.md
+        - file: projects/dtor.md
+        - file: projects/neural-chaos.md
+        - file: projects/dusty-disks.md
     - title: Workshops
       children:
         - title: GitHub Actions workflows for reproducible science

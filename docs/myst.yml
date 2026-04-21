@@ -21,6 +21,10 @@ project:
         - file: projects/dtor.md
         - file: projects/neural-chaos.md
         - file: projects/dusty-disks.md
+        - file: projects/cebmf.md
+        - file: projects/augernet.md
+        - file: projects/gen-chem.md
+        - file: projects/clinical.md
     - title: Workshops
       children:
         - title: GitHub Actions workflows for reproducible science

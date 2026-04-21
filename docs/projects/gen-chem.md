@@ -1,7 +1,7 @@
 :::{card}
 :link: https://github.com/chicago-aiscience/generative_chem_reactive_structures
 :header: `generative_chem_reactive_structures`
-```{image} ../images/gen_chem_resized.png
+```{image} ../images/gen_chem.webp
 ```
 
 # Generative Chem Reaction Structures

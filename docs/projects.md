@@ -76,7 +76,7 @@ title: Software Projects
 :::{card}
 :header: `generative_chem_reactive_structures`
 :link: projects/gen-chem
-```{image} images/gen_chem_resized.png
+```{image} images/gen_chem.webp
 ```
 *Hackathon 2026: Predicting the 3D molecular structures of transition states using just reactant and product geometries.*
 :::

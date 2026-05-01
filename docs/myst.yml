@@ -37,13 +37,26 @@ project:
             - file: workshops/workshop_github_actions/workshop-github-actions-appendix.md
     - title: User Guide
       children:
-        - file: user_guide/hpc-user-guide.md
-        - file: user_guide/quick-reference.md
-        - file: user_guide/commands.md
-        - file: user_guide/data-transfer.md
-        - file: user_guide/running-jobs.md
-        - file: user_guide/rcc.md
-        - file: user_guide/dsi.md
+        - title: HPC User Guide
+          children:
+            - file: user_guide/hpc/hpc-user-guide.md
+            - file: user_guide/hpc/quick-reference.md
+            - file: user_guide/hpc/commands.md
+            - file: user_guide/hpc/data-transfer.md
+            - file: user_guide/hpc/running-jobs.md
+            - file: user_guide/hpc/checkpointing.md
+            - file: user_guide/hpc/rcc.md
+            - file: user_guide/hpc/dsi.md
+        - title: Model, Data & Code Tracking
+          children:
+            - file: user_guide/tracking/index.md
+            - file: user_guide/tracking/git-github.md
+            - file: user_guide/tracking/notebooks.md
+            - file: user_guide/tracking/mlflow.md
+            - file: user_guide/tracking/wandb.md
+            - file: user_guide/tracking/dvc.md
+            - file: user_guide/tracking/mlflow-dvc.md
+            - file: user_guide/tracking/serving.md
 
 site:
   template: book-theme

@@ -8,20 +8,22 @@ title: Model serving
 
 Once a model is trained and versioned, the last step is putting it somewhere a collaborator or downstream user can actually call it. You have three broad options:
 
-- **Commit the model to Git** if it is small enough — see [Git & GitHub](./git-github.md).
-- **Push it through DVC** if it is large — see [DVC](./dvc.md).
+- **Commit the model to Git** if it is small enough, see [Git & GitHub](./git-github.md).
+- **Push it through DVC** if it is large, see [DVC](./dvc.md).
 - **Package it behind an HTTP API in a Docker container.** That is what this page covers.
 
 The reference implementation is `Dockerfile.serve` in [`chicago-aiscience/workshop-sst`](https://github.com/chicago-aiscience/workshop-sst). It wraps a trained `.joblib` behind a small FastAPI app with `/health`, `/model-info`, and `/predict` endpoints.
 
 ## Why use it
 
-A container is the most portable handoff format: anyone with Docker can pull the image and get a working prediction endpoint, with no Python environment, no dependency install, no "does it work on my machine" step. Publishing to [GitHub Container Registry (GHCR)](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry) ties the image to the repository and makes it `docker pull`-able by any collaborator with access.
+A container is the most portable handoff format as anyone with Docker can pull the image and get a working prediction endpoint, with no Python environment and no dependency installation.
+
+Publishing to [GitHub Container Registry (GHCR)](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry) ties the image to the repository and makes it `docker pull`-able by any collaborator with access.
 
 ## When to use it
 
 - Collaborators need to run predictions without setting up the full training environment.
-- You want a stable, versioned prediction endpoint — either locally, on a cluster, or deployed.
+- You want a stable, versioned prediction endpoint; either locally, on a cluster, or deployed.
 - You want to swap models behind the same API surface (e.g. compare two trained models without rewriting the client).
 
 ## How to use it
@@ -72,19 +74,19 @@ docker run -p 8000:8000 \
   ghcr.io/chicago-aiscience/workshop-sst-serve:latest
 ```
 
-That makes the image a reusable serving shell — one container, any number of models. Pair it with DVC to pull a specific model version by hash, then mount it into the running container.
+That makes the image a reusable serving shell with one container and any number of models. Pair it with DVC to pull a specific model version by hash, then mount it into the running container.
 
 ## Other options
 
-- **HuggingFace** is the right home for models you want to open-source publicly. It gives you hosted inference, a model card, and a familiar download pattern (`huggingface_hub.snapshot_download`). Prefer it over GHCR when the audience is "the public" rather than "a named set of collaborators."
-- **A GitHub Release** with the `.joblib` attached is the lightest option when the model is small and the user is willing to bring their own runtime — see [Git & GitHub](./git-github.md#use-github-releases-for-model-snapshots).
+- **HuggingFace** is the right home for models you want to open-source publicly. It gives you hosted inference, a model card, and a familiar download pattern. Prefer it over GHCR when the audience is "the public" rather than "a named set of collaborators."
+- **A GitHub Release** with the `.joblib` attached is the lightest option when the model is small and the user is willing to bring their own runtime; see [Git & GitHub](./git-github.md#use-github-releases-for-model-snapshots).
 
 ## Pros and cons
 
 | Pros | Cons |
 |---|---|
 | Single-command handoff: `docker run` and you have a prediction API | Consumers need Docker installed |
-| Image is self-contained — no Python environment to manage | Container images can be large (hundreds of MB) |
+| Image is self-contained with no Python environment to manage | Container images can be large (hundreds of MB) |
 | Mount-based model swap enables one-image-many-models serving | Building and publishing adds a CI step |
 | GHCR integrates cleanly with GitHub access control | Private images require authentication to pull |
 

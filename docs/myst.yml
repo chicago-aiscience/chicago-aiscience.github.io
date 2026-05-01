@@ -47,6 +47,7 @@ project:
           children:
             - file: user_guide/tracking/index.md
             - file: user_guide/tracking/git-github.md
+            - file: user_guide/tracking/notebooks.md
             - file: user_guide/tracking/mlflow.md
             - file: user_guide/tracking/wandb.md
             - file: user_guide/tracking/dvc.md

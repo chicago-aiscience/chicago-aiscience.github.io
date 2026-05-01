@@ -4,13 +4,18 @@ title: Weights & Biases
 
 # Weights & Biases
 
+[Weights & Biases documentation](https://docs.wandb.ai)
+
 ## What it is
 
-Weights & Biases (W&B) is a cloud-hosted experiment tracker. Results are stored at `wandb.ai` and every run gets a shareable URL — no local infrastructure required for anyone who needs to view them.
+Weights & Biases (W&B) is a cloud-hosted experiment tracker. Results are stored at `wandb.ai` and every run gets a shareable URL so there is no local infrastructure required for anyone who needs to view them.
+
+```{image} ../../images/wandb-ui.png
+```
 
 ## Why use it
 
-W&B takes the same idea as MLflow — log parameters, metrics, and artifacts per run — and makes the results accessible from anywhere via a browser link. That makes it the natural choice for distributed teams: a collaborator clicks a URL and sees the dashboards, no local setup, no shared filesystem. It also ships with richer built-in visualizations (parallel coordinates, scatter matrices, project-level metric bar charts) than MLflow's local UI.
+W&B takes the same idea as MLflow: logs parameters, metrics, and artifacts per run and makes the results accessible from anywhere via a browser link. That makes it the natural choice for distributed teams: a collaborator clicks a URL and sees the dashboards, no local setup, no shared filesystem.
 
 ## When to use it
 
@@ -70,6 +75,9 @@ Each run in `workshop-sst` logs:
 | Artifacts | config JSON, predictions CSV, feature importance CSV, plot PNG |
 | Model | linked to the W&B Model Registry with a version alias (e.g. `v0.6.2`) |
 
+```{image} ../../images/wandb-run.png
+```
+
 ### Load a registered model
 
 ```python
@@ -97,7 +105,7 @@ wandb sync wandb/offline-run-*
 ```
 
 :::{note} Free-tier limits
-The W&B free tier allows up to five models in the registry. An academic license may lift this limit but requires an application — see the [W&B academic program](https://wandb.ai/site/research).
+The W&B free tier allows up to five models in the registry. An academic license may lift this limit but requires an application, see the [W&B academic program](https://wandb.ai/site/research).
 :::
 
 ## Notes from use

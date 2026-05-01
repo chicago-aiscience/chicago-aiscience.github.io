@@ -10,6 +10,7 @@ When you train a model, it is worth pausing to ask whether — six months from n
 - Which version of the code ran?
 - What parameters were set?
 - Which artifacts were produced?
+- Can I reproduce the results?
 
 Without tracking, those answers live in memory, filenames, or convention, and diverge quickly across experiments and collaborators. The pages in this section describe a progressive stack: start with Git, and layer on additional tools as your experiments grow in scope.
 
@@ -18,41 +19,25 @@ Without tracking, those answers live in memory, filenames, or convention, and di
 | Layer | Tool | When |
 |---|---|---|
 | **Code** | Git / GitHub | Always |
-| **Data** | DVC (or Git LFS, S3) | Files over 100 MB, or data that changes across runs |
-| **Models & experiments** | MLflow or W&B | When you need to compare runs by parameters and metrics |
+| **Data** | DVC | Files over 100 MB, or data that changes across runs |
+| **Models & experiments** | MLflow or Weights & Biases | When you need to compare runs by parameters and metrics |
 | **Serving** | Docker on GHCR, HuggingFace | When you want to hand a working model to collaborators or users |
 
 ## Pages in this section
 
-- [Git & GitHub](./git-github.md) — the baseline every other tool links against.
-- [MLflow](./mlflow.md) — local experiment tracker with a UI and model registry.
-- [Weights & Biases](./wandb.md) — cloud experiment tracker; good for distributed teams.
-- [DVC](./dvc.md) — content-hashed versioning for large data and model files.
-- [MLflow + DVC](./mlflow-dvc.md) — combined workflow for full run reproducibility. The same pattern works with W&B.
-- [Model serving](./serving.md) — package a trained model behind an HTTP API with Docker and GHCR.
+- [Git & GitHub](./git-github.md): the baseline every other tool links against.
+- [Notebooks](./notebooks.md): notebooks as the first line for experiment tracking.
+- [MLflow](./mlflow.md): local experiment tracker with a UI and model registry.
+- [Weights & Biases (W&B)](./wandb.md): cloud experiment tracker; good for distributed teams.
+- [DVC](./dvc.md): content-hashed versioning for large data and model files.
+- [MLflow + DVC](./mlflow-dvc.md): combined workflow for full run reproducibility. The same pattern works with W&B.
+- [Model serving](./serving.md): package a trained model behind an HTTP API with Docker and GHCR.
 
 ## Decision tree
 
 The fastest way to pick a stack is to walk through the questions below.
 
-```{mermaid}
-flowchart TD
-    A([Start]) --> B{Files under<br/>100 MB?}
-    B -- Yes --> C{Need to reproduce<br/>exact numbers?}
-    B -- No --> D[Version data/models<br/>with DVC, Git LFS,<br/>or an S3 bucket]
-    D --> C
-    C -- No --> E[Track experiments in<br/>a Jupyter notebook]
-    C -- Yes --> F{Data stable<br/>across runs?}
-    F -- Yes --> G[Use deterministic<br/>data methods + Git]
-    F -- No --> H{Solo<br/>or team?}
-    H -- Solo / local --> I[MLflow]
-    H -- Team / cloud --> J[Weights & Biases]
-
-    style C fill:#cce5ff,stroke:#004085
-    style E fill:#d4edda,stroke:#28a745
-    style G fill:#d4edda,stroke:#28a745
-    style I fill:#fff3cd,stroke:#856404
-    style J fill:#fff3cd,stroke:#856404
+```{image} ../../images/tracking-decision-tree.png
 ```
 
 :::{tip} Lab notebook practice
@@ -65,7 +50,7 @@ For one-off exploration, a Jupyter notebook is a perfectly good tracker — reco
 |---|---|
 | Solo researcher, local development | Git (commit small models directly) + MLflow |
 | Team collaboration, remote members | W&B (+ DVC if data over 100 MB) |
-| Strict data lineage across runs | DVC with MLflow or W&B |
+| Strict data lineage across runs | DVC with MLflow or Weights & Biases (W&B) |
 | On-premise / no outbound network | MLflow + DVC with a local or shared-storage remote |
 | Sharing a model with collaborators | Docker image on [GHCR](./serving.md) |
 | Publishing a model publicly | [HuggingFace](./serving.md#other-options) |

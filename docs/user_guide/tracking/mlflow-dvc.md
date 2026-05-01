@@ -8,7 +8,7 @@ title: MLflow + DVC
 
 Three tools, three roles, one anchor:
 
-- **DVC** versions the large binary files — the data going in and the model coming out.
+- **DVC** versions the large binary files; the data going in and the model coming out.
 - **MLflow** tracks what happened inside the training run: parameters, metrics, artifacts.
 - **Git** ties them together. Every run is pinned to a commit that holds both the code and the `.dvc` pointer files for the data and model at that point in time.
 
@@ -16,9 +16,11 @@ The same pattern works with W&B as the tracker; nothing here is MLflow-specific 
 
 ## Why use it
 
-Neither tool on its own gives full reproducibility. MLflow records what happened in a run but not which exact bytes of data fed it. DVC versions the files but has no concept of a training run. Together — with the git commit as the linking key — every experiment becomes reproducible: from a commit, you can restore the data, restore the model, and pull up the full run record.
+Neither tool on its own gives full reproducibility. MLflow records what happened in a run but not which exact bytes of data fed it. DVC versions the files but has no concept of a training run.
 
-This is what the user's notes called the "operational" workflow. If you run experiments often, swap datasets between runs, or need to come back months later and re-run exactly what produced a given number, you want both tools on.
+Together with the git commit as the linking key. Every experiment becomes reproducible: from a commit, you can restore the data, restore the model, and pull up the full run record.
+
+If you run experiments often, swap datasets between runs, or need to come back months later and re-run exactly what produced a given number, you want both tools on.
 
 ## When to use it
 
@@ -32,7 +34,7 @@ This is what the user's notes called the "operational" workflow. If you run expe
 |---|---|---|
 | Input data | `.dvc` pointer (MD5 hash) | `dvc_data_md5` tag |
 | Hyperparameters | — | logged per run |
-| Metrics (R², RMSE) | — | logged per run, comparable across runs |
+| Metrics | — | logged per run, comparable across runs |
 | Output model | `.dvc` pointer (MD5 hash) | `dvc_model_md5` tag + Model Registry |
 | Plots / predictions | — | stored as artifacts |
 

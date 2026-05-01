@@ -6,15 +6,24 @@ title: Git & GitHub
 
 ## What it is
 
-Git tracks code changes as a series of commits. GitHub stores the repository remotely and adds collaboration features: pull requests, issues, Actions, and access control. For small data files and model artifacts (under 100 MB per file), Git can also serve as the versioning layer end-to-end — no extra tooling required.
+Git tracks code changes as a series of commits. GitHub stores the repository remotely and adds collaboration features: pull requests, issues, Actions, and access control. For small data files and model artifacts (under 100 MB per file), Git can also serve as the versioning layer end-to-end with no extra tooling required.
+
+- [Git documentation](https://git-scm.com/docs)
+- [GitHub documentation](https://docs.github.com/en)
 
 ## Why use it
 
-Every experiment is ultimately anchored to a git commit. That commit hash is the linking key the rest of this stack relies on: MLflow logs it as a tag, W&B stores it in run config, and DVC pointer files only make sense in the context of the commit they were frozen in. Without a clean commit history, the other tools on these pages have nothing reliable to point at.
+Every experiment is ultimately anchored to a git commit. That commit hash is the linking key the rest of this stack relies on:
+
+- [MLflow](./mlflow.md) logs it as a tag
+- [Weights & Balances](./wandb.md) stores it in run configs
+- [DVC](./dvc.md) pointer files only make sense in the context of the commit they were frozen in
+
+Without a clean commit history, the other tools on these pages have nothing reliable to point at.
 
 ## When to use it
 
-- Always — this is the baseline every other tool builds on.
+- ***Always***: This is the baseline every other tool builds on.
 - As the *sole* tracking mechanism when your data and model files stay under [GitHub's 100 MB per-file limit](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github).
 - When you need a tagged, stable experiment state that collaborators can check out directly.
 
@@ -42,11 +51,11 @@ git_branch = subprocess.check_output(
 ).strip()
 ```
 
-This is the pattern used in `workshop-sst/scripts/train_sst_mlflow.py` and `train_sst_wandb.py` — both log `git_commit` and `git_branch` as run tags so you can jump from the tracker UI back to the exact code.
+This is the pattern used in `workshop-sst/scripts/train_sst_mlflow.py` and `train_sst_wandb.py` where both log `git_commit` and `git_branch` as run tags so you can jump from the tracker UI back to the exact code.
 
 ### Commit small models directly
 
-If a trained model file is well under 100 MB, committing it straight to the repo is the simplest possible way to share it with collaborators — no registry, no remote, no extra tooling. Once the file grows past that limit, move it to [DVC](./dvc.md).
+If a trained model file is well under 100 MB, committing it straight to the repo is the simplest possible way to share it with collaborators: No registry, no remote, no extra tooling. Once the file grows past that limit, move it to [DVC](./dvc.md).
 
 ### Keep large files and secrets out of the repo
 
@@ -74,13 +83,13 @@ mlruns/
 
 When a file is too large for Git but you do not want the overhead of DVC, a plain YAML **pointer file** is a good middle ground. The pointer is tiny, commits cleanly, and carries everything someone needs to fetch the real asset and verify they got the right bytes:
 
-- a `path` — where the asset belongs in the repo
-- an `md5` (or `sha256`) — for integrity checking after download
-- a `source` URL — often a GitHub Release asset, an S3 object, or a Zenodo DOI
-- a `git_commit` — the commit that produced or froze the asset
+- a `path`: where the asset belongs in the repo
+- an `md5` (or `sha256`): for integrity checking after download
+- a `source` URL: often a GitHub Release asset, an S3 object, or a Zenodo DOI
+- a `git_commit`: the commit that produced or froze the asset
 - free-form fields (`description`, `config`, `metrics`, etc.) for context
 
-Because the pointer is committed, checking out any past commit gives you an exact, verifiable recipe for reconstructing that experiment's inputs and outputs — without a DVC remote or LFS account.
+Because the pointer is committed, checking out any past commit gives you an exact, verifiable recipe for reconstructing that experiment's inputs and outputs without a DVC remote or LFS account.
 
 #### Example: data pointer
 
@@ -114,7 +123,7 @@ metrics:
   rmse: 0.42
 ```
 
-The `trained_from` block links the model back to the specific data and config pointers it was trained against — so one commit can anchor the whole chain.
+The `trained_from` block links the model back to the specific data and config pointers it was trained against, so one commit can anchor the whole chain.
 
 #### Example: config pointer
 
@@ -154,7 +163,7 @@ python scripts/fetch_from_pointer.py data/nino34_sample.csv.pointer.yaml
 python scripts/fetch_from_pointer.py runs/sst_enso/model.joblib.pointer.yaml --out-dir /tmp/models
 ```
 
-The script skips the download when the file is already present and its hash matches, and aborts on mismatch — so it is safe to call every time a training script starts.
+The script skips the download when the file is already present and its hash matches, and aborts on mismatch, so it is safe to call every time a training script starts.
 
 :::{tip} When to prefer pointer files over DVC
 Pointer files are ideal when your assets have a stable public or shared URL (GitHub Releases, Zenodo, an S3 bucket you already maintain). DVC is the better fit when assets change frequently and you want automatic hashing on every `dvc add`. Both approaches give you the same reproducibility guarantee; pointers trade automation for simplicity.
@@ -172,11 +181,11 @@ gh release create v1.0.0 model.joblib \
 
 Collaborators can then download a specific version without needing DVC configured locally.
 
-## Pros and cons
+## Pros and cons of Git & GitHub
 
 | Pros | Cons |
 |---|---|
-| No setup — already in use | 100 MB per-file limit |
+| No setup | 100 MB per-file limit |
 | Full code history for free | No metric comparison UI |
 | Universally understood workflow | Large binary history bloats the repo permanently |
 | Commit SHA is the universal linking key for every other tool | No artifact storage beyond raw file blobs |

@@ -10,9 +10,9 @@ DVC (Data Version Control) versions large files — datasets and model artifacts
 
 ## Why use it
 
-Git cannot hold files larger than 100 MB. DVC solves this by putting only the pointer in Git while storing the data elsewhere. Because the pointer contains an MD5 of the file's contents, you can verify and restore any previous version exactly — and, just as importantly, you can log that MD5 into an experiment tracker to tie a run to the exact bytes it trained on.
+Git cannot hold files larger than 100 MB. DVC solves this by putting only the pointer file in Git while storing the data elsewhere. Because the pointer contains an MD5 of the file's contents, you can verify and restore any previous version exactly. **You can log that MD5 into an experiment tracker to tie a run to the exact bytes it trained on.**
 
-DVC shines in **operational workflows**: you run experiments often, data is actively changing across runs, and you need to know precisely which version produced which model. For stable, one-shot datasets it is usually overkill — Git alone is fine.
+DVC shines in **operational workflows**: you run experiments often, data is actively changing across runs, and you need to know precisely which version produced which model. For stable, one-shot datasets it is usually overkill as Git alone is fine.
 
 ## When to use it
 
@@ -64,7 +64,7 @@ dvc push
 ```
 
 :::{note} What to version, what to skip
-Track the model file you actually produce — e.g. `.joblib`. Do **not** track the `.pkl` file that MLflow writes into its own internal model registry; that is MLflow's bookkeeping, not a reproducibility artifact.
+Track the model file you actually produce; e.g. `.joblib`. Do **not** track the `.pkl` file that MLflow writes into its own internal model registry; that is MLflow's bookkeeping, not a reproducibility artifact.
 :::
 
 ### Configure a remote and push
@@ -81,7 +81,11 @@ dvc push
 
 :::{tip}
 Use `--local` when adding a path you do not want committed to the shared config:
-`dvc remote add --local -d localremote /private/path`
+
+```bash
+dvc remote add --local -d localremote /private/path
+```
+
 The `--local` flag writes to `.dvc/config.local`, which is gitignored by default.
 :::
 
@@ -112,7 +116,7 @@ dvc list https://github.com/chicago-aiscience/workshop-sst --dvc-only
 
 | Pros | Cons |
 |---|---|
-| Exact data and model lineage via content hashes | Adds `dvc add` / `dvc push` / `dvc pull` to every workflow |
+| Exact data and model lineage via content hashes | Adds `dvc add` / `dvc push` / `dvc pull` to every commit |
 | Works with any remote storage backend | Remote must be accessible to all collaborators |
 | `.dvc` pointer files integrate naturally with Git | Not needed for stable, small datasets |
 | MD5 hashes can be logged to MLflow or W&B for cross-tool linking | — |

@@ -4,13 +4,20 @@ title: MLflow
 
 # MLflow
 
+[MLflow documenation](https://mlflow.org/docs/latest/ml/)
+
 ## What it is
 
-MLflow is a local experiment tracker. It logs parameters, metrics, and artifacts for every training run and provides a web UI to compare them side-by-side. No account or internet connection is required — everything lives in a tracking directory on disk.
+MLflow is a local experiment tracker. It logs parameters, metrics, and artifacts for every training run and provides a web UI to compare them side-by-side. No account or internet connection is required as everything lives in a tracking directory on disk.
+
+```{image} ../../images/mlflow-ui.png
+```
 
 ## Why use it
 
-Without a tracker, comparing runs means maintaining spreadsheets or reading output filenames. MLflow replaces that with a queryable log of every run — parameters, metrics, plots, and model artifacts — and a local UI you can open in a browser. It also ships with a local **Model Registry**, so you can version named models and load a specific one by alias later.
+Without a tracker, comparing runs means maintaining spreadsheets or reading output filenames. MLflow replaces that with a queryable log of every run which includes parameters, metrics, plots, and model artifacts plus a local UI you can open in a browser.
+
+It also ships with a local **Model Registry**, so you can version named models and load a specific one by alias later.
 
 ## When to use it
 
@@ -55,7 +62,11 @@ mlflow ui --backend-store-uri runs/sst_enso/mlruns
 mlflow ui --backend-store-uri /path/to/runs
 ```
 
-Open the printed URL (default [http://127.0.0.1:5000](http://127.0.0.1:5000)) to browse runs. Use the parent form when you are juggling several experiment directories under one roof; use the direct form when you only care about one.
+Open the printed URL (default [http://127.0.0.1:5000](http://127.0.0.1:5000)) to browse runs.
+
+:::{tip}
+Use the parent form when you are juggling several experiment directories under one roof; use the direct form when you only care about one.
+:::
 
 ### What gets tracked per run
 
@@ -70,6 +81,9 @@ Each run in `workshop-sst` logs:
 | Model | registered as `sst_enso_predictor` in the local Model Registry |
 
 The DVC MD5 tags are the key to reproducing a past run — see [MLflow + DVC](./mlflow-dvc.md).
+
+```{image} ../../images/mlflow-run.png
+```
 
 ### Reload and re-run a past model
 

@@ -9,7 +9,7 @@
     text-align: center;
   }
 
-/* Foot styling */
+/* Footer styling */
 footer.article.footer p {
   margin: 0;
   text-align: center;
@@ -37,6 +37,13 @@ footer.article.footer a:hover {
     .header-image {
         display: none;
     }
+}
+
+/* Remove badges in frontmatter */
+.myst-fm-block-badges,
+.myst-fm-edit-link,
+.myst-fm-downloads-dropdown {
+  display: none;
 }
 
 /* Horizontal card layout for profile cards */

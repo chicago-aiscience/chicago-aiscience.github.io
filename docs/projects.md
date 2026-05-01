@@ -57,4 +57,36 @@ title: Software Projects
 *Fast, reproducible 1D axisymmetric experiments for the diffusive instability in dusty disks.*
 :::
 
+:::{card}
+:header: `cebmf-torch`
+:link: projects/cebmf
+```{image} images/cebmf_torch_resized.png
+```
+*Empirical Bayes Matrix Factorization in PyTorch.*
+:::
+
+:::{card}
+:header: `AugerNet`
+:link: projects/augernet
+```{image} images/augernet_resized.png
+```
+*Machine learning for Auger-electron spectroscopy (AES) and x-ray photoelectron spectroscopy (XPS).*
+:::
+
+:::{card}
+:header: `generative_chem_reactive_structures`
+:link: projects/gen-chem
+```{image} images/gen_chem.webp
+```
+*Hackathon 2026: Predicting the 3D molecular structures of transition states using just reactant and product geometries.*
+:::
+
+:::{card}
+:header: `Clinical_KG_OS_LLM`
+:link: projects/clinical
+```{image} images/clinical_resized.png
+```
+*Hackathon 2026: Building a multi-agent Knowledge Graph extraction pipeline that transforms unstructured clinical transcripts into structured patient representations.*
+:::
+
 ::::

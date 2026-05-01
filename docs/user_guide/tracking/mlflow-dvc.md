@@ -71,6 +71,8 @@ dvc push
 
 The final git commit is the single snapshot that captures the code, the data pointer, and the model pointer for this experiment. The training script records that commit SHA as an MLflow tag (`workshop-sst/scripts/train_sst_mlflow.py:167`), so the MLflow UI shows exactly which commit produced each run.
 
+[Train SST MLflow script link](https://github.com/chicago-aiscience/workshop-sst/blob/main/scripts/train_sst_mlflow.py)
+
 ## Reproducing a past experiment
 
 ### 1. Retrieve the DVC hashes from the MLflow run
@@ -137,6 +139,8 @@ git checkout -b reproduce/experiment_v2
 ## Swapping in W&B
 
 Everything above applies with W&B as the tracker: log the DVC MD5s as `wandb.config` entries (the `workshop-sst` W&B script already does), and the reproduction flow is identical — fetch the hashes from the run via `wandb.Api().run(...)` instead of `MlflowClient`, then pass them through the same `restore_dvc_file` helper.
+
+[Link to script](https://github.com/chicago-aiscience/workshop-sst/blob/main/scripts/train_sst_wandb.py)
 
 ## Pros and cons
 

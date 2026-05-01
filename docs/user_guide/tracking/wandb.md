@@ -5,6 +5,7 @@ title: Weights & Biases
 # Weights & Biases
 
 [Weights & Biases documentation](https://docs.wandb.ai)
+[Example Usage](https://github.com/chicago-aiscience/workshop-sst/blob/main/scripts/train_sst_wandb.py)
 
 ## What it is
 

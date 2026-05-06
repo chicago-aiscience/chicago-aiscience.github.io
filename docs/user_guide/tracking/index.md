@@ -19,7 +19,7 @@ Without tracking, those answers live in memory, filenames, or convention, and di
 | Layer | Tool | When |
 |---|---|---|
 | **Code** | Git / GitHub | Always |
-| **Data** | DVC | Files over 100 MB, or data that changes across runs |
+| **Data** | Data Version Control (DVC) | Files over 100 MB, or data that changes across runs |
 | **Models & experiments** | MLflow or Weights & Biases | When you need to compare runs by parameters and metrics |
 | **Serving** | Docker on GHCR, HuggingFace | When you want to hand a working model to collaborators or users |
 

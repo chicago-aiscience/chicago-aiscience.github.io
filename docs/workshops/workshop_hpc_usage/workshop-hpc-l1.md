@@ -268,6 +268,7 @@ srun --partition=general --nodes=1 --ntasks=1 --cpus-per-task=2 --mem=4G --time=
 
 > 🧰 - Notice how the arguments to the srun command match the `#SBATCH` comments in the batch script. You can change these to manage the resources allocated to your interactive session.
 
+(running-interactive-job)=
 ## 👉 7. Running an interactive job
 
 We are going to turn to the workshop repository to run an interactive job and then later submit a batch job on the RCC cluster.
@@ -286,7 +287,7 @@ Enter your `<CNETID>` password and then authenticate with Duo.
 
 ### 👉 2. Clone the GitHub repository to the cluster
 
-Note this **requires SSH authentication** be set up between GitHub and the cluster. See [SSH + GitHub](appendix.md#ssh-github)
+Note this **requires SSH authentication** be set up between GitHub and the cluster. See [SSH + GitHub](#ssh-github)
 
 *Start the SSH agent and load the SSH key you created:*
 
@@ -331,6 +332,7 @@ srun --account pi-dfreedman \
 nvidia-smi          # should list one GPU
 ```
 
+(copy-data)=
 ### 👉 4. Copy the data to the cluster
 
 This is a quick preview of the data storage lesson which we will cover in more detail. For now, download the input data needed to run the workshop repository code to your laptop: https://drive.google.com/drive/folders/1kGueYViLp8cWjQhKCXsUP2wbJIt1BrBd?usp=share_link
@@ -436,6 +438,8 @@ python src/seg_finetune.py \
 
 echo "finetune complete on $(hostname) job $SLURM_JOB_ID"
 ```
+
+>🧰 - set -euo pipefail stops the script on any error so there are no silent failures.
 
 **To run this script as a batch job:**
 

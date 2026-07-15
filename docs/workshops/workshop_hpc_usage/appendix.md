@@ -1,6 +1,6 @@
 # Appendix
 
-<a id="ssh-github"></a>
+(ssh-github)=
 ## Configuring SSH authentication with GitHub (on the cluster)
 
 To `git clone`, `pull`, and `push` the workshop repository (and your own repos) **from the cluster**, GitHub needs to recognize the machine you're on. The cleanest way is an SSH key generated on the cluster and registered with your GitHub account. Once set up, Git operations to GitHub work without passwords or tokens.

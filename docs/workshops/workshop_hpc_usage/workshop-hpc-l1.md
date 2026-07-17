@@ -342,7 +342,7 @@ The data is on the smaller side (~61M) so lets just copy it via `scp`:
 ```bash
 mkdir /scratch/midway3/$USER/workshop-hpc-data/  # create a directory to hold the data
 
-scp -r /path/to/input/directory/on/your/laptop midway:/scratch/midway3/$USER/workshop-hpc-data  # copy the data to the cluster
+scp -r /path/to/input/directory/on/your/laptop <CNetID>@midway3.rcc.uchicago.edu:/scratch/midway3/$USER/workshop-hpc-data  # copy the data to the cluster
 ```
 
 ### 👉 5. Define the data paths on the cluster

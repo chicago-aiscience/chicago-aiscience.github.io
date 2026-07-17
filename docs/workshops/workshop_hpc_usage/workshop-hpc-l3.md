@@ -130,7 +130,7 @@ sftp> put -r src  # Recursively upload the src directory to the cluster
 
 ## 2. Storage types
 
-Many clusters will have different storage types for different purposes. We will loosely cover them here and then provide specifics for the RCC cluster and the DSI cluster.
+Many clusters will have different storage types for different purposes. We will loosely cover them here and then provide specifics for the RCC cluster and the DSI cluster. The rule of thumb — *code in home, data in project, temporary job files in scratch, heavy per-job I/O on node-local* — is expanded into full best practices in [§3](#data-best-practices).
 
 ### Home Directories (`/home/$USER`)
 
@@ -204,7 +204,7 @@ One way to see the node-local storage size is via an interactive session (quick,
 Grab a short interactive job, then run `df` in the shell it drops you into:
 
 ```bash
-srun --partition=caslake --nodes=1 --ntasks=1 --cpus-per-task=2 --mem=4G --time=00:10:00 --pty bash -i
+srun --partition=schmidt-gpu --nodes=1 --ntasks=1 --cpus-per-task=2 --mem=4G --time=00:10:00 --pty bash -i
 df -h "$TMPDIR"     # you are now on a compute node; $TMPDIR exists
 ```
 
@@ -220,7 +220,7 @@ sinfo -p schmidt-gpu                 # scope to a single partition
 ```bash
 #!/usr/bin/env bash
 #SBATCH --job-name=local-io-example
-#SBATCH --partition=caslake
+#SBATCH --partition=schmidt-gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
@@ -326,3 +326,92 @@ python train.py --inputdir "$LOCAL"/data --outputdir "$LOCAL"/results
 # 3. Copy results back to durable storage BEFORE the job ends (local is wiped on exit!)
 rsync -a "$LOCAL"/results/ /project/<group>/results/
 ```
+
+---
+
+(data-best-practices)=
+## 3. Data management best practices
+
+Each storage type above suits a different **stage** in the life of your data. Now that you have seen the specifics for the [RCC](#rcc-cluster-specifics) and [DSI](#dsi-cluster-specifics) clusters, this section covers how to *use* them well. A little organization up front — deciding what is short-term vs. long-term, and where each piece lives — saves a lot of pain later. A good test: six months from now, could you still answer *which data was used, which version of the code ran, what parameters were set, and can I reproduce this result?* The practices below are aimed at keeping that answer "yes."
+
+### Match storage to the data's lifetime
+
+Think about how long you need each file and how it is accessed, then place it accordingly:
+
+| Data | Where it belongs | Why |
+|---|---|---|
+| Source code, scripts, configuration | `/home` (or a repo in `/project`) | Small, personal, backed up |
+| Primary datasets, final results, shared environments | `/project` | Durable, shared with your group, backed up |
+| Temporary & intermediate job files | `/scratch` | Fast I/O, **not** backed up, purged |
+| Heavy per-job read/write | node-local (`$TMPDIR` / `--gres=local`) | Fastest, wiped when the job ends |
+
+A few rules of thumb follow from this:
+
+1. **Store code in home.** Keep source code, scripts, and configuration in your `/home` directory (or a Git repository).
+2. **Keep data in project.** Store primary datasets, important results, and shared files in your `/project` directory.
+3. **Use scratch for jobs.** Have running jobs read and write temporary files in a directory you create under `/scratch`, then copy final results back to `/project` when the job finishes.
+4. **Check your usage.** Monitor your disk usage regularly so you don't hit quotas mid-job (see the quota commands in §2).
+5. **Clean up regularly.** Delete files you no longer need — especially from shared `/scratch` — to be a good cluster citizen.
+
+### Organize data for fast search and retrieval
+
+When jobs need to find data in a large or growing collection (especially time series), a **hierarchical directory layout beats one giant flat folder**. Partition by the fields you filter on most — for time series, that is usually `year/month/day`:
+
+```text
+/project/<group>/data/
+  2026/
+    07/
+      15/
+        station-A.parquet
+        station-B.parquet
+      16/
+        ...
+```
+
+Why it helps:
+
+- A job can point straight at `data/2026/07/` instead of scanning millions of files.
+- Parallel and scratch file systems slow down badly with huge flat directories — nesting keeps each directory small.
+- The path itself documents the data, and new data appends cleanly without reshuffling existing files.
+
+Watch out for the **many-small-files** problem, too: thousands of tiny files are slow on shared storage. Aggregate them into larger containers (e.g. `.parquet`, `.tar`, or `.zarr`), and remember that node-local storage is the right home for high-throughput small-file I/O.
+
+> 🧰 - Keep raw inputs **read-only** and write derived/processed data to a separate directory. An accidental job then can't corrupt your source data, and you can always re-derive results from the original.
+
+### Separate code, environments, and data
+
+Code, environments, and data have different lifetimes and sharing needs, so keep them in **separate locations** rather than one mixed directory:
+
+- **Code** — a Git repository (scripts, notebooks, job files). Version-controlled; never commit large data or secrets.
+- **Software environments** — build a `conda`/`venv` environment **once** in a known location (personal → `/home`, shared → `/project`) and activate it from every job; don't rebuild it per run.
+- **Data** — inputs and results live in `/project` (durable) and `/scratch` (temporary), never inside the code repository.
+
+The workshop repository is laid out this way — `src/` for code, `config/` for configuration, `slurm/` for job scripts, and `environment.yml` for the environment — with the data kept on the cluster, outside the repo.
+
+### From notebooks to codebases
+
+Notebooks are ideal for exploration and are a great **first line of experiment tracking**. But batch jobs run *scripts*, not notebooks, and copy-pasted cells are hard to reproduce. As soon as you are repeating an analysis or scaling it to batch jobs:
+
+- Move reusable logic out of the notebook into small, importable scripts/modules in your codebase (`src/`).
+- Keep the notebook for exploration and figures, importing from the codebase so the two stay in sync.
+- Put the codebase under version control so each job runs a known version of the code.
+
+### Track experiments, configs, and results
+
+To make results reproducible, capture **what produced them**: the data, the code version, the parameters, and the outputs. Layer tools as your needs grow:
+
+| Layer | Tool | When to use it |
+|---|---|---|
+| Code | Git / GitHub | Always |
+| Data | DVC | Files > 100 MB, or that change across runs |
+| Experiments | MLflow or Weights & Biases | Comparing runs by parameters and metrics |
+| Serving | Docker / GHCR | Sharing a working model |
+
+Two habits that pay off immediately:
+
+- **Keep the config with the results.** Write each run's exact parameters/config into that run's output directory, so a result is self-describing.
+- **Give each run its own output directory**, keyed by date or job ID (e.g. `results/2026-07-15_<jobid>/`), so runs never overwrite each other.
+
+For a fuller walkthrough of these tools, see the [Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/).
+
+> 🧰 - Sharing data with your group? `/project` directories are group-owned (mode `2770`, so new files inherit the group). Use `chgrp`/`chmod` for group-wide access, or `setfacl` for per-person control — see the [RCC access control guide](https://docs.rcc.uchicago.edu/data_sharing/access_control/).

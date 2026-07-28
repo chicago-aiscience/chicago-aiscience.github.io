@@ -170,6 +170,7 @@ conda env create -p "/net/scratch2/$USER/workshop-hpc-env" -f "/home/$USER/works
 
 ## 6. Cluster components
 
+(slurm-scheduler)=
 ### Slurm scheduler
 
 ![Slurm scheduler](./images/icon-scheduler.png)
@@ -204,6 +205,7 @@ For the DSI:
 
 - You can use the `general` parition, and you can request a gpu with `--gres=gpu:1`
 
+(slurm-jobs)=
 ### Slurm jobs
 
 A job is how you execute your algorithms on the cluster. There are two types of jobs: batch and interactive

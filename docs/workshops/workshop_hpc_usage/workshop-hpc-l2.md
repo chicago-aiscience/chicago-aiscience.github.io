@@ -255,6 +255,7 @@ sprio -u $USER
 
 ---
 
+(srun)=
 ### `srun`
 
 Slurm documentation link: https://slurm.schedmd.com/srun.html
@@ -523,6 +524,7 @@ scontrol show job 12345 | grep -i reason
 [Full list](https://slurm.schedmd.com/squeue.html#SECTION_JOB-REASON-CODES)
 
 
+(failed-jobs)=
 #### Failed Jobs
 
 Debugging failed jobs can be difficult when executing batch jobs. You can review the failed job reason, job logs, and launch an interactive session to try to replicate the error and troubleshoot the issue.

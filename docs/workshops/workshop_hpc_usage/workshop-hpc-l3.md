@@ -172,6 +172,7 @@ This is storage that is only available on and connected directly to a specific c
 
 >🧰 - Note you may have to figure out the size of the node-local storage so you know how much of your input data can be loaded to that space at a time. See specific cluster details below for info on how to do this.
 
+(rcc-cluster-specifics)=
 ### RCC Cluster Specifics
 
 The RCC cluster (Midway) offers all four storage types described above, plus long-term tiers. The specifics below are for **Midway3**, the cluster we use in this workshop; Midway2 and Beagle3 have slightly different paths and quotas. Quotas change over time, so treat the [official RCC storage docs](https://docs.rcc.uchicago.edu/storage/main/) as the source of truth.
@@ -240,6 +241,7 @@ python train.py --inputdir "$TMPDIR"/data --outputdir "$TMPDIR"/results
 rsync -a "$TMPDIR"/results/ /project/<group>/results/
 ```
 
+(dsi-cluster-specifics)=
 ### DSI Cluster Specifics
 
 The DSI cluster offers all four storage types described above. Quotas and node capacities change over time, so treat the [official storage overview](https://cluster-policy.ds.uchicago.edu/using-the-cluster/storage-overview/) and [node-local storage guide](https://cluster-policy.ds.uchicago.edu/using-the-cluster/node-local-storage/) as the source of truth.
@@ -396,6 +398,7 @@ Notebooks are ideal for exploration and are a great **first line of experiment t
 - Keep the notebook for exploration and figures, importing from the codebase so the two stay in sync.
 - Put the codebase under version control so each job runs a known version of the code.
 
+(track-experiments-configs-and-results)=
 ### Track experiments, configs, and results
 
 To make results reproducible, capture **what produced them**: the data, the code version, the parameters, and the outputs. Layer tools as your needs grow:

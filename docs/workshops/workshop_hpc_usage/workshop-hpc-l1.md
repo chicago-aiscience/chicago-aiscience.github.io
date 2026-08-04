@@ -156,8 +156,8 @@ This script automates the creation of the environment so you don't have to remem
 Commands to run the script:
 
 ```bash
-cd ~/workshop-hpc/workshop-hpc-2026-sep                    # so config/ = the project's config
-SCRATCH_BASE=/net/scratch2/$USER bash config/setup_env.sh  # run the script (bash executable)
+cd ~/workshop-hpc-2026-sep                                      # so config/ = the project's config
+SCRATCH_BASE=/scratch/midway3/$USER bash config/setup_env.sh    # run the script (bash executable)
 ```
 
 >🧰 - The script will select whichever package manager is available (e.g., conda, mamba, micromamba) but please note the script may take some time to run and install all of the software depedencies defined in [environment.yml](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/environment.yml)
@@ -165,7 +165,7 @@ SCRATCH_BASE=/net/scratch2/$USER bash config/setup_env.sh  # run the script (bas
 Key command to create environment:
 
 ```bash
-conda env create -p "/net/scratch2/$USER/workshop-hpc-env" -f "/home/$USER/workshop-hpc-2026-sep/environment.yaml"
+conda env create -p "/scratch/midway3/$USER/workshop-hpc-env" -f "/home/$USER/workshop-hpc-2026-sep/environment.yml"
 ```
 
 ## 6. Cluster components
@@ -354,14 +354,23 @@ Modify `config/paths.sh` for the RCC cluster:
 ```bash
 #!/usr/bin/env bash
 
-# Raw inputs: images / masks / json / labels.csv.
+# Read-only project inputs: the workshop mini-dataset.
 export INPUT_DIR=/scratch/midway3/$USER/workshop-hpc-data/input
 
-# Where jobs write manifests, checkpoints, masks, results (scratch, NOT $HOME).
-export WORK_DIR=/scratch/midway3/$USER/workshop-hpc-data/output
+# SoS results (per-reach algorithm discharge + Confluence consensus).
+export SOS_FILE="$INPUT_DIR/eu_SOS_mini.nc"
 
-# Survey labels CSV, derived from INPUT_DIR so it always tracks the data.
-export LABELS="$INPUT_DIR/labels.csv"
+# SWOT Validation Set: observed daily gauge discharge = the training TARGET.
+export SVS_FILE="$INPUT_DIR/svs_mini.nc"
+
+# ML-prior flow statistics per reach (extra features).
+export PRIORS_FILE="$INPUT_DIR/priors_mini.csv"
+
+# Experiment config: model + training knobs AND data.basins, tracked in Git.
+export EXPERIMENT_CONFIG="config/experiments/baseline.yaml"
+
+# Where jobs write manifests, checkpoints, predictions, results (scratch, NOT $HOME).
+export WORK_DIR=/scratch/midway3/$USER/workshop-hpc-data/output
 
 # Conda/micromamba env (a name, or a full prefix path for a -p env).
 export ENV_NAME=/scratch/midway3/$USER/workshop-hpc-env
@@ -369,7 +378,7 @@ export ENV_NAME=/scratch/midway3/$USER/workshop-hpc-env
 mkdir -p "$WORK_DIR/data" "$WORK_DIR/runs"
 ```
 
-### 👉 6. Run the model on one image
+### 👉 6. Run the model on one basin
 
 ```bash
 # Load the paths you defined
@@ -381,13 +390,16 @@ module load python/anaconda-2025.12
 # Activate conda environment
 conda activate $ENV_NAME
 
-# Build the image/mask pairs manifest
-python src/build_manifest.py --input-dir "$INPUT_DIR" --mode train --limit 5 \
-    --out "$WORK_DIR/tiny.csv"
+# Build a tiny training manifest for a single sub-basin (232270 = upper Loire):
+# one row per (reach, SWOT overpass) with the algorithm discharges + gauge target.
+# --basins overrides the config's data.basins for this quick smoke test.
+python src/build_manifest.py --config "$EXPERIMENT_CONFIG" \
+    --sos "$SOS_FILE" --svs "$SVS_FILE" --priors "$PRIORS_FILE" \
+    --basins 232270 --mode train --out "$WORK_DIR/tiny.csv"
 
-# Fine tune the image segmentation model
-python src/seg_finetune.py --manifest "$WORK_DIR/tiny.csv" \
-    --out "$WORK_DIR"/seg --epochs 1
+# Train the learned-consensus model for a single epoch as a smoke test.
+python src/train_consensus.py --config "$EXPERIMENT_CONFIG" \
+    --manifest "$WORK_DIR/tiny.csv" --out "$WORK_DIR"/consensus --epochs 1
 ```
 
 Watch the loss print. When it finishes, `exit` releases the node.
@@ -396,12 +408,12 @@ Watch the loss print. When it finishes, `exit` releases the node.
 
 ![Slurm submit a job](images/icon-submit.png)
 
-We will run all of the steps we walked through above but as a batch job defined by a shell script. See this script: [slurm/02_finetune.sbatch](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/02_finetune.sbatch)
+We will run all of the steps we walked through above but as a batch job defined by a shell script. See this script: [slurm/02_train.sbatch](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/02_train.sbatch)
 
 ```bash
 #!/usr/bin/env bash
-#SBATCH --job-name=seg-finetune
-#SBATCH --account=pi-dfreedman          #change to an allowed account on the cluster
+#SBATCH --job-name=consensus-train
+#SBATCH --account=pi-dfreedman          # change to an allowed account on the cluster
 #SBATCH --partition=schmidt-gpu         # GPU partition for Schmidt fellows
 #SBATCH --qos=schmidt
 #SBATCH --gres=gpu:1                    # request 1 GPU (adjust as needed)
@@ -410,9 +422,9 @@ We will run all of the steps we walked through above but as a batch job defined 
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=02:00:00
-#SBATCH --output=logs/finetune_%j.out   # stdout  -> normal log  (Workshop 2)
-#SBATCH --error=logs/finetune_%j.err    # stderr  -> error log
-# --- Workshop 1: a first batch GPU job. Submit with: sbatch slurm/02_finetune.sbatch
+#SBATCH --output=logs/train_%j.out      # stdout  -> normal log  (Workshop 2)
+#SBATCH --error=logs/train_%j.err       # stderr  -> error log
+# --- Workshop 1: a first batch GPU job. Submit with: sbatch slurm/02_train.sbatch
 
 set -euo pipefail
 source config/paths.sh
@@ -426,19 +438,19 @@ module load python/anaconda-2025.12
 module load cuda 2>/dev/null || echo "[job] no 'cuda' module; using conda torch's bundled CUDA"
 source activate "$ENV_NAME"           # conda env from environment.yml
 
-# 1. Build the training manifest: raw images paired with MANUAL ground-truth
-#    masks (1,000-image subset for the workshop).
-python src/build_manifest.py --input-dir "$INPUT_DIR" \
-    --mode train --limit 1000 \
-    --out "$WORK_DIR/data/manifest_train.csv"
+# 1. Build the training manifest: one row per (reach, SWOT overpass), joining the
+#    algorithm discharges + prior features with the observed gauge TARGET.
+python src/build_manifest.py --config "$EXPERIMENT_CONFIG" \
+    --sos "$SOS_FILE" --svs "$SVS_FILE" --priors "$PRIORS_FILE" \
+    --mode train --out "$WORK_DIR/data/manifest_train.csv"
 
-# 2. Fine-tune. --resume makes this restartable after preemption (Workshop 2/5).
-python src/seg_finetune.py \
+# 2. Train the learned-consensus model. Model + training knobs come from the
+#    experiment config; pass a flag like --epochs to override for a one-off.
+python src/train_consensus.py --config "$EXPERIMENT_CONFIG" \
     --manifest "$WORK_DIR/data/manifest_train.csv" \
-    --out "$WORK_DIR/runs/seg" \
-    --epochs 10 --batch-size 4 --resume
+    --out "$WORK_DIR/runs/consensus"
 
-echo "finetune complete on $(hostname) job $SLURM_JOB_ID"
+echo "training complete on $(hostname) job $SLURM_JOB_ID"
 ```
 
 >🧰 - set -euo pipefail stops the script on any error so there are no silent failures.
@@ -448,7 +460,7 @@ echo "finetune complete on $(hostname) job $SLURM_JOB_ID"
 ```bash
 cd $HOME/workshop-hpc-2026-sep
 mkdir logs  # create a logs directory for job logs
-sbatch workshop-hpc-2026-sep/slurm/02_finetune.sbatch
+sbatch slurm/02_train.sbatch
 ```
 
 **View job status for running job:**
@@ -461,17 +473,17 @@ Example output:
 
 ```bash
             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
-        51473191 schmidt-g seg-fine ntebaldi  R       0:06      1 midway3-0426
+        51473191 schmidt-g consensu ntebaldi  R       0:06      1 midway3-0426
 ```
 
 Review logs:
 
 ```bash
-cat finetune_51473191.err  # error logs
+cat logs/train_51473191.err  # error logs
 ```
 
 ```bash
-cat finetune_51473191.out  # standard out logs
+cat logs/train_51473191.out  # standard out logs
 ```
 
 ## ✅ Verification Checkpoint

@@ -1,420 +1,973 @@
-# Lesson 3: Data Management
+# Lesson 3: Errors and Monitoring
 
 ## Objectives
 
-Moving, organizing, and storing data on the cluster, scratch vs. long-term storage
+Monitoring jobs and resource monitoring (GPU usage), metrics, how to recover from interruptions, error recovery
 
-- How to get data onto and off of the cluster: `rsync`, `scp`, `sftp`
-- Storage break down:
-    - Home directories
-    - [Scratch vs. long-term storage](https://docs.rcc.uchicago.edu/storage/main/)
-    - [Node-local storage (job execution)](https://cluster-policy.ds.uchicago.edu/using-the-cluster/node-local-storage/)
-
----
-
-## 1. Data transfer tools
-
-We will look at two categories of tools:
-
-- For larger transfers, repeated syncs, and reliable transfers: `rsync`
-- For small, quick, occasional transfers: `scp` / `sftp`
-
-### `rsync`
-
-`rsync` provides data syncing over SSH and is the best choice for when:
-
-- you are syncing directories repeatedly
-- you have large trees of files
-- you want reliable, resumable transfers - helpful for dealing with network connection interruptions
-
-**Sync local → RCC**
-
-```bash
-rsync -avz --progress -e ssh local_folder/ <CNetID>@midway3.rcc.uchicago.edu:/scratch/midways3/<CNetID>/project_folder/
-```
-
-**Sync RCC → local**
-
-```bash
-rsync -avz --progress -e ssh <CNetID>@midway3.rcc.uchicago.edu:/scratch/midways3/<CNetID>/project_folder/ local_folder/
-```
-
-Common options:
-- `-a` archive mode (preserves timestamps/permissions)
-- `-v` verbose
-- `-z` compress in transit
-- `--progress` show progress
-- `--delete` (careful!) make destination match source by deleting extra files
-
-References:
-- RCC rsync examples (in SSH docs): https://docs.rcc.uchicago.edu/ssh/main/
-- DSI rsync/scp guide: https://cluster-policy.ds.uchicago.edu/advanced-topics/rsync-scp/
-
->🧰 - Remember the input data that we copied in [Lesson 1.7 Step 4](#copy-data), you can also copy the input data from the local folder you downloaded it to the RCC cluster with this command:
-
-```bash
-rsync -avz --progress -e ssh /path/to/input/directory/on/your/laptop/ <CNetID>@midway3.rcc.uchicago.edu:/scratch/midway3/$USER/workshop-hpc-data
-```
+- Monitoring jobs: `squeue`, `scontrol`, `scancel`
+- Resource monitoring: Different commands one can run to view CPU/GPU/Mem usage
+- Gathering metrics after a job has run: `sacct`
+- Error recovery: How to log output vs. errors, how to debug jobs
+- How to recover from interruptions: Handling preemption with intro to Checkpointing
 
 ---
 
-### `scp` + `sftp`
+## 1. Command to view cluster details
 
-Both of these tools allow you to transfer data to and from the cluster using SSH. These tools do not sync data between two directories like `rsync` so you don't get the option to resume a data transfer if the copy is interrupted for some reason (e.g. network connection loss).
+### `sinfo`
 
-**`scp`(Secure Copy)**
+Slurm documentation link: https://slurm.schedmd.com/sinfo.html
 
-Use `scp` to copy files over SSH. Good for small-to-moderate transfers.
+This command allows user to view information about Slurm nodes and partitions.
 
-*Copy a local file to RCC (Midway3 example):*
-
-```bash
-scp path/to/local_file.txt <CNetID>@midway3.rcc.uchicago.edu:/home/<CNetID>/
-```
-
-*Copy a directory recursively to RCC:*
+**View all partitions:**
 
 ```bash
-scp -r path/to/local_folder <CNetID>@midway3.rcc.uchicago.edu:/scratch/midways3/<CNetID>/
+sinfo -a
 ```
 
-*Copy a file from RCC to your laptop:*
+*Output:*
 
 ```bash
-scp <CNetID>@midway3.rcc.uchicago.edu:/scratch/midways3/<CNetID>/results.csv .
+PARTITION          AVAIL  TIMELIMIT  NODES  STATE NODELIST
+test                  up   infinite     33 drain* beagle3-0025,climate-[001-007,010-011,013,015,017,022,024-025,027-030,033,037,039-040,043,045,047],midway3-[0031-0035,0063]
+test                  up   infinite     23  down* climate-[008-009,012,014,016,018-021,023,026,031-032,034-036,038,041-042,044,046,048],midway3-0296
+test                  up   infinite      1   comp midway3-0093
+test                  up   infinite      3  drain midway3-[0064-0066]
 ```
 
-**`sftp` (Secure File Transfer Protocol)**
+**View node and GPU information:**
 
-`sftp` is like an interactive file browser over SSH.
-
-*Start an sftp session:*
+This is a lot of columns for one screen, so it's split into two calls: one for partition status, one for resources/limits.
 
 ```bash
-sftp <CNetID>@midway3.rcc.uchicago.edu
+# Status: partition, partition state, priority, number of nodes, node state, list of nodes
+sinfo -o "%.10P %.6a %.10p %.10D %.12T %N"
 ```
 
-*Useful commands inside `sftp`:*
-
-```text
-ls            # list remote files
-lls           # list local files
-cd DIR        # change remote directory
-lcd DIR       # change local directory
-get FILE      # download from remote
-put FILE      # upload to remote
-get -r DIR    # download directory
-put -r DIR    # upload directory
-bye           # exit
-```
-
-> 🧰 - prefixing commands with `l` makes them run on your local file system.
-
-*Examples:*
-
-Download a directory from remote to local:
-```bash
-sftp> cd /project/myproject  # Change to directory on
-sftp> lcd ~/Downloads  # List files in local Downloads directory
-sftp> get -r results   # Recursively download the results directory to the local Downloads directory
-# Downloads the 'results' directory to ~/Downloads/results
-```
-
-Upload a directory from local to remote:
-```bash
-sftp> cd /project/myproject
-sftp> lcd ~/Documents/mycode
-sftp> put -r src  # Recursively upload the src directory to the cluster
-# Uploads the 'src' directory to /project/myproject/src
-```
-
-## 2. Storage types
-
-Many clusters will have different storage types for different purposes. We will loosely cover them here and then provide specifics for the RCC cluster and the DSI cluster. The rule of thumb — *code in home, data in project, temporary job files in scratch, heavy per-job I/O on node-local* — is expanded into full best practices in [§3](#data-best-practices).
-
-### Home Directories (`/home/$USER`)
-
-This is your personal space on the cluster:
-
-- This space contains configuration files for the shell launched when you login and other cluster tools.
-- You may want to use this space to store scripts and source code.
-- This is a space to store files owned by you and not shared with others as your home directory is only accessible by you.
-
-### Research or Project Space
-
-Project or research directories are the primary location for shared research data and code.
-
-- This space can often contain shared research code, input data, results data, analysis code and notebooks, and shared software environments.
-- This space is the workspace for a research group.
-- This is a space for sharing as most often everyone within a research group has access to these files.
-
-### Scratch Space
-
-Scratch space is a high performance storage space for temporary data.
-
-- This space is often used by running jobs to read data from and write data to.
-- Scratch spaces often offer higher I/O performance.
-- Scratch spaces are often purged at regular intervals and are not backed up.
-
-### Node-local Storage
-
-This is storage that is only available on and connected directly to a specific compute node.
-
-- Because this is an NVMe or SSD storage device attached to the node, I/O performance is the best and fastest.
-- You may want to consider using the node-local storage, if you have an algorithm that requires heavy file I/O and perhaps you are seeing a bottleneck in your code's performance and runtime.
-- Note that this is the most ephemeral data storage, as this storage space is wiped as soon a job releases the resource. In other words, once your job terminates on the cluster, the storage is purged.
-
-**Typical workflow (nested in a batch script)**
-
-1. Copy your algorithm inputs from either your home directory or research project space to the node local storage path
-2. Run your algorithm, making sure it is pointing to the node local storage - this may mean defining a specific command line argument like `--inputdir` and using that reference through out your code.
-3. Save your algorithm results back to your home directory or research project space.
-
->🧰 - Note you may have to figure out the size of the node-local storage so you know how much of your input data can be loaded to that space at a time. See specific cluster details below for info on how to do this.
-
-(rcc-cluster-specifics)=
-### RCC Cluster Specifics
-
-The RCC cluster (Midway) offers all four storage types described above, plus long-term tiers. The specifics below are for **Midway3**, the cluster we use in this workshop; Midway2 and Beagle3 have slightly different paths and quotas. Quotas change over time, so treat the [official RCC storage docs](https://docs.rcc.uchicago.edu/storage/main/) as the source of truth.
-
-You can check your own usage at any time with:
+*Output:*
 
 ```bash
-rcchelp quota        # or:  quota -u $USER
+PARTITION  AVAIL  PRIO_TIER      NODES        STATE NODELIST
+  caslake*     up          1          1     drained* midway3-0063
+  caslake*     up          1          1   completing midway3-0093
 ```
 
-| Storage type | Path | Quota / size | Backed up? | Purge policy | Best for |
-|---|---|---|---|---|---|
-| Home | `/home/<CNetID>` | 30 GB soft / 35 GB hard (or 300K / 1M files) | ✅ Yes — daily + weekly snapshots | Never purged | Config files, scripts, source code — personal, owner-only |
-| Project / research | `/project/<group>` | Varies by allocation | ✅ Yes — daily + weekly snapshots | Never purged | Shared group datasets, software installs, results (mode `2770`) |
-| Scratch | `/scratch/midway3/<CNetID>` | 100 GB soft / 5 TB hard | ❌ No — not snapshotted or backed up | Treat as **temporary only** (short-term working data) | High-performance I/O — reading/writing data for running jobs |
-| Node-local | `$TMPDIR` / `$SLURM_TMPDIR` (both → `/tmp/jobs/${SLURM_JOB_ID}`) | Varies by node | ❌ No | Purged when the job completes | High-throughput I/O of **many small files** (< 4 MB) |
-
-**Using node-local storage on the RCC cluster**
-
-Unlike the DSI cluster (below), **RCC node-local scratch requires no special request,** every job automatically gets a per-job directory, and its path is handed to you in two environment variables:
-
-- `$TMPDIR` and `$SLURM_TMPDIR` are both set to `/tmp/jobs/${SLURM_JOB_ID}`.
-- It's wiped automatically when the job completes, so copy results out before the job ends.
-- It's best suited to **high-throughput I/O of many small files** (each < 4 MB).
-
-Because the size varies by node and is **not** advertised as a Slurm resource (unlike DSI), you can't read it from `sinfo`. You have to check it from *on the compute node* — `$TMPDIR` only exists inside a running job, so `df -h "$TMPDIR"` on a login node will just report "No such file or directory."
-
-One way to see the node-local storage size is via an interactive session (quick, one-off check).
-
-Grab a short interactive job, then run `df` in the shell it drops you into:
+| What | Specifier |
+|---|---|
+| Partition name | `%P` |
+| Partition state | `%a` |
+| Scheduling priority | `%p` |
+| Number of nodes | `%D` |
+| State (long form) | `%T` |
+| Node list | `%N` |
 
 ```bash
-srun --partition=schmidt-gpu --nodes=1 --ntasks=1 --cpus-per-task=2 --mem=4G --time=00:10:00 --pty bash -i
-df -h "$TMPDIR"     # you are now on a compute node; $TMPDIR exists
+# Resources & limits: hardware specs, GRES (e.g. GPUs), and job caps per partition
+sinfo -o "%.10P %.6c %.10m %.8d %.20G %.20b %.12l %.8s"
 ```
 
-You can still survey the nodes and their other resources (CPUs `%c`, memory in MB `%m`, GPUs `%G`, state `%t`) with `sinfo`:
+*Output:*
 
 ```bash
-sinfo -N -o "%N %c %m %G %t"     # one row per node
-sinfo -p schmidt-gpu                 # scope to a single partition
+ PARTITION   CPUS     MEMORY TMP_DISK                 GRES      ACTIVE_FEATURES    TIMELIMIT JOB_SIZE
+  caslake*     48     184320        0               (null)      gold-6248r,192g     infinite 1-infini
+       gpu     48     184320        0                gpu:4 gold-6248r,192g,v100     infinite 1-infini
 ```
 
-**Putting it together in a batch script** — stage inputs onto the fast local disk, run, then copy results back to durable storage before the job exits:
+| What | Specifier |
+|---|---|
+| Partition name | `%P` |
+| CPUs per node | `%c` |
+| Memory per node | `%m` |
+| Temp disk per node | `%d` |
+| Generic resources (e.g. GPUs) | `%G` |
+| Node's active features | `%b` |
+| Max time for any job | `%l` |
+| Max job size | `%s` |
+
+[Documented options link](https://slurm.schedmd.com/sinfo.html#OPT_format)
+
+> 🧰 - Note `%N` is left without a fixed width on purpose - sizing it (e.g. `%20N`) will truncate the node list if it's longer than that width.
+
+---
+
+### `sacctmgr`
+
+Slurm documentation link: https://slurm.schedmd.com/sacctmgr.html
+
+**View partitions a user can access (Slurm accounting):**
+
+```bash
+sacctmgr show associations where user=$USER
+```
+
+>🧰 - Note this may not always show what partitions you have access to as it is dependent on how accounts + partitions are set up on the cluster.
+
+---
+
+## 2. How to monitor jobs
+
+There are several [Slurm](./workshop-hpc-l1.md#slurm-scheduler) commands that can be used to monitor and interact with running jobs.
+
+### `squeue`
+
+Slurm documentation: https://slurm.schedmd.com/squeue.html
+
+**View your running jobs:**
+
+```bash
+squeue -u $USER
+```
+
+*Output:*
+
+```bash
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+          51492795 schmidt-g consensu ntebaldi PD       0:00      1 (None)
+```
+
+**View your running jobs with custom options:**
+
+```bash
+squeue -u $USER -o "%.18i %.20j %.12T %.12r %.8p %.10M %.6D %.4C %.10m %.10b %N"
+```
+
+*Output:*
+
+```bash
+             JOBID                 NAME        STATE       REASON PRIORITY       TIME  NODES CPUS MIN_MEMORY TRES_PER_N NODELIST
+          51493154      consensus-train      RUNNING       Prolog 0.000027       0:02      1    8        32G      gpu:1 midway3-0558
+```
+
+| What | Specifier |
+|---|---|
+| Job ID | `%i` |
+| Job name | `%j` |
+| Job state (long) | `%T` |
+| Reason | `%r` |
+| Priority | `%p` |
+| Time elapsed | `%M` |
+| Num nodes | `%D` |
+| Num CPUs | `%C` |
+| Min memory requested | `%m` |
+| GPU request | `%b` |
+| Node list | `%N` |
+
+[Documented options link](https://slurm.schedmd.com/squeue.html#OPT_format)
+
+**Check the estimated start time of a job:**
+
+```bash
+squeue -u $USER --start
+```
+
+*Output:*
+
+```bash
+             JOBID PARTITION     NAME     USER ST          START_TIME  NODES SCHEDNODES           NODELIST(REASON)
+          51505275 schmidt-g consensu ntebaldi PD                 N/A      1 (null)               (None)
+```
+
+---
+
+### `scontrol`
+
+Slurm documentation link: https://slurm.schedmd.com/scontrol.html
+
+This command allows one to view or modify Slurm configuration and state. Most of the commands require elevated permissions and cannot be run.
+
+But `scontrol` does provide some helpful info on jobs.
+
+**View job details:**
+
+```bash
+scontrol show job <ENTER_SLURM_JOB_ID>
+```
+
+*Output:*
+
+```bash
+JobId=51493230 JobName=consensus-train
+   UserId=ntebaldi(1305796003) GroupId=ntebaldi(1305796003) MCS_label=N/A
+   Priority=119976 Nice=0 Account=pi-dfreedman QOS=schmidt
+   JobState=COMPLETED Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:08 TimeLimit=02:00:00 TimeMin=N/A
+   SubmitTime=2026-07-07T09:18:54 EligibleTime=2026-07-07T09:18:54
+   AccrueTime=2026-07-07T09:18:54
+   StartTime=2026-07-07T09:19:09 EndTime=2026-07-07T09:19:17 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-07-07T09:19:09
+   Partition=schmidt-gpu AllocNode:Sid=beagle3-tbd1:470851
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=midway3-0558
+   BatchHost=midway3-0558
+   NumNodes=1 NumCPUs=8 NumTasks=1 CPUs/Task=8 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=8,mem=32G,node=1,billing=8,gres/gpu=1
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:1 CoreSpec=*
+   MinCPUsNode=8 MinMemoryNode=32G MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/ntebaldi/workshop-hpc-2026-sep/slurm/02_train.sbatch
+   WorkDir=/home/ntebaldi/workshop-hpc-2026-sep
+   StdErr=/home/ntebaldi/workshop-hpc-2026-sep/logs/train_51493230.err
+   StdIn=/dev/null
+   StdOut=/home/ntebaldi/workshop-hpc-2026-sep/logs/train_51493230.out
+   Power=
+   TresPerNode=gpu:1
+   NtasksPerTRES:0
+```
+
+---
+
+### `scancel`
+
+Slurm documentation link: https://slurm.schedmd.com/scancel.html
+
+**Cancel a running job:**
+
+```bash
+scancel <ENTER_SLURM_JOB_ID>
+```
+
+>🧰 - Note that your job may not be cancelled immediately as a signal is sent to cancel the job.
+
+---
+
+### `sprio`
+
+Slurm documentation link: https://slurm.schedmd.com/sprio.html
+
+**View a job's scheduling priority for PENDING jobs:**
+
+```bash
+sprio -u $USER
+```
+
+*Output:*
+
+```bash
+          JOBID PARTITION     USER   PRIORITY       SITE        AGE  FAIRSHARE    JOBSIZE  PARTITION        QOS
+       51496621 schmidt-g ntebaldi     119976          0          0      19967          9     100000          0
+```
+
+>🧰 - Only prints output for pending jobs. This shows how factors like job age, fairshare, and job size affect when your job will start.
+
+---
+
+(srun)=
+### `srun`
+
+Slurm documentation link: https://slurm.schedmd.com/srun.html
+
+This command runs a parallel job on the cluster, we will use it to attach a shell to a running job and check GPU usage using `nvidia-smi`.
+
+[`nvidia-smi` documentation](https://docs.nvidia.com/deploy/nvidia-smi/index.html)
+
+**Get GPU usage for a running job:**
+
+```bash
+srun --jobid=<JOBID> --overlap --pty nvidia-smi
+```
+
+**Track GPU usage for a running job:**
+
+```bash
+srun --jobid=<JOBID> --overlap --pty nvidia-smi -l 1
+```
+
+>🧰 - `ctrl-c` will cancel the job polling.
+
+*Output:*
+
+```bash
+Tue Jul  7 15:37:00 2026
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.216.03             Driver Version: 535.216.03   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  NVIDIA A100-SXM4-80GB          On  | 00000000:17:00.0 Off |                    0 |
+| N/A   49C    P0             260W / 500W |   4276MiB / 81920MiB |     88%      Default |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|    0   N/A  N/A    752986      C   python                                     4266MiB |
++---------------------------------------------------------------------------------------+
+```
+
+**Header**
+
+| Field | Meaning |
+|---|---|
+| Driver Version: 535.216.03 | NVIDIA driver version installed on the node |
+| CUDA Version: 12.2 | Max CUDA version the driver supports (not necessarily what your job is using) |
+
+**GPU table**
+
+| Field | Value | Meaning |
+|---|---|---|
+| GPU | `0` | GPU index on this node (0-indexed) |
+| Name | `A100-SXM4-80GB` | GPU model - 80GB A100, SXM4 form factor |
+| Persistence-M | `On` | Persistence mode - driver stays loaded between jobs instead of reinitializing, reduces startup latency |
+| Bus-Id | `00000000:17:00.0` | PCIe bus address of the GPU |
+| Disp.A | `Off` | Display attached - `Off` since this is a headless compute node, not driving a monitor |
+| Volatile Uncorr. ECC | `0` | Count of uncorrectable memory errors since last reset - `0` is healthy; nonzero could mean flaky hardware |
+| Fan | `N/A` | Fan speed - often `N/A` on datacenter GPUs, which are cooled by the chassis, not an onboard fan |
+| Temp | `49C` | Current GPU temperature - comfortable, nowhere near thermal throttling (usually ~85-90C+) |
+| Perf | `P0` | Performance state - `P0` is max performance (states range P0–P12, P0 = highest clocks/power) |
+| Pwr:Usage/Cap | `260W / 500W` | Currently drawing 260W out of a 500W power limit |
+| Memory-Usage | `4276MiB / 81920MiB` | Only ~4.3GB of the 80GB card's memory is in use |
+| GPU-Util | `88%` | GPU compute is 88% busy over the last sampling interval - solid utilization |
+| Compute M. | `Default` | Compute mode - `Default` allows multiple processes to share the GPU (vs. `Exclusive Process`) |
+| MIG M. | `Disabled` | Multi-Instance GPU is off - the GPU isn't split into smaller isolated slices |
+
+**Processes table**
+
+| Field | Value | Meaning |
+|---|---|---|
+| PID | `752986` | The process using the GPU |
+| Type | `C` | Compute process (as opposed to `G` for graphics) |
+| Process name | `python` | Your training script |
+| GPU Memory Usage | `4266MiB` | This process is responsible for essentially all the GPU memory in use |
+
+> 🧰 - GPU-Util here is illustrative. The consensus MLP in `train_consensus.py` is small, so a real run uses only a fraction of an 80GB card. Batch size comes from the experiment config (`batch_size: 256`); there's a lot of headroom to increase it (or run multiple jobs/streams on the same GPU) before hitting a memory ceiling.
+
+---
+
+## 3. Gathering job metrics
+
+### `sacct`
+
+Slurm documentation link: https://slurm.schedmd.com/sacct.html
+
+**View job metrics for a date range:**
+
+```bash
+sacct -u $USER --partition=schmidt-gpu --starttime=2026-06-01 --endtime=2026-07-07 \
+	--format=User,Account,Partition,ReqCPUS,AllocCPUS,ReqMem,MaxRSS,ElapsedRaw,Timelimit,AllocNodes,NodeList,ReqTRES,AllocTRES \
+	--state=CD,F,TO,CA,OOM
+```
+
+*Output:*
+
+```bash
+     User    Account  Partition  ReqCPUS  AllocCPUS     ReqMem     MaxRSS ElapsedRaw  Timelimit AllocNodes        NodeList    ReqTRES  AllocTRES
+--------- ---------- ---------- -------- ---------- ---------- ---------- ---------- ---------- ---------- --------------- ---------- ----------
+ ntebaldi pi-dfreed+ schmidt-g+        2          2        4Gn                    85   01:00:00          1    midway3-0426 billing=2+ billing=2+
+          pi-dfreed+                   2          2        4Gn      1940K         85                     1    midway3-0426            billing=2+
+          pi-dfreed+                   2          2        4Gn      4304K         82                     1    midway3-0426            cpu=2,mem+
+ ntebaldi pi-dfreed+ schmidt-g+        2          2        4Gn                  2450   01:00:00          1    midway3-0426 billing=2+ billing=2+
+          pi-dfreed+                   2          2        4Gn      1948K       2450                     1    midway3-0426            billing=2+
+          pi-dfreed+                   2          2        4Gn    411044K       2449                     1    midway3-0426            cpu=2,gre+
+```
+
+| Field | Meaning |
+|---|---|
+| `User` | Username who submitted the job |
+| `Account` | Slurm accounting account the job was charged to |
+| `Partition` | Partition the job ran on |
+| `ReqCPUS` | Number of CPUs requested |
+| `AllocCPU` → `AllocCPUS` | Number of CPUs actually allocated |
+| `ReqMem` | Memory requested (suffix `c` = per-CPU, `n` = per-node, e.g. `4Gn`) |
+| `MaxRSS` | Peak resident memory actually used by any task |
+| `ElapsedRaw` | Total wall-clock runtime, in raw seconds |
+| `TimeLimit` → `Timelimit` | Requested time limit for the job |
+| `AllocNodes` | Number of nodes allocated |
+| `NodeList` | Names of the nodes the job ran on |
+| `ReqTRES` | Trackable resources requested (cpu, mem, gres/gpu, node, billing, etc.) |
+| `AllocTRES` | Trackable resources actually allocated |
+
+| `--state` code | Meaning |
+|---|---|
+| `CD` | `COMPLETED` - job finished normally |
+| `F` | `FAILED` - job exited with a non-zero code |
+| `TO` | `TIMEOUT` - job hit its time limit and was killed |
+| `CA` | `CANCELLED` - job was cancelled by the user or an admin |
+| `OOM` | `OUT_OF_MEMORY` - job was killed after exceeding its memory allocation |
+
+[Documented options link](https://slurm.schedmd.com/sacct.html#SECTION_OPTIONS)
+
+> 🧰 - `MaxRSS` is often blank for jobs that only ran a single batch script without job steps - per-task memory accounting requires either `srun` steps inside the batch script or cgroup-based accounting enabled on the cluster. This is why some rows above show a value and others don't: each job prints one summary row plus one row per step, and only step rows carry `MaxRSS`.
+
+**View details on a previously run job:**
+
+```bash
+sacct -j <JOBID> --format=JobID,JobName,State,Elapsed,TotalCPU,MaxRSS,ExitCode
+```
+
+*Output:*
+
+```bash
+       JobID    JobName      State    Elapsed   TotalCPU     MaxRSS ExitCode
+------------ ---------- ---------- ---------- ---------- ---------- --------
+51504040     consensus+  COMPLETED   00:02:43  03:29.733                 0:0
+51504040.ba+      batch  COMPLETED   00:02:43  02:59.180   5742136K      0:0
+51504040.ex+     extern  COMPLETED   00:02:43  00:00.002      1948K      0:0
+```
+
+---
+
+### `torch.profiler`
+
+`torch.profiler` is PyTorch's built-in profiler - no extra install needed. It wraps a block of code and records per-operator timing (CPU + CUDA), memory allocation, input shapes, and Python call stacks, then lets you inspect the result as a table, a Chrome trace, or a TensorBoard view.
+
+**Basic usage:**
+
+```python
+import torch
+from torch.profiler import profile, ProfilerActivity
+
+with profile(
+    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+    record_shapes=True,
+    profile_memory=True,
+    with_stack=True,
+) as prof:
+    model.fit(niter)
+
+print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
+prof.export_chrome_trace("trace.json")  # view at chrome://tracing or https://ui.perfetto.dev
+```
+
+**Key options:**
+- `activities`: which devices to trace (`CPU`, `CUDA`)
+- `record_shapes`: logs tensor shapes per op (helps spot unexpectedly small/large ops)
+- `profile_memory`: tracks memory allocated/freed per op
+- `with_stack`: captures Python call stack per op, so you can trace a slow op back to a source line
+- `schedule` + `on_trace_ready`: for profiling recurring steps in a training loop (e.g. skip warmup iterations, only capture a window) - commonly paired with TensorBoard's PyTorch profiler plugin
+
+**Docs:**
+- API reference: https://pytorch.org/docs/stable/profiler.html
+- Tutorial/recipe (recommended starting point - walks through the exact `with profile(...)` pattern above): https://pytorch.org/tutorials/recipes/recipes/profiler_recipe.html
+- TensorBoard integration (visual trace viewer with GPU utilization/kernel breakdown): https://pytorch.org/tutorials/intermediate/tensorboard_profiler_tutorial.html
+
+---
+
+## 4. Error recovery + debugging
+
+### Common issues
+
+So far you have seen how to monitor jobs which can be helpful when trying to recover from errors. Some common issues include:
+
+- **Out of memory issues:** Consider the following batch job script:
 
 ```bash
 #!/usr/bin/env bash
-#SBATCH --job-name=local-io-example
-#SBATCH --partition=schmidt-gpu
+#SBATCH --job-name=consensus-train
+#SBATCH --account=pi-dfreedman          # change to an allowed account on the cluster
+#SBATCH --partition=schmidt-gpu         # GPU partition for Schmidt fellows
+#SBATCH --qos=schmidt
+#SBATCH --gres=gpu:1                    # request 1 GPU (adjust as needed)
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=5M                        # memory per CPU core
 #SBATCH --time=02:00:00
+#SBATCH --output=logs/train_%j.out      # stdout  -> normal log  (Workshop 2)
+#SBATCH --error=logs/train_%j.err       # stderr  -> error log
 
-# $TMPDIR / $SLURM_TMPDIR already point at this job's node-local scratch — no request needed
-echo "Node-local scratch: $TMPDIR"
-
-# 1. Copy inputs from durable storage (/project or /scratch) onto node-local disk
-rsync -a /project/<group>/workshop-hpc-data/ "$TMPDIR"/data/
-
-# 2. Run your code pointed at the fast local path
-python train.py --inputdir "$TMPDIR"/data --outputdir "$TMPDIR"/results
-
-# 3. Copy results back to durable storage BEFORE the job ends ($TMPDIR is wiped on exit!)
-rsync -a "$TMPDIR"/results/ /project/<group>/results/
+...
 ```
 
-(dsi-cluster-specifics)=
-### DSI Cluster Specifics
+The memory requested is `5M` (5 megabytes) which is too small for our consensus training example. This would cause an out of memory (OOM) error if you tried to run it.
 
-The DSI cluster offers all four storage types described above. Quotas and node capacities change over time, so treat the [official storage overview](https://cluster-policy.ds.uchicago.edu/using-the-cluster/storage-overview/) and [node-local storage guide](https://cluster-policy.ds.uchicago.edu/using-the-cluster/node-local-storage/) as the source of truth.
+Make sure to consider the resources you are requesting in the batch script options and that they align with the data footprint of your algorithm.
 
-You can check your own usage at any time with:
+- **Job timeouts:** Most clusters have a max wall time for job execution
+
+The RCC cluster has a max wall time of 36 hours while the DSI cluster has a max wall time of 12 hours.
+
+If your job does not exit before the max wall time, it will be automatically terminated.
+
+>🧰 - This resource covers other common problems: [FAQ: Slurm Errors](https://hpcc.umd.edu/faq/slurm/). While it is specific to the University of Maryland's HPC cluster, it can give you a general idea of different issues that acn come up.
+
+### Debugging
+
+#### Pending Jobs
+
+Remember that this command can give you info on a current running job:
 
 ```bash
-dsiquota --home
-dsiquota --project <NAME>
-dsiquota --scratch
-# You can just run `dsiquota` to display all of the command options
+squeue -u $USER
 ```
 
-| Storage type | Path | Quota / size | Backed up? | Purge policy | Best for |
-|---|---|---|---|---|---|
-| Home | `/home/<CNetID>` | 50 GB (fixed) | ✅ Yes | Never purged | Config files, scripts, source code — **not** for running jobs (not optimized for parallel I/O) |
-| Project / research | `/project/<group>` | 500 GB default, up to 10 TB on request (faculty may request up to 3 directories) | ✅ Yes | Never purged | Shared group datasets, software installs, results |
-| Scratch | `/net/scratch` and `/net/scratch2` | 50 GB per user on *each* (more available on request for active work) | ❌ No | Files not accessed for **60 days** are automatically deleted | Best network I/O — temporary files, intermediate results, large temporary datasets |
-| Node-local | `/local/scratch/<CNetID>_<JOBID>/` | Varies by node: **200 GB – 9.5 TB** (request with `--gres=local:<SIZE>`) | ❌ No | Wiped as soon as the job completes or the node is reallocated (no grace period) | Fastest (NVMe/SSD) — heavy per-job file I/O |
+The `ST` column contains job state codes. [Link to the full list](https://slurm.schedmd.com/squeue.html#SECTION_JOB-STATE-CODES)
 
-**Using node-local storage on the DSI cluster**
+Sometimes you will see that the `ST` code is set to `PD` (`PENDING`) and your job might remain in that pending state.
 
-**1. Request it in your job.** Node-local disk is a Slurm *generic resource* (GRES). Add `--gres=local:<SIZE>` (size in GB) to your `srun` or `sbatch` request. The scheduler will only place your job on a node that advertises at least that much local disk.
+You can locate the reason with this command:
 
 ```bash
-# Interactive example: request a shell with 200 GB of node-local scratch
-srun -p general --gres=local:200G --pty bash
+squeue --me -o "%.10i %.8T %.40R"     # jobid, state, and the reason
 ```
 
-**2. Know where it lives.** Slurm creates a per-job directory for you at `/local/scratch/<CNetID>_<JOBID>/`. It is removed automatically when the job ends, so you must copy results out before then.
+_Output:_
 
-The DSI docs don't document an environment variable for this path, so build it from `$USER` (your CNetID) and `$SLURM_JOB_ID` — and confirm it inside the job:
+You can check the reason with this command:
 
 ```bash
-LOCAL=/local/scratch/${USER}_${SLURM_JOB_ID}
-ls -ld "$LOCAL"          # confirm Slurm created it
-df -h "$LOCAL"           # check how much space is actually available
+     JOBID    STATE                         NODELIST(REASON)
+  53033019  PENDING                                   (None)
 ```
-
-**3. Request only what you need.** Match the `local:` size to the smallest footprint you truly need so your job can land on more nodes (and you don't block other users).
-
-**Figuring out how much a node has**
-
-Survey *all* nodes at once with `sinfo`, printing the node name (`%N`) and its GRES (`%G`) — local disk shows up in the `local:disk:` field alongside GPUs:
 
 ```bash
-sinfo -N -o "%N %G"
-# g002 gpu:...,local:disk:200G
-# k001 gpu:h200:4,local:disk:1500G
-# n001 gpu:...,local:disk:9500G   -> this node advertises 9500 GB of local disk
+scontrol show job 12345 | grep -i reason
 ```
 
-To inspect a single node in full detail, use `scontrol` and read its `Gres=` line:
+_Output:_
 
 ```bash
-scontrol show node <nodename>
-# ... Gres=gpu:h200:4,local:disk:1500G   -> this node advertises 1500 GB of local disk
+   JobState=PENDING Reason=Nodes_required_for_job_are_DOWN,_DRAINED_or_reserved_for_jobs_in_higher_priority_partitions Dependency=(null)
 ```
 
-**Putting it together in a batch script**
+**The reasons you may encounter:**
 
-This follows the typical workflow above — stage inputs onto the fast local disk, run, then copy results back to durable storage before the job exits:
+| Reason | Meaning | What to do |
+|---|---|---|
+| `Resources` | Not enough free nodes/GPUs - waiting for the requested resources to free up. | Normal - wait, or reduce the request (fewer GPUs, less `--mem`). |
+| `Priority` | Lower priority than other queued jobs, which run ahead of yours. | Normal on a busy cluster - wait; check your score with `sprio -j JOBID`. |
+| `ReqNodeNotAvail` | A node the job requires is down, drained, or reserved for maintenance. | `sinfo -N` to find available nodes; if it's a maintenance window, resubmit later. |
+| `Dependency` | Waiting on another job you listed in `--dependency`. | Check the parent with `scontrol show job JOBID`; it starts when the parent finishes (see `05_aggregate_dep.sbatch`). |
+| `DependencyNeverSatisfied` | The job it depends on failed or was cancelled, so it will *never* run. | Cancel it (`scancel`) and fix the upstream job. |
+| `QOSMaxJobsPerUserLimit` | Too many of your jobs are already running under this QOS. | Wait for current jobs to finish, or submit fewer at once. |
+| `AssocGrpCpuLimit` | Your account's aggregate CPU limit is exceeded. | Check your limits: `sacctmgr show assoc user=$USER`. |
+| `PartitionTimeLimit` | Your `--time` exceeds the partition's max. | Lower `--time` or pick a partition that allows it. |
+
+[Full list](https://slurm.schedmd.com/squeue.html#SECTION_JOB-REASON-CODES)
+
+
+(failed-jobs)=
+#### Failed Jobs
+
+Debugging failed jobs can be difficult when executing batch jobs. You can review the failed job reason, job logs, and launch an interactive session to try to replicate the error and troubleshoot the issue.
+
+To view the exit code your job returned when it is failed, you can run this command:
+
+```bash
+sacct -j <JOBID> --format=JobID,State,ExitCode,DerivedExitCode,Elapsed
+```
+
+_Output:_
+
+```bash
+       JobID      State ExitCode DerivedExitCode    Elapsed
+------------ ---------- -------- --------------- ----------
+50317844_29+  COMPLETED      0:0             0:0   00:00:31
+50317844_29+  COMPLETED      0:0                   00:00:31
+50317844_29+  COMPLETED      0:0                   00:00:31
+```
+
+SLURM reports the exit code as `N:M` where `N` is the process exit code (non-zero → `F`/FAILED), and `M` is the signal number if a signal killed it:
+
+| `ExitCode` | Meaning |
+|---|---|
+| `0:0` | Clean success. |
+| `1:0` | Script exited non-zero - check `.err` for the traceback. |
+| `0:15` | Killed by `SIGTERM` (15) - usually SLURM ending it: timeout, preemption, or `scancel`. |
+| `0:9` | Killed by `SIGKILL` (9) - hard kill, often the OOM killer. |
+
+`DerivedExitCode` is the highest exit code across the job's steps - check it when the script reports success but a step inside it failed.
+
+Another important debugging tool are the log files. Looking at our batch script, we can separate the error and standard out logs to make it easier to parse errors from regular execution output:
 
 ```bash
 #!/usr/bin/env bash
-#SBATCH --job-name=local-io-example
-#SBATCH --partition=general
-#SBATCH --gres=local:200G          # request 200 GB of node-local scratch
+#SBATCH --job-name=consensus-train
+#SBATCH --account=pi-dfreedman          # change to an allowed account on the cluster
+#SBATCH --partition=schmidt-gpu         # GPU partition for Schmidt fellows
+#SBATCH --qos=schmidt
+#SBATCH --gres=gpu:1                    # request 1 GPU (adjust as needed)
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=5M                        # memory per CPU core
 #SBATCH --time=02:00:00
+#SBATCH --output=logs/train_%j.out      # stdout  -> normal log  (Workshop 2)
+#SBATCH --error=logs/train_%j.err       # stderr  -> error log
 
-# Per-job directory Slurm created on the node's local NVMe/SSD
-LOCAL=/local/scratch/${USER}_${SLURM_JOB_ID}
+set -euo pipefail
 
-# 1. Copy inputs from network storage (/project or /net/scratch) onto node-local disk
-rsync -a /project/<group>/workshop-hpc-data/ "$LOCAL"/data/
+...
+```
 
-# 2. Run your code pointed at the fast local path
-python train.py --inputdir "$LOCAL"/data --outputdir "$LOCAL"/results
+>🧰 - `set -euo pipefail` stops the script on any error so there are no silent failures.
 
-# 3. Copy results back to durable storage BEFORE the job ends (local is wiped on exit!)
-rsync -a "$LOCAL"/results/ /project/<group>/results/
+`--output` and `--error` point to files that Slurm will send algorithm output to. It can be very helpful to review the both files to trace through the issue that occurred and understand how you might fix it.
+
+Finally once you have gathered the exit code and logs, you can launch an interactive job to run your algorithm manually while making changes to the code to troubleshoot and fix the error.
+
+See ["Section 7. Running an interactive job"](#running-interactive-job) for how to launch an interactive job and run your algorithm code.
+
+>🧰 - It can be helpful to add temporary `print` statements around the lines you suspect are the cause of failure.
+
+Beyond confirming *which line* was reached, useful things to log include:
+
+- **Variable values** - is the data what you expected, or did something upstream go wrong?
+- **Shapes and dtypes** - `print(x.shape, x.dtype)` for tensors/arrays. Shape and type mismatches are the most common cause of model errors.
+- **Device placement** - `print(x.device)` to catch the classic "expected all tensors on the same device" CUDA error (some data on CPU, some on GPU).
+- **Collection sizes** - `print(len(dataset))` to catch an empty dataset or a path that matched no files.
+- **File paths** - print the exact path you're about to read/write, and whether it exists (`os.path.exists(p)`). A wrong or missing path is easy to miss.
+- **Config / arguments** - echo the hyperparameters, env vars, and CLI args the job actually received, so you can rule out a bad config.
+- **Loss / metric values per step** - watch for `NaN` or `inf`, which signal exploding gradients or a bad learning rate.
+- **A step counter or timestamp** - print the batch/epoch index (and time) so you can see *how far* it got and whether it's making progress or hung.
+
+Remember these are *temporary* - remove them (or switch to the `logging` module with adjustable levels) once the bug is found.
+
+> ⚠️ On the cluster, `stdout` is buffered when Slurm redirects it to your `.out` file - prints may not appear until the job finishes, or may be lost if it crashes. Force them out with `print(..., flush=True)`, or run Python with `python -u` (unbuffered).
+
+> 🧰 - If you use Python's `logging` module, log statements are directed to standard error `stderr`. If you want to log to standard out `stdout` so that the logged statements show up in the `.out` file, set `stream` to `sys.stdout`:
+> ```python
+> logging.basicConfig(
+>        level=logging.INFO,
+>        format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
+>        datefmt="%Y-%m-%d %H:%M:%S",
+>        stream=sys.stdout,          # default is stderr; send logs to stdout (SLURM .out)
+>    )
+> ```
+
+(recover-from-interruptions)=
+## 5. How to recover from interruptions
+
+Long-running jobs get interrupted, and *how* depends on the cluster - so this section sets up a general, portable pattern rather than something specific to one machine.
+
+- Every cluster enforces a **time limit** (`--time`), so a job that needs longer than a single allocation must be able to stop and continue.
+- Some clusters also **preempt** - pause or kill your running job to free resources for a higher-priority one - while others disable preemption entirely (for example, RCC/midway reports `PreemptMode = OFF`, so jobs there are never preempted).
+- Nodes can also fail.
+
+The same machinery survives all of these: checkpoint as you go, save again on the warning signal, then requeue and resume. The approach is adapted from [this DSI cluster documentation](https://cluster-policy.ds.uchicago.edu/using-the-cluster/batch-jobs/).
+
+The consensus model training is already set up for this: it checkpoints on a regular interval, at each epoch boundary, and when SLURM sends the warning signal (e.g., `SIGUSR2`). The wrapper then requeues the job so it picks up from the last checkpoint instead of starting over.
+
+>🧰 - The DSI strategy requeues a job by exiting with code `99` (DSI wires that to Slurm's `RequeueExit`).
+>
+> On RCC that is not configured so this workshop requeues with `scontrol requeue` instead, which works on any cluster that allows requeue without relying on an exit-code convention.
+
+### Wrapper script
+
+First, let's review a wrapper that keeps a long-running Python algorithm alive across interruptions (the time-limit wall, and preemption where the cluster enables it).
+
+The wrapper is set up to run the consensus training algorithm but the wrapper can be modified for your own Python scripts (see the tooltip below).
+
+The full wrapper (with inline comments on every line) lives in [the workshop repository](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/03_checkpoint.sbatch). Rather than reproduce all ~190 lines here, the walkthrough below pulls out the pieces that make checkpoint/requeue work — the rest is ordinary resource requests and environment setup.
+
+_The two `#SBATCH` directives that enable the pattern:_
+
+```bash
+#SBATCH --requeue                    # allow SLURM to put the job back in the queue
+#SBATCH --signal=B:USR2@120          # warn the batch shell (USR2) 120s before the kill
+```
+
+- `--requeue` lets SLURM put the job back in the queue after preemption, node failure, or an explicit `scontrol requeue`. Without it, none of the resume logic below can run.
+- `--signal=B:USR2@120` asks SLURM to send `SIGUSR2` to the **batch shell** (`B:`) about **120 seconds before** the `--time` wall.
+- That lead time is your budget to checkpoint before the un-catchable `SIGKILL` arrives. `USR2` is a deliberate choice — `USR1` is already claimed by some frameworks (PyTorch Lightning, submitit).
+
+**Which signal actually arrives.** `SIGUSR2` is not special to SLURM — it is simply the signal *we requested* via `--signal`.
+
+`--signal` governs only the **time-limit** case. The other ways a job is stopped send different signals, which is why the wrapper traps both `USR2` and `TERM`:
+
+| Scenario | What SLURM sends | Handled by |
+|---|---|---|
+| `--time` wall approaching | `SIGUSR2`, ~120s early (because we asked for it) | `on_preempt` → checkpoint + requeue |
+| Preemption | `SIGCONT` + `SIGTERM`, then `SIGKILL` after the partition's `GraceTime` (a `USR2` warning fires **only** if the cluster is configured to send one) | `on_preempt` where `USR2` is configured (checkpoint + explicit requeue); otherwise `on_term`, and **`--requeue` auto-resumes** the job from the last checkpoint |
+| `scancel <jobid>` | `SIGTERM` (or whatever `scancel --signal=` passes) | `on_term` → stop **without** requeue |
+| Node failure | nothing reaches your job — SLURM auto-requeues via `--requeue` | resume from last checkpoint |
+| Grace window expires | `SIGKILL` (signal 9) | **nothing** — it cannot be trapped or delayed |
+
+> ⚠️ Two consequences.
+>
+> (1) Because `SIGKILL` can never be caught, the `@120` lead time *is* the entire window your program has to save — set it comfortably larger than a checkpoint write.
+>
+> (2) Because preemption is guaranteed to send `SIGTERM` but only *maybe* `SIGUSR2`, a robust program should treat **either** signal as "checkpoint now".
+
+_Give up instead of requeuing forever if the job keeps dying before it makes progress:_
+
+```bash
+MAX_RESTARTS=5
+if [[ "${SLURM_RESTART_COUNT:-0}" -gt "$MAX_RESTARTS" ]]; then
+    echo "[$(date)] restart count ${SLURM_RESTART_COUNT} exceeds MAX_RESTARTS; giving up."
+    exit 1
+fi
+```
+
+SLURM increments `SLURM_RESTART_COUNT` on each requeue, so this caps a crash-loop that would otherwise resubmit indefinitely.
+
+_Relay the warning to the whole training process group, so parallel workers aren't orphaned:_
+
+```bash
+signal_child_group() {
+    local sig="$1"
+    if [[ -n "${child_pid:-}" ]] && kill -0 "$child_pid" 2>/dev/null; then
+        kill -s "$sig" -- "-$child_pid" 2>/dev/null || \
+            kill -s "$sig" "$child_pid" 2>/dev/null || true
+    fi
+}
+```
+
+The negative PID (`-$child_pid`) targets the entire process **group**, not just the top process, so `DataLoader` / `multiprocessing` workers get the signal too.
+
+This works because Python is launched under `setsid` (below), which makes the child its own group leader.
+
+_The heart of the pattern, the `SIGUSR2` handler: checkpoint, wait, then requeue:_
+
+```bash
+on_preempt() {
+    trap '' USR2 TERM                  # ignore repeat signals while shutting down
+    signal_child_group USR2            # tell Python to checkpoint and exit cleanly
+    wait "$child_pid" || true          # let it finish saving; the grace window is the hard deadline
+    scontrol requeue "$SLURM_JOB_ID"   # put the job back in the queue ourselves
+    exit 0
+}
+trap on_preempt USR2
+```
+
+`scontrol requeue` is used here (rather than the DSI `exit 99` convention) because it works on any SLURM cluster that allows requeue.
+
+A companion `on_term` handler, trapped on `TERM`, does the same relay-and-wait but exits `143` **without** requeuing, so a `scancel` really stops the job.
+
+_The one block you edit to reuse the wrapper — launch your program under `setsid`, in the background:_
+
+```bash
+launch_training() {                        # marked ">>> EDIT HERE <<<" in the full script
+    local resume_from="$1"
+    local resume_args=()
+    [[ -n "$resume_from" ]] && resume_args=(--resume-from "$resume_from")
+
+    setsid python src/train_consensus.py \
+        --config "$EXPERIMENT_CONFIG" \
+        --manifest "$WORK_DIR/data/manifest_train.csv" \
+        --out "$WORK_DIR/runs/consensus" \
+        --ckpt-dir "$CKPT_DIR" \
+        "${resume_args[@]}" &
+}
+```
+
+`setsid` makes the program its own process-group leader (so `signal_child_group` can reach its workers); the trailing `&` backgrounds it so the traps can fire while it runs.
+
+_On (re)start, resume from the rolling checkpoint if a previous run left one; otherwise start fresh:_
+
+```bash
+latest_ckpt="$CKPT_DIR/consensus_last.pt"
+[[ -f "$latest_ckpt" ]] || latest_ckpt=""   # empty => fresh run
+
+launch_training "$latest_ckpt"
+child_pid=$!                                 # PID of the backgrounded setsid process
+
+# Reaching here means training finished on its own (no warning fired) -> no requeue.
+wait "$child_pid" || return_code=$?
+```
+
+>🧰 - You can modify this script to run your Python code.
+
+**Where to drop in your script.** You only edit one place in the wrapper - the block marked `>>> EDIT HERE: launch YOUR training program <<<`, which defines the `launch_training()` function.
+
+Swap in your script and its arguments there; everything else (the signal traps, `setsid` process-group forwarding, requeue guard, and resume detection) stays exactly as-is.
+
+**Contract + args.** Your code needs to implement the following to work with the script:
+
+1. **Catch `SIGUSR2`, checkpoint, and exit cleanly.** When the cluster's preemption / time-limit warning arrives, the wrapper relays `SIGUSR2` to your program. Your program must save a checkpoint at a safe point and then exit - the wrapper handles the requeue for you (via `scontrol requeue`), so your program does *not* need any special exit code. Register a handler that just sets a flag, then save at the next safe boundary - not inside the handler itself (a signal can interrupt at any instruction).
+2. **Resume from a checkpoint path.** The wrapper passes the previous checkpoint as the first argument to `launch_training` (empty when starting fresh). Your program must accept a "resume from this path" argument and restore its model / optimizer / epoch state from it when given.
+3. **Write checkpoints into `CKPT_DIR`.** Save to the directory the wrapper passes in, so the next run can find the rolling checkpoint. Write **atomically** (temp file + rename) so a checkpoint interrupted mid-write is never left corrupt.
+
+The reference implementation (`src/train_consensus.py`) is launched like this:
+
+```bash
+python src/train_consensus.py \
+    --config "$EXPERIMENT_CONFIG" \
+    --manifest "$WORK_DIR/data/manifest_train.csv" \
+    --out "$WORK_DIR/runs/consensus" \
+    --ckpt-dir "$CKPT_DIR" \
+    --resume-from "$latest_ckpt"
+```
+
+- `--config` - experiment YAML supplying the model + training knobs (epochs, batch size, lr, hidden width, checkpoint interval)
+- `--manifest` - input data (specific to the reference script)
+- `--out` - output / results directory
+- `--ckpt-dir` - where checkpoints are written → **contract #3**
+- `--resume-from` - checkpoint to resume from → **contract #2**
+
+> 🧰 - Only `--resume-from` (contract #2) and `--ckpt-dir` (contract #3) are wired into the wrapper's logic. The rest are ordinary arguments to the reference script - rename or drop them freely when you plug in your own code, as long as the three contract points still hold.
+
+### Python code
+
+Now let's walk through the consensus training code to understand how the signal is caught and checkpointing is enabled.
+
+The Python script is located in [the workshop repo](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/src/train_consensus.py) and key preemption functionality is included here:
+
+_Variable that controls checkpointing behavior_
+
+```python
+# The interval between regular ("interval") checkpoints is a config knob
+# (train.checkpoint_interval), resolved in main(); set it to 0 to disable interval
+# saves, leaving the epoch-boundary and preemption-signal saves. Override per run
+# with --checkpoint-interval.
+
+# Set by the SIGUSR2 handler when SLURM warns of imminent preemption / time-out.
+# The training loop watches this flag and checkpoints at the next safe point.
+# (We use SIGUSR2 rather than SIGUSR1 because SIGUSR1 is already claimed by some
+# frameworks -- e.g. PyTorch Lightning, submitit -- for their own auto-requeue.)
+should_checkpoint: bool = False
+```
+
+_Functions that support preemption and saving checkpoints in a safe manner to prevent corruption of half-saved checkpoints_
+
+```python
+def handle_preempt(signum, frame) -> None:
+    """Signal handler for the preemption warning (SIGUSR2).
+
+    Kept deliberately minimal: it only flips a flag. Actually saving here would
+    be unsafe -- a signal can interrupt at any instruction, and torch.save / the
+    CUDA allocator are not async-signal-safe. The training loop does the save at
+    the next step boundary, where model/optimizer state is consistent.
+    """
+    global should_checkpoint
+    logger.info(f"[train] signal {signum} received; checkpointing at next step boundary...")
+    should_checkpoint = True
+
+
+def atomic_torch_save(state: dict, path: Path) -> None:
+    """Write a checkpoint atomically so a mid-write kill never corrupts it.
+
+    Saves to a sibling `.tmp` file first, then `os.replace()`s it into place.
+    `os.replace` is atomic on the same filesystem, so `path` is always either the
+    complete old checkpoint or the complete new one -- never a truncated file if
+    SLURM's grace window expires (SIGKILL) during the write.
+
+    Args:
+        state: The checkpoint dict to serialize.
+        path: Destination `.pt` path (its parent is created if needed).
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    torch.save(state, tmp)
+    os.replace(tmp, path)
+```
+
+_Training loop with two atomic checkpoint saves: 1. Preemption warning prompts a checkpoint save and 2. Regular interval checkpoint save_
+
+```python
+# The checkpoint contents -- feature_names travel too, so prediction reads the
+# right columns later.
+def snapshot(epoch, step, done):
+   return {"model": model.state_dict(), "opt": opt.state_dict(), "epoch": epoch,
+           "step": step, "epoch_completed": done, "feature_names": names}
+
+for epoch in range(start_epoch, num_epochs):
+   model.train()
+   running = 0.0
+   for step, (x, y) in enumerate(loader):
+      x, y = x.to(device), y.to(device)
+      opt.zero_grad()               # clear last step's gradients
+      loss = loss_fn(model(x), y)   # predict log-discharge, measure error vs. gauge
+      loss.backward()               # backward: compute gradient for every weight
+      opt.step()                    # optimizer: nudge every weight to reduce loss
+      running += loss.item()        # track loss
+
+      # 1. Preemption warning arrived: save at this safe point and exit
+      #    cleanly. The wrapper (which relayed the signal) handles the
+      #    requeue -- see slurm/03_checkpoint.sbatch (scontrol requeue).
+      if should_checkpoint:
+         atomic_torch_save(snapshot(epoch, step, False), ckpt)
+         logger.info("[train] checkpoint saved on preemption warning; exiting for requeue.")
+         sys.exit(0)
+
+      # 2. Regular interval checkpoint (safety net for a warning-less kill).
+      if checkpoint_interval and step > 0 and step % checkpoint_interval == 0:
+         atomic_torch_save(snapshot(epoch, step, False), ckpt)
+```
+
+_Register signal_
+
+```python
+# React to SLURM's preemption/time-limit warning (delivered as SIGUSR2 by the
+# wrapper). Registered on the main thread, before training starts.
+signal.signal(signal.SIGUSR2, handle_preempt)
 ```
 
 ---
 
-(data-best-practices)=
-## 3. Data management best practices
+(test-job-interruptions)=
+## 👉 6. Test job interruptions
 
-Each storage type above suits a different **stage** in the life of your data. Now that you have seen the specifics for the [RCC](#rcc-cluster-specifics) and [DSI](#dsi-cluster-specifics) clusters, this section covers how to *use* them well. A little organization up front — deciding what is short-term vs. long-term, and where each piece lives — saves a lot of pain later. A good test: six months from now, could you still answer *which data was used, which version of the code ran, what parameters were set, and can I reproduce this result?* The practices below are aimed at keeping that answer "yes."
+[Section 5](#recover-from-interruptions) explained how the checkpoint/resume wrapper works - now let's run it and interrupt it on purpose to watch it recover. On RCC preemption is disabled (`PreemptMode = OFF`), so rather than wait to be preempted we send the warning signal ourselves; the job checkpoints, requeues, and resumes exactly as it would when it hits the `--time` wall (or on a cluster that preempts).
 
-### Match storage to the data's lifetime
+This builds on the Lesson 1 setup - make sure you have [cloned the repo, built the environment, and set `config/paths.sh` for RCC](./workshop-hpc-l1.md#running-interactive-job). The script we run is the checkpoint wrapper from Section 5: [slurm/03_checkpoint.sbatch](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/03_checkpoint.sbatch).
 
-Think about how long you need each file and how it is accessed, then place it accordingly:
+### 👉 1. Log into the cluster
 
-| Data | Where it belongs | Why |
-|---|---|---|
-| Source code, scripts, configuration | `/home` (or a repo in `/project`) | Small, personal, backed up |
-| Primary datasets, final results, shared environments | `/project` | Durable, shared with your group, backed up |
-| Temporary & intermediate job files | `/scratch` | Fast I/O, **not** backed up, purged |
-| Heavy per-job read/write | node-local (`$TMPDIR` / `--gres=local`) | Fastest, wiped when the job ends |
-
-A few rules of thumb follow from this:
-
-1. **Store code in home.** Keep source code, scripts, and configuration in your `/home` directory (or a Git repository).
-2. **Keep data in project.** Store primary datasets, important results, and shared files in your `/project` directory.
-3. **Use scratch for jobs.** Have running jobs read and write temporary files in a directory you create under `/scratch`, then copy final results back to `/project` when the job finishes.
-4. **Check your usage.** Monitor your disk usage regularly so you don't hit quotas mid-job (see the quota commands in §2).
-5. **Clean up regularly.** Delete files you no longer need — especially from shared `/scratch` — to be a good cluster citizen.
-
-### Organize data for fast search and retrieval
-
-When jobs need to find data in a large or growing collection (especially time series), a **hierarchical directory layout beats one giant flat folder**. Partition by the fields you filter on most — for time series, that is usually `year/month/day`:
-
-```text
-/project/<group>/data/
-  2026/
-    07/
-      15/
-        station-A.parquet
-        station-B.parquet
-      16/
-        ...
+```bash
+ssh -Y <CNetID>@midway3.rcc.uchicago.edu
 ```
 
-Why it helps:
+Enter your `<CNetID>` password and authenticate with Duo.
 
-- A job can point straight at `data/2026/07/` instead of scanning millions of files.
-- Parallel and scratch file systems slow down badly with huge flat directories — nesting keeps each directory small.
-- The path itself documents the data, and new data appends cleanly without reshuffling existing files.
+### 👉 2. Locate the batch script in the workshop repo
 
-Watch out for the **many-small-files** problem, too: thousands of tiny files are slow on shared storage. Aggregate them into larger containers (e.g. `.parquet`, `.tar`, or `.zarr`), and remember that node-local storage is the right home for high-throughput small-file I/O.
+```bash
+cd $HOME/workshop-hpc-2026-sep     # the repo you cloned in Lesson 1
+ls slurm/03_checkpoint.sbatch      # the checkpoint/requeue wrapper from Section 5
+mkdir -p logs                      # the job writes to logs/ckpt_%j.out
+```
 
-> 🧰 - Keep raw inputs **read-only** and write derived/processed data to a separate directory. An accidental job then can't corrupt your source data, and you can always re-derive results from the original.
+>🧰 - The wrapper trains on `$WORK_DIR/data/manifest_train.csv`. If you have not built that manifest yet, run it once: `source config/paths.sh && module load python/anaconda-2025.12 && conda activate $ENV_NAME && python src/build_manifest.py --config "$EXPERIMENT_CONFIG" --sos "$SOS_FILE" --svs "$SVS_FILE" --priors "$PRIORS_FILE" --mode train --out "$WORK_DIR/data/manifest_train.csv"`.
 
-### Separate code, environments, and data
+### 👉 3. Submit the job
 
-Code, environments, and data have different lifetimes and sharing needs, so keep them in **separate locations** rather than one mixed directory:
+```bash
+sbatch slurm/03_checkpoint.sbatch      # -> Submitted batch job 12345
+```
 
-- **Code** — a Git repository (scripts, notebooks, job files). Version-controlled; never commit large data or secrets.
-- **Software environments** — build a `conda`/`venv` environment **once** in a known location (personal → `/home`, shared → `/project`) and activate it from every job; don't rebuild it per run.
-- **Data** — inputs and results live in `/project` (durable) and `/scratch` (temporary), never inside the code repository.
+Watch it start and note the job id, then follow the log until you see training steps:
 
-The workshop repository is laid out this way — `src/` for code, `config/` for configuration, `slurm/` for job scripts, and `environment.yml` for the environment — with the data kept on the cluster, outside the repo.
+```bash
+squeue -u $USER
+tail -f logs/ckpt_<JOBID>.out
+```
 
-### From notebooks to codebases
+>🧰 - As shipped the training knobs come from the experiment config (`epochs: 500`). For a quick end-to-end test, add `--epochs 2` to the `launch_training` block of the script - a CLI flag overrides the config - so it finishes shortly after resuming.
 
-Notebooks are ideal for exploration and are a great **first line of experiment tracking**. But batch jobs run *scripts*, not notebooks, and copy-pasted cells are hard to reproduce. As soon as you are repeating an analysis or scaling it to batch jobs:
+### 👉 4. Send an interrupt signal
 
-- Move reusable logic out of the notebook into small, importable scripts/modules in your codebase (`src/`).
-- Keep the notebook for exploration and figures, importing from the codebase so the two stay in sync.
-- Put the codebase under version control so each job runs a known version of the code.
+Once the job is `R` (running) and a few steps in, send the preemption / time-limit warning yourself:
 
-(track-experiments-configs-and-results)=
-### Track experiments, configs, and results
+```bash
+scancel --signal=USR2 --batch <JOBID>    # short form: scancel -s USR2 -b 12345
+```
 
-To make results reproducible, capture **what produced them**: the data, the code version, the parameters, and the outputs. Layer tools as your needs grow:
+>🧰 - The `--batch` (`-b`) flag is essential. Without it, `scancel --signal` targets the job's `srun` steps - and this job launches Python directly (no `srun` step), so the signal would land on nothing. `--batch` delivers it to the batch script, where the `USR2` trap lives.
 
-| Layer | Tool | When to use it |
-|---|---|---|
-| Code | Git / GitHub | Always |
-| Data | DVC | Files > 100 MB, or that change across runs |
-| Experiments | MLflow or Weights & Biases | Comparing runs by parameters and metrics |
-| Serving | Docker / GHCR | Sharing a working model |
+### 👉 5. Watch the job requeue and complete
 
-Two habits that pay off immediately:
+Follow the same log - the job checkpoints, then requeues itself under the same job id:
 
-- **Keep the config with the results.** Write each run's exact parameters/config into that run's output directory, so a result is self-describing.
-- **Give each run its own output directory**, keyed by date or job ID (e.g. `results/2026-07-15_<jobid>/`), so runs never overwrite each other.
+```bash
+tail -f logs/ckpt_<JOBID>.out
+```
 
-For a fuller walkthrough of these tools, see the [Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/).
+You should see, in order: `USR2 received...`, `[train] checkpoint saved on preemption warning...`, and `Requeuing job 12345 via scontrol requeue.` The job then returns to `PD` and starts again as the **same** job id, logging `Resuming from .../consensus_last.pt` and continuing from the last checkpoint instead of restarting:
 
-> 🧰 - Sharing data with your group? `/project` directories are group-owned (mode `2770`, so new files inherit the group). Use `chgrp`/`chmod` for group-wide access, or `setfacl` for per-person control — see the [RCC access control guide](https://docs.rcc.uchicago.edu/data_sharing/access_control/).
+```bash
+squeue -u $USER
+sacct -j 12345 --format=JobID,State,ExitCode,Restart%7    # Restart increments to 1
+```
+
+When it finishes, the state is `COMPLETED`:
+
+```bash
+sacct -j 12345 --format=JobID,State,Elapsed,Restart%7
+```
+
+## ✅ Verification Checkpoint
+
+- You submitted `03_checkpoint.sbatch` and saw it reach `RUNNING`.
+- You sent `SIGUSR2` with `scancel --batch` and saw the job checkpoint at a safe point.
+- You watched the same job id requeue (`Restart = 1`) and resume from the checkpoint.
+- The job reached `COMPLETED` after resuming - surviving the interruption.

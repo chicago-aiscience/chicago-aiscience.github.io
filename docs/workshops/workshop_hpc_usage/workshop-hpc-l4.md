@@ -25,7 +25,7 @@ Back in [Lesson 1](./workshop-hpc-l1.md#slurm-jobs) we introduced the two ways t
 
 The pattern we lean on for the rest of this lesson: **develop and smoke-test a single step interactively, then submit the real thing as a batch job.** Once you have several batch stages, wire them together into a workflow.
 
-> 🧰 - A good habit before committing a big batch run: prove the wiring works on a handful of inputs on an interactive node (e.g. `--limit 5 --epochs 1`), exactly as we did in [Lesson 1.7](./workshop-hpc-l1.md#running-interactive-job).
+> 🧰 - A good habit before committing a big batch run: prove the wiring works on a small slice on an interactive node (e.g. `--basins 232270 --epochs 1`), exactly as we did in [Lesson 1.7](./workshop-hpc-l1.md#running-interactive-job).
 
 ---
 
@@ -95,7 +95,7 @@ Increasingly, workflows fold an AI model *into* the pipeline - for prediction, f
 
 These show up as recurring **execution motifs** - dynamic orchestration, multistage pipelines, inverse design, digital replicas, distributed models, adaptive training - each with its own interaction and coupling patterns.
 
-> 🧰 - Our workshop pipeline is itself a small AI-coupled, multistage workflow: fine-tune a segmentation model, run inference to produce masks, extract morphology features, then classify. The trained model is a stage *inside* the data pipeline.
+> 🧰 - Our workshop pipeline is itself a small AI-coupled, multistage workflow: train the consensus model, run prediction to produce per-reach discharge, aggregate the results, then benchmark against the gauge. The trained model is a stage *inside* the data pipeline — an **AI-in-HPC** pattern, where the learned model stands in for a component of the traditional consensus calculation.
 
 The main challenges when coupling AI and HPC are worth keeping in mind: the two halves are often written in different languages, dynamic insight from an AI model has to feed back into an otherwise static workflow, and data-transfer patterns between stages can dominate performance.
 
@@ -147,7 +147,7 @@ This matters because hundreds of tasks hitting the file system - or a shared con
 
 ### Running example: a parameter sweep
 
-A natural job-array use case is a **hyperparameter sweep** where you run the same fine-tuning step several times with different settings and compare. The runs are fully independent, and the task index selects which parameter combination to use.
+A natural job-array use case is a **hyperparameter sweep** where you run the same training step several times with different settings and compare. The runs are fully independent, and the task index selects which parameter combination to use. (The pattern below is illustrative — the repo ships the *prediction* array as its concrete example; you can adapt this sweep for tuning.)
 
 A clean way to do it is to keep the parameter grid in a file and let each task read its own row. Create `config/sweep.csv`:
 
@@ -183,10 +183,11 @@ out="$WORK_DIR/runs/sweep/task_${SLURM_ARRAY_TASK_ID}_lr${lr}_bs${bs}"
 
 echo "[task $SLURM_ARRAY_TASK_ID] lr=$lr batch_size=$bs -> $out"
 
-python src/seg_finetune.py \
+python src/train_consensus.py \
+    --config "$EXPERIMENT_CONFIG" \
     --manifest "$WORK_DIR/data/manifest_train.csv" \
     --out "$out" \
-    --lr "$lr" --batch-size "$bs" --epochs 10
+    --lr "$lr" --batch-size "$bs"
 ```
 
 What makes this work as an array:
@@ -201,23 +202,42 @@ The same mechanism handles the other classic array patterns, too:
 
 - **one task per input file** (index a list of files by `$SLURM_ARRAY_TASK_ID`)
 - **case-based selection** with a `bash` `case` statement, or **reading a config file** as we did above.
-- In our workshop pipeline, the inference stage ([`slurm/04_infer_array.sbatch`](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/04_infer_array.sbatch)) uses an array the **data-parallel** way as it fans segmentation out across chunks of the image set, with each task processing its own slice.
+- In our workshop pipeline, the prediction stage ([`slurm/04_predict_array.sbatch`](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/04_predict_array.sbatch)) uses an array the **data-parallel** way as it fans discharge prediction out across shards of the reaches, with each task processing its own slice.
 
-### 👉 Try it: submit the sweep
+### 👉 Try it: submit the prediction array
+
+The workshop's concrete data-parallel array is the prediction stage. It needs a trained model first (from Lesson 1's `02_train.sbatch`), then fans prediction across the reaches:
 
 ```bash
 cd $HOME/workshop-hpc-2026-sep
 mkdir -p logs
-sbatch slurm/04_sweep_array.sbatch     # -> Submitted batch job 51500000
+sbatch slurm/04_predict_array.sbatch     # -> Submitted batch job 51500000
 ```
 
-Watch all four tasks (they share the parent id, with `_0`..`_3` suffixes):
+Watch all ten tasks (they share the parent id, with `_0`..`_9` suffixes):
 
 ```bash
-squeue -u $USER                        # tasks show as 51500000_0, _1, ...
+squeue -u $USER                          # tasks show as 51500000_0, _1, ...
 ```
 
-When they finish, each run's results sit in its own `runs/sweep/task_*` directory, ready to compare.
+_Output:_
+
+```bash
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+           1329780   general     bash ntebaldi  R      32:20      1 g002
+         1329834_0   general consensu ntebaldi  R       0:03      1 g006
+         1329834_1   general consensu ntebaldi  R       0:03      1 h002
+         1329834_2   general consensu ntebaldi  R       0:03      1 h002
+         1329834_3   general consensu ntebaldi  R       0:03      1 h002
+         1329834_4   general consensu ntebaldi  R       0:03      1 p001
+         1329834_5   general consensu ntebaldi  R       0:03      1 p001
+         1329834_6   general consensu ntebaldi  R       0:03      1 p001
+         1329834_7   general consensu ntebaldi  R       0:03      1 i001-ds
+         1329834_8   general consensu ntebaldi  R       0:03      1 j005-ds
+         1329834_9   general consensu ntebaldi  R       0:03      1 j005-ds
+```
+
+When they finish, each task's shard sits in `runs/predictions/predictions_XXX.csv`, ready to aggregate.
 
 > 🧰 - Cancel a single task with `scancel 51500000_2`, or the whole array with `scancel 51500000`.
 
@@ -271,14 +291,14 @@ You submit all three immediately:
 
 Our example is a three-stage, multi-stage workflow that mixes a sequential stage, a parallel array, and a final sequential stage:
 
-1. **Fine-tune:** the segmentation model - [`slurm/02_finetune.sbatch`](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/02_finetune.sbatch) (single GPU job).
-2. **Infer:** segment all images, fanned out as a **job array** - [`slurm/04_infer_array.sbatch`](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/04_infer_array.sbatch).
-3. **Morphology + classify:** extract area/circularity features and classify - [`slurm/05_morphology_dep.sbatch`](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/05_morphology_dep.sbatch).
+1. **Train:** the consensus model - [`slurm/02_train.sbatch`](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/02_train.sbatch) (single GPU job).
+2. **Predict:** estimate discharge for all reaches, fanned out as a **job array** - [`slurm/04_predict_array.sbatch`](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/04_predict_array.sbatch).
+3. **Aggregate + benchmark:** gather the per-shard predictions, score against the gauge, and plot - [`slurm/05_aggregate_dep.sbatch`](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/05_aggregate_dep.sbatch).
 
 Each stage depends on the one before it:
 
-- Inference should start **only if** fine-tuning succeeds.
-- Morphology/classify should start **only if** every inference array task succeeds.
+- Prediction should start **only if** training succeeds.
+- Aggregate/benchmark should start **only if** every prediction array task succeeds.
 
 An `afterok` dependency handles both - and when the dependency is on an *array* job, Slurm waits for **all** of its tasks to succeed.
 
@@ -288,9 +308,9 @@ An `afterok` dependency handles both - and when the dependency is on an *array* 
 cd $HOME/workshop-hpc-2026-sep
 mkdir -p logs                              # the #SBATCH --output paths need this
 
-fid=$(sbatch --parsable slurm/02_finetune.sbatch)                                  # stage 1
-aid=$(sbatch --parsable --dependency=afterok:$fid slurm/04_infer_array.sbatch)     # stage 2 (array)
-sbatch --dependency=afterok:$aid slurm/05_morphology_dep.sbatch                    # stage 3
+fid=$(sbatch --parsable slurm/02_train.sbatch)                                     # stage 1
+aid=$(sbatch --parsable --dependency=afterok:$fid slurm/04_predict_array.sbatch)   # stage 2 (array)
+sbatch --dependency=afterok:$aid slurm/05_aggregate_dep.sbatch                     # stage 3
 ```
 
 You submit all three in one go; Slurm releases them in order. Watch the chain with:
@@ -299,7 +319,7 @@ You submit all three in one go; Slurm releases them in order. Watch the chain wi
 squeue -u $USER
 ```
 
-You'll see stage 1 running while stages 2 and 3 sit in `PD` with reason `Dependency`. As each stage succeeds, the next is released. The final result lands at `$WORK_DIR/runs/classified.csv`.
+You'll see stage 1 running while stages 2 and 3 sit in `PD` with reason `Dependency`. As each stage succeeds, the next is released. The final results land in `$WORK_DIR/runs/` — the scored `scored.csv` and the figures under `runs/eval/`.
 
 > 🧰 - `--parsable` makes `sbatch` print just the numeric job id (instead of "Submitted batch job 12345"), so you can capture it into a shell variable and pass it straight to the next `--dependency`.
 
@@ -326,7 +346,7 @@ As pipelines grow, hand-wiring `sbatch --dependency` chains gets unwieldy. Dedic
 - You can name the main types of parallel jobs and match each to a Slurm strategy.
 - You submitted a **job array** parameter sweep and saw each task write to its own output directory.
 - You wired a **multi-stage workflow** with `afterok` dependencies and watched Slurm release each stage in order.
-- The full pipeline produced `$WORK_DIR/runs/classified.csv`.
+- The full pipeline produced `$WORK_DIR/runs/scored.csv` and the figures in `$WORK_DIR/runs/eval/`.
 
 # Lesson Conclusion
 

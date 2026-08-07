@@ -42,6 +42,7 @@ project:
             - file: workshops/workshop_hpc_usage/workshop-hpc-l2.md
             - file: workshops/workshop_hpc_usage/workshop-hpc-l3.md
             - file: workshops/workshop_hpc_usage/workshop-hpc-l4.md
+            - file: workshops/workshop_hpc_usage/workshop-hpc-l5.md
             - file: workshops/workshop_hpc_usage/appendix.md
     - title: User Guide
       children:

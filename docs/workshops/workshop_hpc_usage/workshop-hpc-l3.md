@@ -2,13 +2,13 @@
 
 ## Objectives
 
-Monitoring jobs and resource monitoring (GPU usage), metrics, how to recover from interruptions, error recovery
+Watch jobs and GPU usage while the jobs run, read metrics and logs to diagnose failures, and recover from interruptions.
 
-- Monitoring jobs: `squeue`, `scontrol`, `scancel`
-- Resource monitoring: Different commands one can run to view CPU/GPU/Mem usage
-- Gathering metrics after a job has run: `sacct`
-- Error recovery: How to log output vs. errors, how to debug jobs
-- How to recover from interruptions: Handling preemption with intro to Checkpointing
+- **Monitoring jobs** - Watch and interact with jobs using `squeue`, `scontrol`, and `scancel`.
+- **Resource monitoring** - Different commands one can run to view CPU/GPU/memory usage.
+- **Gathering metrics** - Read a job's metrics after it has run with `sacct`.
+- **Error recovery** - How to log output vs. errors, and how to debug failed jobs.
+- **Recovering from interruptions** - Handling preemption, with an intro to checkpointing.
 
 ---
 
@@ -18,7 +18,7 @@ Monitoring jobs and resource monitoring (GPU usage), metrics, how to recover fro
 
 Slurm documentation link: https://slurm.schedmd.com/sinfo.html
 
-This command allows user to view information about Slurm nodes and partitions.
+`sinfo` shows information about Slurm nodes and partitions.
 
 **View all partitions:**
 
@@ -39,6 +39,8 @@ test                  up   infinite      3  drain midway3-[0064-0066]
 **View node and GPU information:**
 
 This is a lot of columns for one screen, so it's split into two calls: one for partition status, one for resources/limits.
+
+*Partition Status*
 
 ```bash
 # Status: partition, partition state, priority, number of nodes, node state, list of nodes
@@ -61,6 +63,10 @@ PARTITION  AVAIL  PRIO_TIER      NODES        STATE NODELIST
 | Number of nodes | `%D` |
 | State (long form) | `%T` |
 | Node list | `%N` |
+
+> 🧰 - Note `%N` is left without a fixed width on purpose - sizing it (e.g. `%20N`) will truncate the node list if it's longer than that width.
+
+*Resources/Limits*
 
 ```bash
 # Resources & limits: hardware specs, GRES (e.g. GPUs), and job caps per partition
@@ -87,8 +93,6 @@ sinfo -o "%.10P %.6c %.10m %.8d %.20G %.20b %.12l %.8s"
 | Max job size | `%s` |
 
 [Documented options link](https://slurm.schedmd.com/sinfo.html#OPT_format)
-
-> 🧰 - Note `%N` is left without a fixed width on purpose - sizing it (e.g. `%20N`) will truncate the node list if it's longer than that width.
 
 ---
 
@@ -175,9 +179,7 @@ squeue -u $USER --start
 
 Slurm documentation link: https://slurm.schedmd.com/scontrol.html
 
-This command allows one to view or modify Slurm configuration and state. Most of the commands require elevated permissions and cannot be run.
-
-But `scontrol` does provide some helpful info on jobs.
+`scontrol` views or modifies Slurm configuration and state. Most of its subcommands need elevated permissions you won't have, but it still shows helpful job details.
 
 **View job details:**
 
@@ -251,7 +253,24 @@ sprio -u $USER
        51496621 schmidt-g ntebaldi     119976          0          0      19967          9     100000          0
 ```
 
->🧰 - Only prints output for pending jobs. This shows how factors like job age, fairshare, and job size affect when your job will start.
+Every column to the right of `USER` is a **weighted contribution to the total priority**, and they add up to `PRIORITY`:
+
+```text
+SITE + AGE + FAIRSHARE + JOBSIZE + PARTITION + QOS
+  0  +  0  +  19967    +    9    +  100000   +  0   = 119976
+```
+
+| Column | What it means |
+|---|---|
+| `PRIORITY` | The composite score SLURM uses to order pending jobs (higher starts sooner). It is the sum of the weighted factors to its right. |
+| `AGE` | Grows the longer a job has waited in the queue, up to a cap. |
+| `FAIRSHARE` | Rewards accounts that have used *less* than their granted share of the cluster recently and penalizes ones that have used more. A **high** value means you have been under-using your share, so your jobs are boosted; a **low** value means heavy recent use by you (or your PI account), so your jobs wait longer. |
+| `JOBSIZE` | Based on how much the job requests (nodes/CPUs) relative to the partition. Depending on cluster config it can favor larger or smaller jobs. Here it is tiny, so job size barely affects this job. |
+| `PARTITION` | A per-partition priority tier (it dominates this example at `100000`). |
+| `QOS` | The quality-of-service boost. |
+| `SITE` | A manual administrator adjustment. |
+
+>🧰 - `sprio` only prints pending jobs. The factor values are already **weighted**, and the exact weights and behavior are set per cluster, see the [SLURM Multifactor Priority docs](https://slurm.schedmd.com/priority_multifactor.html).
 
 ---
 
@@ -260,7 +279,7 @@ sprio -u $USER
 
 Slurm documentation link: https://slurm.schedmd.com/srun.html
 
-This command runs a parallel job on the cluster, we will use it to attach a shell to a running job and check GPU usage using `nvidia-smi`.
+`srun` runs a parallel job on the cluster. Here we'll use it to attach a shell to a running job and check GPU usage with `nvidia-smi`.
 
 [`nvidia-smi` documentation](https://docs.nvidia.com/deploy/nvidia-smi/index.html)
 
@@ -338,7 +357,9 @@ Tue Jul  7 15:37:00 2026
 | Process name | `python` | Your training script |
 | GPU Memory Usage | `4266MiB` | This process is responsible for essentially all the GPU memory in use |
 
-> 🧰 - GPU-Util here is illustrative. The consensus MLP in `train_consensus.py` is small, so a real run uses only a fraction of an 80GB card. Batch size comes from the experiment config (`batch_size: 256`); there's a lot of headroom to increase it (or run multiple jobs/streams on the same GPU) before hitting a memory ceiling.
+> 🧰 - GPU-Util here is illustrative. The consensus MLP in `train_consensus.py` is small, so a real run uses only a fraction of an 80GB card.
+>
+> Batch size comes from the experiment config (`batch_size: 256`); there's a lot of headroom to increase it (or run multiple jobs/streams on the same GPU) before hitting a memory ceiling.
 
 ---
 
@@ -352,22 +373,24 @@ Slurm documentation link: https://slurm.schedmd.com/sacct.html
 
 ```bash
 sacct -u $USER --partition=schmidt-gpu --starttime=2026-06-01 --endtime=2026-07-07 \
-	--format=User,Account,Partition,ReqCPUS,AllocCPUS,ReqMem,MaxRSS,ElapsedRaw,Timelimit,AllocNodes,NodeList,ReqTRES,AllocTRES \
+	--format=User,Account,Partition,ReqCPUS,AllocCPUS,ReqMem,MaxRSS,ElapsedRaw,Timelimit,AllocNodes,NodeList,ReqTRES%-42,AllocTRES%-42 \
 	--state=CD,F,TO,CA,OOM
 ```
 
 *Output:*
 
 ```bash
-     User    Account  Partition  ReqCPUS  AllocCPUS     ReqMem     MaxRSS ElapsedRaw  Timelimit AllocNodes        NodeList    ReqTRES  AllocTRES
---------- ---------- ---------- -------- ---------- ---------- ---------- ---------- ---------- ---------- --------------- ---------- ----------
- ntebaldi pi-dfreed+ schmidt-g+        2          2        4Gn                    85   01:00:00          1    midway3-0426 billing=2+ billing=2+
-          pi-dfreed+                   2          2        4Gn      1940K         85                     1    midway3-0426            billing=2+
-          pi-dfreed+                   2          2        4Gn      4304K         82                     1    midway3-0426            cpu=2,mem+
- ntebaldi pi-dfreed+ schmidt-g+        2          2        4Gn                  2450   01:00:00          1    midway3-0426 billing=2+ billing=2+
-          pi-dfreed+                   2          2        4Gn      1948K       2450                     1    midway3-0426            billing=2+
-          pi-dfreed+                   2          2        4Gn    411044K       2449                     1    midway3-0426            cpu=2,gre+
+     User    Account  Partition  ReqCPUS  AllocCPUS     ReqMem     MaxRSS ElapsedRaw  Timelimit AllocNodes        NodeList ReqTRES                                    AllocTRES
+--------- ---------- ---------- -------- ---------- ---------- ---------- ---------- ---------- ---------- --------------- ------------------------------------------ ------------------------------------------
+ ntebaldi pi-dfreed+ schmidt-g+        2          2        4Gn                    85   01:00:00          1    midway3-0426 billing=2,cpu=2,gres/gpu=1,mem=4G,node=1   billing=2,cpu=2,gres/gpu=1,mem=4G,node=1
+          pi-dfreed+                   2          2        4Gn      1940K         85                     1    midway3-0426                                            billing=2,cpu=2,gres/gpu=1,mem=4G,node=1
+          pi-dfreed+                   2          2        4Gn      4304K         82                     1    midway3-0426                                            cpu=2,gres/gpu=1,mem=4G,node=1
+ ntebaldi pi-dfreed+ schmidt-g+        2          2        4Gn                  2450   01:00:00          1    midway3-0426 billing=2,cpu=2,gres/gpu=1,mem=4G,node=1   billing=2,cpu=2,gres/gpu=1,mem=4G,node=1
+          pi-dfreed+                   2          2        4Gn      1948K       2450                     1    midway3-0426                                            billing=2,cpu=2,gres/gpu=1,mem=4G,node=1
+          pi-dfreed+                   2          2        4Gn    411044K       2449                     1    midway3-0426                                            cpu=2,gres/gpu=1,mem=4G,node=1
 ```
+
+`%-42` sets the column to 42 characters wide and left-justifies it, so the TRES strings print in full instead of being cut off at `billing=2+`. The GPU count is the `gres/gpu=` entry - requested on the job's summary row, allocated on the summary and step rows. The same `%-N` trick widens any other truncated column (`Account%-16`, `Partition%-12`).
 
 | Field | Meaning |
 |---|---|
@@ -395,22 +418,26 @@ sacct -u $USER --partition=schmidt-gpu --starttime=2026-06-01 --endtime=2026-07-
 
 [Documented options link](https://slurm.schedmd.com/sacct.html#SECTION_OPTIONS)
 
-> 🧰 - `MaxRSS` is often blank for jobs that only ran a single batch script without job steps - per-task memory accounting requires either `srun` steps inside the batch script or cgroup-based accounting enabled on the cluster. This is why some rows above show a value and others don't: each job prints one summary row plus one row per step, and only step rows carry `MaxRSS`.
+> 🧰 - `MaxRSS` is often blank for jobs that only ran a single batch script without job steps - per-task memory accounting requires either `srun` steps inside the batch script or cgroup-based accounting enabled on the cluster.
+>
+> This is why some rows above show a value and others don't: each job prints one summary row plus one row per step, and only step rows carry `MaxRSS`.
+>
+> `ReqTRES` works the other way around - it only appears on the summary row, since a step doesn't request resources, it inherits them from the job's allocation.
 
 **View details on a previously run job:**
 
 ```bash
-sacct -j <JOBID> --format=JobID,JobName,State,Elapsed,TotalCPU,MaxRSS,ExitCode
+sacct -j <JOBID> --format=JobID,JobName,State,Elapsed,TotalCPU,MaxRSS,ExitCode,ReqTRES%-42,AllocTRES%-42
 ```
 
 *Output:*
 
 ```bash
-       JobID    JobName      State    Elapsed   TotalCPU     MaxRSS ExitCode
------------- ---------- ---------- ---------- ---------- ---------- --------
-51504040     consensus+  COMPLETED   00:02:43  03:29.733                 0:0
-51504040.ba+      batch  COMPLETED   00:02:43  02:59.180   5742136K      0:0
-51504040.ex+     extern  COMPLETED   00:02:43  00:00.002      1948K      0:0
+       JobID    JobName      State    Elapsed   TotalCPU     MaxRSS ExitCode ReqTRES                                    AllocTRES
+------------ ---------- ---------- ---------- ---------- ---------- -------- ------------------------------------------ ------------------------------------------
+51504040     consensus+  COMPLETED   00:02:43  03:29.733                 0:0 billing=2,cpu=2,gres/gpu=1,mem=4G,node=1   billing=2,cpu=2,gres/gpu=1,mem=4G,node=1
+51504040.ba+      batch  COMPLETED   00:02:43  02:59.180   5742136K      0:0                                            cpu=2,gres/gpu=1,mem=4G,node=1
+51504040.ex+     extern  COMPLETED   00:02:43  00:00.002      1948K      0:0                                            billing=2,cpu=2,gres/gpu=1,mem=4G,node=1
 ```
 
 ---
@@ -438,16 +465,18 @@ prof.export_chrome_trace("trace.json")  # view at chrome://tracing or https://ui
 ```
 
 **Key options:**
-- `activities`: which devices to trace (`CPU`, `CUDA`)
-- `record_shapes`: logs tensor shapes per op (helps spot unexpectedly small/large ops)
-- `profile_memory`: tracks memory allocated/freed per op
-- `with_stack`: captures Python call stack per op, so you can trace a slow op back to a source line
-- `schedule` + `on_trace_ready`: for profiling recurring steps in a training loop (e.g. skip warmup iterations, only capture a window) - commonly paired with TensorBoard's PyTorch profiler plugin
+
+- **`activities`** - Which devices to trace (`CPU`, `CUDA`).
+- **`record_shapes`** - Logs tensor shapes per op (helps spot unexpectedly small/large ops).
+- **`profile_memory`** - Tracks memory allocated/freed per op.
+- **`with_stack`** - Captures the Python call stack per op, so you can trace a slow op back to a source line.
+- **`schedule` + `on_trace_ready`** - For profiling recurring steps in a training loop (e.g. skip warmup iterations, only capture a window) - commonly paired with TensorBoard's PyTorch profiler plugin.
 
 **Docs:**
-- API reference: https://pytorch.org/docs/stable/profiler.html
-- Tutorial/recipe (recommended starting point - walks through the exact `with profile(...)` pattern above): https://pytorch.org/tutorials/recipes/recipes/profiler_recipe.html
-- TensorBoard integration (visual trace viewer with GPU utilization/kernel breakdown): https://pytorch.org/tutorials/intermediate/tensorboard_profiler_tutorial.html
+
+- **API reference** - https://pytorch.org/docs/stable/profiler.html
+- **Tutorial / recipe** - Recommended starting point; walks through the exact `with profile(...)` pattern above: https://pytorch.org/tutorials/recipes/recipes/profiler_recipe.html
+- **TensorBoard integration** - Visual trace viewer with GPU utilization/kernel breakdown: https://pytorch.org/tutorials/intermediate/tensorboard_profiler_tutorial.html
 
 ---
 
@@ -455,9 +484,11 @@ prof.export_chrome_trace("trace.json")  # view at chrome://tracing or https://ui
 
 ### Common issues
 
-So far you have seen how to monitor jobs which can be helpful when trying to recover from errors. Some common issues include:
+The monitoring commands above also help you recover from errors. Some common issues:
 
-- **Out of memory issues:** Consider the following batch job script:
+#### Out of memory issues
+
+Consider the following batch job script:
 
 ```bash
 #!/usr/bin/env bash
@@ -471,7 +502,7 @@ So far you have seen how to monitor jobs which can be helpful when trying to rec
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=5M                        # memory per CPU core
 #SBATCH --time=02:00:00
-#SBATCH --output=logs/train_%j.out      # stdout  -> normal log  (Workshop 2)
+#SBATCH --output=logs/train_%j.out      # stdout  -> normal log  (Lesson 3)
 #SBATCH --error=logs/train_%j.err       # stderr  -> error log
 
 ...
@@ -481,13 +512,15 @@ The memory requested is `5M` (5 megabytes) which is too small for our consensus 
 
 Make sure to consider the resources you are requesting in the batch script options and that they align with the data footprint of your algorithm.
 
-- **Job timeouts:** Most clusters have a max wall time for job execution
+#### Job timeouts
+
+Most clusters have a max wall time for job execution.
 
 The RCC cluster has a max wall time of 36 hours while the DSI cluster has a max wall time of 12 hours.
 
 If your job does not exit before the max wall time, it will be automatically terminated.
 
->🧰 - This resource covers other common problems: [FAQ: Slurm Errors](https://hpcc.umd.edu/faq/slurm/). While it is specific to the University of Maryland's HPC cluster, it can give you a general idea of different issues that acn come up.
+>🧰 - This resource covers other common problems: [FAQ: Slurm Errors](https://hpcc.umd.edu/faq/slurm/). It's specific to the University of Maryland's HPC cluster, but gives a good general sense of the issues that can come up.
 
 ### Debugging
 
@@ -499,7 +532,7 @@ Remember that this command can give you info on a current running job:
 squeue -u $USER
 ```
 
-The `ST` column contains job state codes. [Link to the full list](https://slurm.schedmd.com/squeue.html#SECTION_JOB-STATE-CODES)
+The `ST` column contains job state codes. [Link to the full list of job state codes](https://slurm.schedmd.com/squeue.html#SECTION_JOB-STATE-CODES)
 
 Sometimes you will see that the `ST` code is set to `PD` (`PENDING`) and your job might remain in that pending state.
 
@@ -511,12 +544,12 @@ squeue --me -o "%.10i %.8T %.40R"     # jobid, state, and the reason
 
 _Output:_
 
-You can check the reason with this command:
-
-```bash
+```text
      JOBID    STATE                         NODELIST(REASON)
   53033019  PENDING                                   (None)
 ```
+
+Sometimes the reason is not descriptive or hard to parse, so you can pull the reason straight from `scontrol`:
 
 ```bash
 scontrol show job 12345 | grep -i reason
@@ -524,11 +557,11 @@ scontrol show job 12345 | grep -i reason
 
 _Output:_
 
-```bash
+```text
    JobState=PENDING Reason=Nodes_required_for_job_are_DOWN,_DRAINED_or_reserved_for_jobs_in_higher_priority_partitions Dependency=(null)
 ```
 
-**The reasons you may encounter:**
+**Other reasons you may encounter:**
 
 | Reason | Meaning | What to do |
 |---|---|---|
@@ -541,13 +574,15 @@ _Output:_
 | `AssocGrpCpuLimit` | Your account's aggregate CPU limit is exceeded. | Check your limits: `sacctmgr show assoc user=$USER`. |
 | `PartitionTimeLimit` | Your `--time` exceeds the partition's max. | Lower `--time` or pick a partition that allows it. |
 
-[Full list](https://slurm.schedmd.com/squeue.html#SECTION_JOB-REASON-CODES)
+[Full list of job reason codes](https://slurm.schedmd.com/squeue.html#SECTION_JOB-REASON-CODES)
 
 
 (failed-jobs)=
 #### Failed Jobs
 
-Debugging failed jobs can be difficult when executing batch jobs. You can review the failed job reason, job logs, and launch an interactive session to try to replicate the error and troubleshoot the issue.
+**Exit Codes**
+
+Failed batch jobs can be hard to debug. Three things help: the job's exit reason, its logs, and an interactive session where you can replicate and fix the error.
 
 To view the exit code your job returned when it is failed, you can run this command:
 
@@ -576,6 +611,8 @@ SLURM reports the exit code as `N:M` where `N` is the process exit code (non-zer
 
 `DerivedExitCode` is the highest exit code across the job's steps - check it when the script reports success but a step inside it failed.
 
+**Job Logs**
+
 Another important debugging tool are the log files. Looking at our batch script, we can separate the error and standard out logs to make it easier to parse errors from regular execution output:
 
 ```bash
@@ -590,7 +627,7 @@ Another important debugging tool are the log files. Looking at our batch script,
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=5M                        # memory per CPU core
 #SBATCH --time=02:00:00
-#SBATCH --output=logs/train_%j.out      # stdout  -> normal log  (Workshop 2)
+#SBATCH --output=logs/train_%j.out      # stdout  -> normal log  (Lesson 3)
 #SBATCH --error=logs/train_%j.err       # stderr  -> error log
 
 set -euo pipefail
@@ -602,28 +639,30 @@ set -euo pipefail
 
 `--output` and `--error` point to files that Slurm will send algorithm output to. It can be very helpful to review the both files to trace through the issue that occurred and understand how you might fix it.
 
-Finally once you have gathered the exit code and logs, you can launch an interactive job to run your algorithm manually while making changes to the code to troubleshoot and fix the error.
+**Debugging the actual job issue**
+
+Once you have gathered the exit code and logs, you can launch an interactive job to run your algorithm manually while making changes to the code to troubleshoot and fix the error.
 
 See ["Section 7. Running an interactive job"](#running-interactive-job) for how to launch an interactive job and run your algorithm code.
 
->🧰 - It can be helpful to add temporary `print` statements around the lines you suspect are the cause of failure.
+It can be helpful to add temporary `print` statements around the lines you suspect are the cause of failure. Beyond confirming *which line* was reached, useful things to log include:
 
-Beyond confirming *which line* was reached, useful things to log include:
-
-- **Variable values** - is the data what you expected, or did something upstream go wrong?
+- **Variable values** - Is the data what you expected, or did something upstream go wrong?
 - **Shapes and dtypes** - `print(x.shape, x.dtype)` for tensors/arrays. Shape and type mismatches are the most common cause of model errors.
 - **Device placement** - `print(x.device)` to catch the classic "expected all tensors on the same device" CUDA error (some data on CPU, some on GPU).
 - **Collection sizes** - `print(len(dataset))` to catch an empty dataset or a path that matched no files.
-- **File paths** - print the exact path you're about to read/write, and whether it exists (`os.path.exists(p)`). A wrong or missing path is easy to miss.
-- **Config / arguments** - echo the hyperparameters, env vars, and CLI args the job actually received, so you can rule out a bad config.
-- **Loss / metric values per step** - watch for `NaN` or `inf`, which signal exploding gradients or a bad learning rate.
-- **A step counter or timestamp** - print the batch/epoch index (and time) so you can see *how far* it got and whether it's making progress or hung.
+- **File paths** - Print the exact path you're about to read/write, and whether it exists (`os.path.exists(p)`). A wrong or missing path is easy to miss.
+- **Config / arguments** - Echo the hyperparameters, env vars, and CLI args the job actually received, so you can rule out a bad config.
+- **Loss / metric values per step** - Watch for `NaN` or `inf`, which signal exploding gradients or a bad learning rate.
+- **A step counter or timestamp** - Print the batch/epoch index (and time) so you can see *how far* it got and whether it's making progress or hung.
 
 Remember these are *temporary* - remove them (or switch to the `logging` module with adjustable levels) once the bug is found.
 
-> ⚠️ On the cluster, `stdout` is buffered when Slurm redirects it to your `.out` file - prints may not appear until the job finishes, or may be lost if it crashes. Force them out with `print(..., flush=True)`, or run Python with `python -u` (unbuffered).
-
-> 🧰 - If you use Python's `logging` module, log statements are directed to standard error `stderr`. If you want to log to standard out `stdout` so that the logged statements show up in the `.out` file, set `stream` to `sys.stdout`:
+> 🧰 On the cluster, `stdout` is buffered when Slurm redirects it to your `.out` file - prints may not appear until the job finishes, or may be lost if it crashes.
+>
+> Force them out with `print(..., flush=True)`, or run Python with `python -u` (unbuffered).
+>
+> If you use Python's `logging` module, log statements are directed to standard error `stderr`. If you want to log to standard out `stdout` so that the logged statements show up in the `.out` file, set `stream` to `sys.stdout`:
 > ```python
 > logging.basicConfig(
 >        level=logging.INFO,
@@ -638,9 +677,9 @@ Remember these are *temporary* - remove them (or switch to the `logging` module 
 
 Long-running jobs get interrupted, and *how* depends on the cluster - so this section sets up a general, portable pattern rather than something specific to one machine.
 
-- Every cluster enforces a **time limit** (`--time`), so a job that needs longer than a single allocation must be able to stop and continue.
-- Some clusters also **preempt** - pause or kill your running job to free resources for a higher-priority one - while others disable preemption entirely (for example, RCC/midway reports `PreemptMode = OFF`, so jobs there are never preempted).
-- Nodes can also fail.
+- **Time limits** - Every cluster enforces a time limit (`--time`), so a job that needs longer than a single allocation must be able to stop and continue.
+- **Preemption** - Some clusters pause or kill your running job to free resources for a higher-priority one, while others disable preemption entirely (for example, RCC/midway reports `PreemptMode = OFF`, so jobs there are never preempted).
+- **Node failure** - Nodes can also fail.
 
 The same machinery survives all of these: checkpoint as you go, save again on the warning signal, then requeue and resume. The approach is adapted from [this DSI cluster documentation](https://cluster-policy.ds.uchicago.edu/using-the-cluster/batch-jobs/).
 
@@ -656,7 +695,9 @@ First, let's review a wrapper that keeps a long-running Python algorithm alive a
 
 The wrapper is set up to run the consensus training algorithm but the wrapper can be modified for your own Python scripts (see the tooltip below).
 
-The full wrapper (with inline comments on every line) lives in [the workshop repository](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/03_checkpoint.sbatch). Rather than reproduce all ~190 lines here, the walkthrough below pulls out the pieces that make checkpoint/requeue work — the rest is ordinary resource requests and environment setup.
+The full wrapper (with inline comments on every line) lives in [the workshop repository](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/03_checkpoint.sbatch). Rather than reproduce all ~190 lines here, the walkthrough below pulls out the pieces that make checkpoint/requeue work - the rest is ordinary resource requests and environment setup.
+
+#### Setting up the signal
 
 _The two `#SBATCH` directives that enable the pattern:_
 
@@ -665,11 +706,27 @@ _The two `#SBATCH` directives that enable the pattern:_
 #SBATCH --signal=B:USR2@120          # warn the batch shell (USR2) 120s before the kill
 ```
 
-- `--requeue` lets SLURM put the job back in the queue after preemption, node failure, or an explicit `scontrol requeue`. Without it, none of the resume logic below can run.
-- `--signal=B:USR2@120` asks SLURM to send `SIGUSR2` to the **batch shell** (`B:`) about **120 seconds before** the `--time` wall.
-- That lead time is your budget to checkpoint before the un-catchable `SIGKILL` arrives. `USR2` is a deliberate choice — `USR1` is already claimed by some frameworks (PyTorch Lightning, submitit).
+- **`--requeue`** - Lets SLURM put the job back in the queue after preemption, node failure, or an explicit `scontrol requeue`. Without it, none of the resume logic below can run.
+- **`--signal=B:USR2@120`** - Asks SLURM to send `SIGUSR2` to the **batch shell** (`B:`) about **120 seconds before** the `--time` wall.
+- That budget is your window to checkpoint before the un-catchable `SIGKILL` arrives. `USR2` is a deliberate choice - `USR1` is already claimed by some frameworks (PyTorch Lightning, submitit).
 
-**Which signal actually arrives.** `SIGUSR2` is not special to SLURM — it is simply the signal *we requested* via `--signal`.
+**The signals involved.** `SIG` is just the prefix on every signal constant - the rest is the abbreviation:
+
+| Signal | Stands for | No. | Default action | Catchable |
+|---|---|---|---|---|
+| `SIGTERM` | **term**inate | 15 | terminate | yes |
+| `SIGKILL` | **kill** | 9 | terminate | **no** |
+| `SIGCONT` | **cont**inue | 18 | resume if stopped | yes (but always resumes anyway) |
+| `SIGSTOP` | **stop** | 19 | stop (suspend) | **no** |
+| `SIGUSR1` / `SIGUSR2` | **us**e**r**-defined signal 1 / 2 | 10 / 12 | terminate | yes |
+| `SIGINT` | **int**errupt (Ctrl-C) | 2 | terminate | yes |
+| `SIGHUP` | **h**ang **up** | 1 | terminate | yes |
+
+> 🧰 - The numbers are the Linux x86-64 values, which is what the cluster runs. They are not portable - macOS numbers `SIGUSR1` as 30, for example - so trap by name (`trap on_term TERM`), never by number.
+
+`SIGUSR1` and `SIGUSR2` have no assigned meaning: the kernel reserves them for applications to define, which is exactly why `--signal=B:USR2@120` works. SLURM sends it, and your trap decides what it means.
+
+**Which signal actually arrives.** `SIGUSR2` is not special to SLURM - it is simply the signal *we requested* via `--signal`.
 
 `--signal` governs only the **time-limit** case. The other ways a job is stopped send different signals, which is why the wrapper traps both `USR2` and `TERM`:
 
@@ -678,14 +735,16 @@ _The two `#SBATCH` directives that enable the pattern:_
 | `--time` wall approaching | `SIGUSR2`, ~120s early (because we asked for it) | `on_preempt` → checkpoint + requeue |
 | Preemption | `SIGCONT` + `SIGTERM`, then `SIGKILL` after the partition's `GraceTime` (a `USR2` warning fires **only** if the cluster is configured to send one) | `on_preempt` where `USR2` is configured (checkpoint + explicit requeue); otherwise `on_term`, and **`--requeue` auto-resumes** the job from the last checkpoint |
 | `scancel <jobid>` | `SIGTERM` (or whatever `scancel --signal=` passes) | `on_term` → stop **without** requeue |
-| Node failure | nothing reaches your job — SLURM auto-requeues via `--requeue` | resume from last checkpoint |
-| Grace window expires | `SIGKILL` (signal 9) | **nothing** — it cannot be trapped or delayed |
+| Node failure | nothing reaches your job - SLURM auto-requeues via `--requeue` | resume from last checkpoint |
+| Grace window expires | `SIGKILL` (signal 9) | **nothing** - it cannot be trapped or delayed |
 
-> ⚠️ Two consequences.
+> 🧰 Two consequences.
 >
-> (1) Because `SIGKILL` can never be caught, the `@120` lead time *is* the entire window your program has to save — set it comfortably larger than a checkpoint write.
+> (1) Because `SIGKILL` can never be caught, the `@120` lead time *is* the entire window your program has to save - set it comfortably larger than a checkpoint write.
 >
 > (2) Because preemption is guaranteed to send `SIGTERM` but only *maybe* `SIGUSR2`, a robust program should treat **either** signal as "checkpoint now".
+
+#### Retries on failure
 
 _Give up instead of requeuing forever if the job keeps dying before it makes progress:_
 
@@ -698,6 +757,8 @@ fi
 ```
 
 SLURM increments `SLURM_RESTART_COUNT` on each requeue, so this caps a crash-loop that would otherwise resubmit indefinitely.
+
+#### Signal to all child processes
 
 _Relay the warning to the whole training process group, so parallel workers aren't orphaned:_
 
@@ -714,6 +775,8 @@ signal_child_group() {
 The negative PID (`-$child_pid`) targets the entire process **group**, not just the top process, so `DataLoader` / `multiprocessing` workers get the signal too.
 
 This works because Python is launched under `setsid` (below), which makes the child its own group leader.
+
+#### Signal handler
 
 _The heart of the pattern, the `SIGUSR2` handler: checkpoint, wait, then requeue:_
 
@@ -732,7 +795,9 @@ trap on_preempt USR2
 
 A companion `on_term` handler, trapped on `TERM`, does the same relay-and-wait but exits `143` **without** requeuing, so a `scancel` really stops the job.
 
-_The one block you edit to reuse the wrapper — launch your program under `setsid`, in the background:_
+#### Training block
+
+_The one block you edit to reuse the wrapper - launch your program under `setsid`, in the background:_
 
 ```bash
 launch_training() {                        # marked ">>> EDIT HERE <<<" in the full script
@@ -764,7 +829,7 @@ child_pid=$!                                 # PID of the backgrounded setsid pr
 wait "$child_pid" || return_code=$?
 ```
 
->🧰 - You can modify this script to run your Python code.
+#### Modifying your scripts for the wrapper
 
 **Where to drop in your script.** You only edit one place in the wrapper - the block marked `>>> EDIT HERE: launch YOUR training program <<<`, which defines the `launch_training()` function.
 
@@ -772,9 +837,13 @@ Swap in your script and its arguments there; everything else (the signal traps, 
 
 **Contract + args.** Your code needs to implement the following to work with the script:
 
-1. **Catch `SIGUSR2`, checkpoint, and exit cleanly.** When the cluster's preemption / time-limit warning arrives, the wrapper relays `SIGUSR2` to your program. Your program must save a checkpoint at a safe point and then exit - the wrapper handles the requeue for you (via `scontrol requeue`), so your program does *not* need any special exit code. Register a handler that just sets a flag, then save at the next safe boundary - not inside the handler itself (a signal can interrupt at any instruction).
-2. **Resume from a checkpoint path.** The wrapper passes the previous checkpoint as the first argument to `launch_training` (empty when starting fresh). Your program must accept a "resume from this path" argument and restore its model / optimizer / epoch state from it when given.
-3. **Write checkpoints into `CKPT_DIR`.** Save to the directory the wrapper passes in, so the next run can find the rolling checkpoint. Write **atomically** (temp file + rename) so a checkpoint interrupted mid-write is never left corrupt.
+1. **Catch `SIGUSR2`, checkpoint, and exit cleanly** - When the cluster's preemption / time-limit warning arrives, the wrapper relays `SIGUSR2` to your program.
+    -  Your program must save a checkpoint at a safe point and then exit - the wrapper handles the requeue for you (via `scontrol requeue`), so your program does *not* need any special exit code.
+    - Register a handler that just sets a flag, then save at the next safe boundary - not inside the handler itself (a signal can interrupt at any instruction).
+2. **Resume from a checkpoint path** - The wrapper passes the previous checkpoint as the first argument to `launch_training` (empty when starting fresh).
+    - Your program must accept a "resume from this path" argument and restore its model / optimizer / epoch state from it when given.
+3. **Write checkpoints into `CKPT_DIR`** - Save to the directory the wrapper passes in, so the next run can find the rolling checkpoint.
+    - Write **atomically** (temp file + rename) so a checkpoint interrupted mid-write is never left corrupt.
 
 The reference implementation (`src/train_consensus.py`) is launched like this:
 
@@ -787,13 +856,15 @@ python src/train_consensus.py \
     --resume-from "$latest_ckpt"
 ```
 
-- `--config` - experiment YAML supplying the model + training knobs (epochs, batch size, lr, hidden width, checkpoint interval)
-- `--manifest` - input data (specific to the reference script)
-- `--out` - output / results directory
-- `--ckpt-dir` - where checkpoints are written → **contract #3**
-- `--resume-from` - checkpoint to resume from → **contract #2**
+- **`--config`** - Experiment YAML supplying the model + training knobs (epochs, batch size, lr, hidden width, checkpoint interval).
+- **`--manifest`** - Input data (specific to the reference script).
+- **`--out`** - Output / results directory.
+- **`--ckpt-dir`** - Where checkpoints are written → **contract #3**.
+- **`--resume-from`** - Checkpoint to resume from → **contract #2**.
 
-> 🧰 - Only `--resume-from` (contract #2) and `--ckpt-dir` (contract #3) are wired into the wrapper's logic. The rest are ordinary arguments to the reference script - rename or drop them freely when you plug in your own code, as long as the three contract points still hold.
+> 🧰 - Only `--resume-from` (contract #2) and `--ckpt-dir` (contract #3) are wired into the wrapper's logic.
+>
+> The rest are ordinary arguments to the reference script - rename or drop them freely when you plug in your own code, as long as the three contract points still hold.
 
 ### Python code
 
@@ -897,7 +968,9 @@ signal.signal(signal.SIGUSR2, handle_preempt)
 (test-job-interruptions)=
 ## 👉 6. Test job interruptions
 
-[Section 5](#recover-from-interruptions) explained how the checkpoint/resume wrapper works - now let's run it and interrupt it on purpose to watch it recover. On RCC preemption is disabled (`PreemptMode = OFF`), so rather than wait to be preempted we send the warning signal ourselves; the job checkpoints, requeues, and resumes exactly as it would when it hits the `--time` wall (or on a cluster that preempts).
+[Section 5](#recover-from-interruptions) explained how the checkpoint/resume wrapper works - now let's run it and interrupt it on purpose to watch it recover.
+
+On RCC preemption is disabled (`PreemptMode = OFF`), so rather than wait to be preempted we send the warning signal ourselves; the job checkpoints, requeues, and resumes exactly as it would when it hits the `--time` wall (or on a cluster that preempts).
 
 This builds on the Lesson 1 setup - make sure you have [cloned the repo, built the environment, and set `config/paths.sh` for RCC](./workshop-hpc-l1.md#running-interactive-job). The script we run is the checkpoint wrapper from Section 5: [slurm/03_checkpoint.sbatch](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/03_checkpoint.sbatch).
 
@@ -917,8 +990,6 @@ ls slurm/03_checkpoint.sbatch      # the checkpoint/requeue wrapper from Section
 mkdir -p logs                      # the job writes to logs/ckpt_%j.out
 ```
 
->🧰 - The wrapper trains on `$WORK_DIR/data/manifest_train.csv`. If you have not built that manifest yet, run it once: `source config/paths.sh && module load python/anaconda-2025.12 && conda activate $ENV_NAME && python src/build_manifest.py --config "$EXPERIMENT_CONFIG" --sos "$SOS_FILE" --svs "$SVS_FILE" --priors "$PRIORS_FILE" --mode train --out "$WORK_DIR/data/manifest_train.csv"`.
-
 ### 👉 3. Submit the job
 
 ```bash
@@ -932,8 +1003,6 @@ squeue -u $USER
 tail -f logs/ckpt_<JOBID>.out
 ```
 
->🧰 - As shipped the training knobs come from the experiment config (`epochs: 500`). For a quick end-to-end test, add `--epochs 2` to the `launch_training` block of the script - a CLI flag overrides the config - so it finishes shortly after resuming.
-
 ### 👉 4. Send an interrupt signal
 
 Once the job is `R` (running) and a few steps in, send the preemption / time-limit warning yourself:
@@ -942,7 +1011,11 @@ Once the job is `R` (running) and a few steps in, send the preemption / time-lim
 scancel --signal=USR2 --batch <JOBID>    # short form: scancel -s USR2 -b 12345
 ```
 
->🧰 - The `--batch` (`-b`) flag is essential. Without it, `scancel --signal` targets the job's `srun` steps - and this job launches Python directly (no `srun` step), so the signal would land on nothing. `--batch` delivers it to the batch script, where the `USR2` trap lives.
+The `--batch` (`-b`) flag is essential. Without it, `scancel --signal` targets the job's `srun` steps - and this job launches Python directly (no `srun` step), so the signal would land on nothing.
+
+`--batch` delivers it to the batch script, where the `USR2` trap lives.
+
+>🧰 - As shipped the training knobs come from the experiment config (`epochs: 500`). You may need to modify the `epochs` to run longer if it completes before you send the interrupt signal.
 
 ### 👉 5. Watch the job requeue and complete
 
@@ -952,17 +1025,19 @@ Follow the same log - the job checkpoints, then requeues itself under the same j
 tail -f logs/ckpt_<JOBID>.out
 ```
 
-You should see, in order: `USR2 received...`, `[train] checkpoint saved on preemption warning...`, and `Requeuing job 12345 via scontrol requeue.` The job then returns to `PD` and starts again as the **same** job id, logging `Resuming from .../consensus_last.pt` and continuing from the last checkpoint instead of restarting:
+You should see, in order: `USR2 received...`, `[train] checkpoint saved on preemption warning...`, and `Requeuing job 12345 via scontrol requeue.`
+
+The job then returns to `PD` and starts again as the **same** job id, logging `Resuming from .../consensus_last.pt` and continuing from the last checkpoint instead of restarting:
 
 ```bash
 squeue -u $USER
-sacct -j 12345 --format=JobID,State,ExitCode,Restart%7    # Restart increments to 1
+sacct -j <JOBID> --format=JobID,State,ExitCode,Restart%7    # Restart increments to 1
 ```
 
 When it finishes, the state is `COMPLETED`:
 
 ```bash
-sacct -j 12345 --format=JobID,State,Elapsed,Restart%7
+sacct -j <JOBID> --format=JobID,State,Elapsed,Restart%7
 ```
 
 ## ✅ Verification Checkpoint
@@ -971,3 +1046,9 @@ sacct -j 12345 --format=JobID,State,Elapsed,Restart%7
 - You sent `SIGUSR2` with `scancel --batch` and saw the job checkpoint at a safe point.
 - You watched the same job id requeue (`Restart = 1`) and resume from the checkpoint.
 - The job reached `COMPLETED` after resuming - surviving the interruption.
+
+# Lesson Conclusion
+
+You can now watch a job while it runs, read its metrics and logs to diagnose a failure, and recover a long job from an interruption.
+
+Next we'll wire single jobs into workflows - fanning work out with job arrays and chaining stages together with dependencies.

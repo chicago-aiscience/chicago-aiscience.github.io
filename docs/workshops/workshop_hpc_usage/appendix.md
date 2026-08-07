@@ -133,11 +133,11 @@ The resources below informed the workshop and are good next reads if you want to
 ### Reproducibility, determinism, and provenance
 
 - **[Reproducibility](https://pytorch.org/docs/stable/notes/randomness.html)** (PyTorch). The official notes on seeding, `use_deterministic_algorithms`, cuDNN flags, and `DataLoader` worker seeding. The basis for the determinism section of *Lesson 5*.
-- **[Managing environments](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)** (conda). Exporting, locking, and rebuilding environments - the `--no-builds`, `--from-history`, and `--explicit` distinctions used in *Lesson 5*.
+- **[Managing environments](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)** (conda). Exporting, locking, and rebuilding environments - the `--no-builds` and `--explicit` distinction used in *Lesson 5*.
 - **[conda-lock](https://conda.github.io/conda-lock/)**. Generates true multi-platform lock files from an `environment.yml`. The next step past a hand-pinned spec in *Lesson 5*.
 - **[Apptainer User Guide](https://apptainer.org/docs/user/main/)**. Containers on HPC, including `--nv` for GPU access. Background for the "strongest pin" option in *Lesson 5*.
 - **[Ten Simple Rules for Reproducible Computational Research](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003285)** (Sandve et al., PLOS Comput Biol). The short, widely cited statement of why recording provenance matters. Frames *Lesson 5*.
-- **[A higher order estimate of the optimum checkpoint interval for restart dumps](https://doi.org/10.1016/j.future.2004.11.016)** (Daly, *Future Generation Computer Systems* 22(3), 2006). The origin of the Young/Daly formula behind the checkpoint-interval guidance in *Lesson 5*. See also [Checkpointing à la Young/Daly: An Overview](https://doi.org/10.1145/3549206.3549328) for a readable summary.
+- **[A higher order estimate of the optimum checkpoint interval for restart dumps](https://doi.org/10.1016/j.future.2004.11.016)** (Daly, *Future Generation Computer Systems* 22(3), 2006). The origin of the Young/Daly formula for choosing a checkpoint interval when interruptions are random. Further reading for the checkpointing in *Lessons 3 and 5*; see also [Checkpointing à la Young/Daly: An Overview](https://doi.org/10.1145/3549206.3549328) for a readable summary.
 - **[Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/)** (UChicago AI + Science). The companion guide on Git, DVC, pointer files, MLflow, and W&B. Referenced throughout *Lessons 2 and 5*.
 
 ### AI + HPC and workload-aware computing

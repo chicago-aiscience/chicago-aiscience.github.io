@@ -10,9 +10,9 @@ Make a run repeatable - by you next month, by a collaborator next year - and mak
 - **Data and manifests** - Record exactly which inputs a run consumed.
 - **Deterministic operations** - Seeding, library determinism flags, what they cost, and why a tolerance beats bit-for-bit equality.
 - **Job metadata** - Stamp the job id, git SHA, and environment into the results.
-- **Checkpointing** - What belongs in a checkpoint, how often to write one, and the options beyond in-code checkpointing.
+- **Checkpointing** - What belongs in a checkpoint, how many to keep, and what to watch for on a requeue.
 
-> 🧰 - This is a **bonus** lesson. Nothing here is required to run jobs on the cluster - it's what keeps those jobs' results defensible six months later. Most of it is small, one-time work you do once per project.
+> 🧰 - This is a **bonus** lesson. Nothing here is required to run jobs on the cluster - it's what lets you answer questions about a result six months after the job finished. Most of it is set up once per project.
 
 ---
 
@@ -45,7 +45,7 @@ flowchart TD
     H["<b>Hardware</b><br/>GPU, thread count"] -.-> R
 ```
 
-The rest of this lesson works through each of them - environment, config, data, randomness, and the record that ties them together - then returns to checkpointing.
+The rest of this lesson works through each of them, then returns to checkpointing.
 
 ---
 
@@ -75,7 +75,7 @@ dependencies:
       - torch==2.8.*
 ```
 
-That's a deliberate trade-off: it stays readable and hand-editable, it accepts patch-level bug fixes, and it still rebuilds the same major/minor stack months later. It is *not* a lock file.
+That's a deliberate trade-off: readable and hand-editable, and it still rebuilds the same major/minor stack months later. It is *not* a lock file.
 
 ### Generating a lock file
 
@@ -118,9 +118,7 @@ apptainer exec --nv /project/<group>/images/workshop-hpc.sif python src/train_co
 
 > 🧰 - A conda environment is thousands of small files, which is slow on shared storage (see [Lesson 2](./workshop-hpc-l2.md#data-best-practices)).
 >
->  A `.sif` image is a **single file**, which is why containers often start faster in a large job array than a conda env does.
->
-> Build the environment **once** in a known location and activate it from every job - never rebuild it inside an array task.
+> A `.sif` image is a **single file**, which is why containers often start faster in a large job array than a conda env does.
 
 ---
 
@@ -134,7 +132,7 @@ flowchart LR
     A["<b>DEFAULTS</b><br/>in code (src/config.py)<br/><i>always present</i>"] --> B["<b>YAML config</b><br/>config/experiments/*.yaml<br/><i>committed = the experiment</i>"] --> C["<b>CLI flag</b><br/>--lr 3e-4<br/><i>one-off override</i>"] --> D["<b>Resolved config</b><br/>written to config_used.yaml"]
 ```
 
-Each layer overrides the one before it. Nothing is ever *only* on the command line, because the resolved result is written next to the output.
+Each layer overrides the one before it.
 
 ### How the workshop does it
 
@@ -190,7 +188,7 @@ One line, and every run becomes self-describing:
 save_config(cfg, out / "config_used.yaml")      # the fully-merged knobs, in the run's output dir
 ```
 
-This is the habit from [Lesson 2](./workshop-hpc-l2.md#track-experiments-configs-and-results), made concrete. `config_used.yaml` is the *merged* result - defaults, YAML, and any CLI overrides folded together - so you never have to reconstruct what a flag did.
+This is the habit from [Lesson 2](./workshop-hpc-l2.md#track-experiments-configs-and-results), made concrete. `config_used.yaml` holds the merged result - defaults, YAML, and any CLI overrides folded together - so you never have to reconstruct what a flag did.
 
 ### The rules that follow
 
@@ -255,7 +253,7 @@ For multi-gigabyte inputs where hashing is too slow to do per job, record `path`
 | Final results | The run directory + its metadata | `/project` |
 | Large files you need to version | [Data Version Control (DVC)](../../user_guide/tracking/dvc.md) or a committed pointer file | Repo pointer + a remote |
 
-The two habits from [Lesson 2](./workshop-hpc-l2.md#data-best-practices) still carry most of the weight: **keep raw inputs read-only** so a stray job can't corrupt them, and **give every run its own output directory** so nothing is overwritten.
+Two habits from [Lesson 2](./workshop-hpc-l2.md#data-best-practices) do most of the work here: **keep raw inputs read-only**, and **give every run its own output directory**.
 
 > 🧰 - The [Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/) walks through pointers, DVC, MLflow, and W&B, and when each is worth adopting.
 
@@ -280,7 +278,7 @@ Everything so far pins the *inputs*. Randomness is what's left: two runs with id
 | TF32 / mixed precision on Ampere+ GPUs | ❌ No - a numerics setting, not a seed |
 | A different GPU model or library version | ❌ No - not fixable by any flag |
 
-The first block is cheap to fix and buys you most of what you want. The second block is where the cost is.
+The first block is cheap to fix. The second block is where the cost is.
 
 ### Step 1: seed everything
 
@@ -363,12 +361,12 @@ Other libraries have their own switches. The ones worth knowing:
 >
 > That is the point - but it means enabling it can break a working script.
 
-### Step 3: accept that this costs something
+### Step 3: what determinism costs
 
 Determinism is not free:
 
-- **`cudnn.benchmark = False`** - disables the autotuner that picks the fastest convolution kernel for your shapes.
-- **Deterministic kernels**  - are sometimes slower implementations of the same operation, because the fast version relies on atomics.
+- **`cudnn.benchmark = False`** - Disables the autotuner that picks the fastest convolution kernel for your shapes.
+- **Deterministic kernels** - Sometimes a slower implementation of the same operation, because the fast version relies on atomics.
 
 **How much slower depends entirely on your operations - measure it, don't guess.** Time one epoch with the flags on and one with them off before deciding.
 
@@ -394,24 +392,22 @@ assert abs(new_nse - ref_nse) < 0.01, f"NSE moved by {abs(new_nse - ref_nse):.4f
 
 Two things make this practical:
 
-- **Pick the tolerance from the science, not the arithmetic.** Say so explicitly, in a comment or the run's README, so it is clear what you tolerate as noise and what indiciates an actual difference.
+- **Pick the tolerance from the science, not the arithmetic.** Write it down, in a comment or the run's README, so it is clear what counts as noise and what indicates an actual difference.
 - **A tolerance is a *test*.** Store a reference result, compare against it on every rerun, and fail loudly when the difference exceeds the threshold. That catches a real regression (a changed preprocessing step) while ignoring a harmless one (a new GPU model).
-
-> 🧰 - The single most useful thing you can do here is **record the seed in the config and in the run metadata**. A run you can't re-seed can't be re-run at all - the tolerance question never even comes up.
 
 ---
 
 (job-metadata)=
 ## 6. Recording job metadata into results
 
-You now control the inputs. The last piece is making each *output* carry the record of how it was produced - so a results directory found a year later explains itself without the shell history that produced it.
+You now control the inputs. The last piece is making each *output* carry the record of how it was made, so a results directory found a year later needs no shell history to interpret.
 
 ### What to record
 
 | Field | Why you'll want it |
 |---|---|
 | `slurm_job_id`, `array_task_id` | The key that ties results back to `sacct` and the `.out`/`.err` logs |
-| `git_commit`, `git_branch` | Which code ran - and whether there were uncommitted changes |
+| `git_commit`, `git_branch` | Which code ran (only meaningful if the working tree was clean at submit time) |
 | `hostname`, `nodelist`, `gpu_name`, `driver_version` | Hardware, for when results differ across nodes |
 | `env_name`, `env_hash`, `modules` | The software stack conda + `module` actually provided |
 | `config_path`, `config_used.yaml`, `seed` | The knobs ([§3](#config-files)) and the randomness ([§5](#deterministic-operations)) |
@@ -509,7 +505,7 @@ runs/consensus/
 └── consensus_model_final.pt    #      the artifact, with config + feature names inside
 ```
 
-Everything except the last two lines is a few hundred bytes. That's the whole cost.
+Everything except the last two lines is a few hundred bytes.
 
 ### Stamping provenance into the data itself
 
@@ -534,7 +530,7 @@ A sidecar file can get separated from the data it describes. Where the format ha
 
 [Lesson 3](./workshop-hpc-l3.md#recover-from-interruptions) built the working pattern: `--requeue` plus `--signal=B:USR2@120`, a trap that relays the signal to the training process, an atomic save at the next safe step boundary, and `scontrol requeue` to resume from `consensus_last.pt`. That machinery is what survives the `--time` wall, preemption, and node failure alike.
 
-This section covers what to put *in* the checkpoint, how often to write one, and what exists beyond in-code checkpointing.
+This section covers what to put *in* the checkpoint, how many to keep, and what to watch for on a requeue.
 
 ### What belongs in a checkpoint
 
@@ -591,7 +587,7 @@ if (rng := state.get("rng")):
 | **Best** | `consensus_best.pt` | Saved when the validation metric improves. The artifact you'd publish. |
 | **Periodic** | `consensus_epoch_100.pt` | Every N epochs, so you can inspect the trajectory or roll back. |
 
-The workshop keeps only the rolling one, which is the right minimum. Adding "best" is usually the highest-value second checkpoint.
+The workshop keeps only the rolling one, which is the right minimum. "Best" is usually the next one worth adding.
 
 > 🧰 - Only the rolling checkpoint may be overwritten, and it must be written **atomically** (temp file + `os.replace`, as in Lesson 3). A `SIGKILL` during a non-atomic overwrite destroys the *only* resume point you had.
 
@@ -607,18 +603,16 @@ A few things bite specifically on the *second* run of a requeued job:
 
 ## 8. Recommendations
 
-Pulling the lesson together - the habits, roughly in order of value per minute spent:
+Pulling the lesson together:
 
 1. **Pin the environment and commit the spec.** Minor-pinned `environment.yml` for daily work, a generated lock file for anything you publish.
-2. **Put every knob in a committed config file**, with defaults in code and CLI flags as one-off overrides. A new experiment is a new committed YAML.
-3. **Write the resolved config into the run's output directory.** One line, and results stop being anonymous.
-4. **Give every run its own output directory** keyed by date or job id, and never overwrite one.
-5. **Record what produced the data**, not just the data - a manifest of the rows consumed and hashes of the input files.
-6. **Seed everything and record the seed.** Cheap, and it's the difference between "I can rerun this" and "I can't."
-7. **Set a tolerance instead of chasing bitwise equality**, and turn that tolerance into an actual test against a stored reference.
-8. **Stamp job metadata into results** - job id, git SHA *and* dirty flag, node, GPU, timestamps.
-9. **Checkpoint on an interval, at safe boundaries, atomically** - and put the RNG state in the checkpoint if your results need to survive a requeue unchanged.
-10. **Layer on tracking tools as the project grows.** Git always; DVC or pointer files for large data; MLflow or W&B once you're comparing runs. The [Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/) covers the progression.
+2. **Put every knob in a committed config file**, with defaults in code and CLI flags as one-off overrides - then write the resolved config into the run's output directory.
+3. **Give every run its own output directory** keyed by date or job id, and never overwrite one.
+4. **Record what produced the data**, not just the data - a manifest of the rows consumed and hashes of the input files.
+5. **Seed everything and record the seed**, then set a tolerance rather than chasing bitwise equality - and turn that tolerance into a test against a stored reference.
+6. **Stamp job metadata into results** - job id, git SHA, node, GPU, timestamps.
+7. **Checkpoint at safe boundaries, atomically**, and carry the RNG state if your results need to survive a requeue unchanged.
+8. **Layer on tracking tools as the project grows.** Git always; DVC or pointer files for large data; MLflow or W&B once you're comparing runs. The [Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/) covers the progression.
 
 > 🧰 - Want to work through what this looks like for *your* project - which knobs belong in a config, what to hash, where a container is worth it? Happy to hold a follow-up clinic.
 
@@ -632,8 +626,8 @@ Pulling the lesson together - the habits, roughly in order of value per minute s
 
 # Lesson Conclusion
 
-Reproducibility on a cluster isn't one tool - it's pinning the environment, committing the config, recording the data, seeding the randomness, and stamping the job's own metadata into its results. Each piece is small. Together they're the difference between a results directory that explains itself and one that doesn't.
+Reproducibility on a cluster isn't one tool - it's a handful of small habits layered on top of each other. Each is cheap on its own; together they're the difference between a results directory that explains itself and one that doesn't.
 
-That also closes the series. You've gone from logging in and submitting a first job, through placing data across cluster storage, monitoring and debugging jobs, and wiring stages into parallel workflows - to runs that survive interruption and can be defended a year later.
+That also closes the series. You've gone from logging in and submitting a first job, through placing data across cluster storage, monitoring and debugging jobs, and wiring stages into parallel workflows - to runs that survive interruption and still make sense a year later.
 
 Next steps: the [Lessons Summary](./workshop-hpc-summary.md) recaps the series and collects the key takeaways, the [Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/) goes deeper on DVC, MLflow, and W&B, and the [Appendix](./appendix.md) collects every link used in the lessons alongside the documentation and papers behind them.

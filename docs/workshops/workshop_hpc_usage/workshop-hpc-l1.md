@@ -11,7 +11,7 @@ Log in to the cluster, set up a software environment, and submit your first inte
 
 ## 1. What is an HPC cluster?
 
-[![High Performance Computing cluster components](images/hpc-cluster.png)](images/hpc-cluster.png)
+![High Performance Computing cluster components](images/hpc-cluster.png)
 
 An HPC cluster is a set of connected computers that work together. Most share a few common components:
 
@@ -273,13 +273,10 @@ Working interactively first lets us get a feel for the cluster and develop the a
 The seven steps we'll walk through:
 
 ```{mermaid}
+%%{init: {'themeVariables': {'fontSize': '16px', 'fontFamily': 'monospace'}}}%%
 flowchart LR
-    A[1 · Log in] --> B[2 · Clone repo]
-    B --> C[3 · Set up env]
-    C --> D[4 · Copy data]
-    D --> E[5 · Define paths]
-    E --> F[6 · Grab GPU]
-    F --> G[7 · Run model]
+    A["&nbsp;&nbsp;&nbsp;1 · Log in&nbsp;&nbsp;&nbsp;"] --> B["&nbsp;2 · Clone repo&nbsp;"] --> C["&nbsp;3 · Set up env&nbsp;"] --> D["&nbsp;4 · Copy data&nbsp;&nbsp;"]
+    E["5 · Define paths"] --> F["&nbsp;&nbsp;6 · Grab GPU&nbsp;&nbsp;"] --> G["&nbsp;7 · Run model&nbsp;&nbsp;"]
 ```
 
 ### 👉 1. Log into the cluster

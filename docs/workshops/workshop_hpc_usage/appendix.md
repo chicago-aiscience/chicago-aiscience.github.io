@@ -48,7 +48,7 @@ Print the **public** key and copy the entire line (it begins with `ssh-ed25519`)
 cat ~/.ssh/id_ed25519.pub
 ```
 
-> ⚠️ - Only ever share the `.pub` (public) key. Never copy or send `id_ed25519` (the private key).
+> 🧰 - Only ever share the `.pub` (public) key. Never copy or send `id_ed25519` (the private key).
 
 ### 5. Add the key to GitHub
 

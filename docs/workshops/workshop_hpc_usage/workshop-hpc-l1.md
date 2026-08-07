@@ -2,25 +2,24 @@
 
 ## Objectives
 
-**Logging in, submitting your first job, partitions, modules, and setting up your environment**
+Log in to the cluster, set up a software environment, and submit your first interactive and batch jobs.
 
-1. Introduction to HPC clusters
-2. Access and logging in:
-    - SSH with Duo (RCC): https://docs.rcc.uchicago.edu/connection/ssh/main/
-    - SSH (DSI): https://cluster-policy.ds.uchicago.edu/using-the-cluster/login-nodes/ (need to create an SSH key)
-3. Cluster Modules and software environments: Create an environment
-4. Scheduler, Partitions (or queues), Jobs (interactive and batch): Submitting a job
+- **HPC clusters** - What is a cluster and what are the components it is built from?
+- **Access and logging in** - SSH with Duo on [RCC](https://docs.rcc.uchicago.edu/connection/ssh/main/), or with an SSH key on [DSI](https://cluster-policy.ds.uchicago.edu/using-the-cluster/login-nodes/).
+- **Modules and software environments** - Load cluster software and create an environment your jobs can use.
+- **Scheduler, partitions, and jobs** - Submit your first interactive and batch jobs.
 
 ## 1. What is an HPC cluster?
 
-![High Performance Computing Clusters](./images/hpc-cluster.png)
+[![High Performance Computing cluster components](images/hpc-cluster.png)](images/hpc-cluster.png)
 
-You can think of an HPC cluster as any number of connected computers. They usually have some common components:
+An HPC cluster is a set of connected computers that work together. Most share a few common components:
 
-- **Login Nodes** - Serves as primary access for the cluster. These nodes are often limited in resources (e.g., CPU, memory) and exist to allow users to access the cluster and submit computing jobs.
-- **Scheduler** - For our purposes this is [SLURM](https://slurm.schedmd.com) (although there are other schedulers out there). The scheduler schedules and executes compute jobs on the cluster. We will learn more about jobs later in this lesson.
+- **Login Nodes** - Serve as primary access for the cluster. These nodes are often limited in resources (e.g., CPU, memory) and exist to allow users to access the cluster and submit computing jobs.
+- **Scheduler** - For our purposes this is [SLURM](https://slurm.schedmd.com) (although there are other schedulers out there). The scheduler schedules and executes compute jobs on the cluster.
+- **Jobs** - How you execute algorithms on the cluster. We will learn more about jobs later in this lesson.
 - **Compute Nodes** - What the scheduler executes compute jobs on, these are network connected computers with large compute resources - high number of CPUs and memory (RAM). They can also include Graphic Process Units (GPUs) which provide even more compute power via parallelization.
-- **Storage** - Shared by the compute nodes, this is where you can store different types of data (e.g., short term vs. long term). We will also cover the different storage options in lesson 3.
+- **Storage** - Shared by the compute nodes, this is where you store your data, from short-term working files to long-term datasets. We cover the different storage options in Lesson 2.
 
 > 🧰 - You do not want to execute code on the login nodes as it will slow them down and impact all cluster users.
 
@@ -28,15 +27,15 @@ You can think of an HPC cluster as any number of connected computers. They usual
 
 **RCC:** https://docs.rcc.uchicago.edu/accounts/#general-user-accounts
 
-- Request a general RCC account
-- Associate the account with a PI. For access to the Schmidt nodes, use `pi-dfreedman`
-- More info: https://chicago-aiscience.github.io/rcc/
+- **Account** - Request a general RCC account.
+- **PI association** - Associate the account with a PI; for access to the Schmidt nodes, use `pi-dfreedman`.
+- **More info** - https://chicago-aiscience.github.io/rcc/
 
 **DSI:** https://cluster-policy.ds.uchicago.edu/quickstart/accounts/
 
-- To request an account, email: `techstaff@cs.uchicago.edu`
-- Eligibility examples: DSI-related grant, DSI member or affiliated faculty, Student with written approval from a DSI faculty mentor
-- More info: https://chicago-aiscience.github.io/dsi/
+- **Account** - Email `techstaff@cs.uchicago.edu` to request an account.
+- **Eligibility examples** - A DSI-related grant, DSI membership or affiliated faculty, or a student with written approval from a DSI faculty mentor.
+- **More info** - https://chicago-aiscience.github.io/dsi/
 
 ## 3. Logging into the cluster
 
@@ -44,16 +43,9 @@ You can think of an HPC cluster as any number of connected computers. They usual
 
 **Documentation https://docs.rcc.uchicago.edu/connection/main/**
 
-- SSH:
-    - Docs: https://docs.rcc.uchicago.edu/connection/ssh/main/
-    - Requires DUO be set up to authenticate
-    - Access the cluster via terminal
-- Open OnDemand:
-    - Docs: https://docs.rcc.uchicago.edu/connection/open_ondemand/open_ondemand/
-    - Web browser UI access, good for interactive sessions
-- VS Code:
-    - Docs: https://docs.rcc.uchicago.edu/software/apps-and-envs/scode/main/
-    - Provides a VS Code editor interface to the cluster and includes terminal access
+- **SSH** - Access the cluster via terminal; requires Duo be set up to authenticate. [Docs](https://docs.rcc.uchicago.edu/connection/ssh/main/)
+- **Open OnDemand** - Web browser UI access, good for interactive sessions. [Docs](https://docs.rcc.uchicago.edu/connection/open_ondemand/open_ondemand/)
+- **VS Code** - Provides a VS Code editor interface to the cluster and includes terminal access. [Docs](https://docs.rcc.uchicago.edu/software/apps-and-envs/scode/main/)
 
 **How to SSH into the RCC cluster**
 
@@ -85,26 +77,22 @@ ssh -Y <CNetID>@midway3.rcc.uchicago.edu
 
 **Documentation https://clinic.ds.uchicago.edu/tutorials/ssh_github_cluster.html**
 
-- Follow the link above to learn how to set up SSH for the DSI cluster
-- You can also use VS Code's Remote SSH extension to access the cluster but need SSH set up first, here is a link to documentation on the extension: https://code.visualstudio.com/docs/remote/ssh
+- **SSH** - Follow the link above to learn how to set up SSH for the DSI cluster.
+- **VS Code** - You can also use VS Code's Remote SSH extension to access the cluster, but need SSH set up first. [Docs](https://code.visualstudio.com/docs/remote/ssh)
 
 ## 4. Environment modules
 
-On HPC clusters, most scientific software isn’t available in your shell by default.
+On HPC clusters, most scientific software isn't available in your shell by default. Instead, packaged tools, languages, libraries, and compilers are managed through **Environment Modules** - a system that lets you load, unload, and switch software versions cleanly.
 
-Instead, packaged tools, languages, libraries, and compilers are managed through Environment Modules which is a system that lets you load, unload, and switch software versions cleanly.
-
-A module is basically a script that sets up your environment (e.g., `PATH`, `LD_LIBRARY_PATH`) so a specific software package and its dependencies become available in your session.
-
-You use the module command (`module avail`, `module load`, etc.) to interact with these.
+A module is a script that sets up your environment (e.g., `PATH`, `LD_LIBRARY_PATH`) so a specific software package and its dependencies become available in your session. You interact with them through the `module` command (`module avail`, `module load`, and so on).
 
 **The benefit:** no conflicting software versions, easy switching between versions, and reproducibility across compute sessions.
 
 **Modules may also provide:**
 
-- Libraries (e.g., FFTW, MKL) used by other software
-- Developer tools (CMake, debugger/profilers)
-- Language environments (Perl, Java)
+- **Libraries** - Numerical libraries used by other software.
+- **Developer tools** - CMake, debuggers, and profilers.
+- **Language environments** - Runtimes such as Perl and Java.
 
 These support both building complex codes and running them smoothly on compute nodes.
 
@@ -132,24 +120,32 @@ module list
 
 >🧰 - Loading a module adjusts your environment so the software just works without manual path juggling.
 
+5. Unload all modules from your session:
+
+```bash
+module unload <software>/<version>
+```
+
+> 🧰 - This is useful when trying to define which versions of a module will work with your code. There is no need to unload modules after job execution.
+
 ## 5. Creating software environments
 
-For this workshop, we will be working with a `conda` software environment since that is typical for a lot of scientific codebases. We need to create an environment that we can reference when we execute jobs on the cluster.
+For this workshop we'll use a `conda` software environment, since that is typical for scientific codebases. We need to create one that our jobs can reference when they run on the cluster.
 
-A software environment can grow quite large in size. This can cause your home directory (or project directory) to quickly run out of space.
+Software environments can grow large, which can quickly fill up your home (or project) directory.
 
 **RCC storage:**
 
-- Home: `/home/$USER` (~30 GB)
-- Scratch: `/scratch/midways3/$USER` (~100 GB)
+- **Home** - `/home/$USER` (~30 GB)
+- **Scratch** - `/scratch/midway3/$USER` (~100 GB)
 
 **DSI storage:**
 
-- Home: `/home/$USER` (50 GB)
-- Scratch: `/scratch` and `/scratch2` (50 GB each)
-- Project: `/project` (500 GB default; up to 10 TB)
+- **Home** - `/home/$USER` (50 GB)
+- **Scratch** - `/scratch` and `/scratch2` (50 GB each)
+- **Project** - `/project` (500 GB default; up to 10 TB)
 
-A good place to store your environment is the `scratch/` directory, but **_keep in mind that the scratch directory is periodically deleted_**.
+A good place to store your environment is the `scratch/` directory - but **_keep in mind that scratch is periodically deleted_**.
 
 This script automates the creation of the environment so you don't have to remember a series of commands each time you need to create one: [config/setup_env.sh](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/config/setup_env.sh)
 
@@ -160,9 +156,9 @@ cd ~/workshop-hpc-2026-sep                                      # so config/ = t
 SCRATCH_BASE=/scratch/midway3/$USER bash config/setup_env.sh    # run the script (bash executable)
 ```
 
->🧰 - The script will select whichever package manager is available (e.g., conda, mamba, micromamba) but please note the script may take some time to run and install all of the software depedencies defined in [environment.yml](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/environment.yml)
+>🧰 - The script picks whichever package manager is available (conda, mamba, or micromamba). Note that it may take a while to install all the dependencies defined in [environment.yml](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/environment.yml).
 
-Key command to create environment:
+Key command to create an environment in case you do not want to use the script:
 
 ```bash
 conda env create -p "/scratch/midway3/$USER/workshop-hpc-env" -f "/home/$USER/workshop-hpc-2026-sep/environment.yml"
@@ -173,37 +169,36 @@ conda env create -p "/scratch/midway3/$USER/workshop-hpc-env" -f "/home/$USER/wo
 (slurm-scheduler)=
 ### Slurm scheduler
 
-![Slurm scheduler](./images/icon-scheduler.png)
-
 The cluster includes software that manages the execution of algorithms as jobs on the cluster's compute nodes. This software is called a scheduler and is responsible for cluster management and job scheduling.
 
 Both UChicago clusters mentioned here use [SLURM](https://slurm.schedmd.com/overview.html):
 
-- SLURM allocates resources (compute nodes) to users (and jobs) for some duration of time
-- It provides a framework for starting, executing and monitoring work on allocated nodes
-- It manages a queue of pending work to arbitrate the use of cluster resources between users (and jobs)
+- **Allocates resources** - SLURM assigns resources (compute nodes) to users (and jobs) for some duration of time.
+- **Runs and monitors work** - It provides a framework for starting, executing, and monitoring work on allocated nodes.
+- **Arbitrates the queue** - It manages a queue of pending work to arbitrate the use of cluster resources between users (and jobs).
 
 ### Slurm partitions
 
-![Slurm partitions](./images/icon-partitions.png)
-
 SLURM uses partitions to logically group compute nodes, jobs, and allocations of resources.
 
->The partitions can be considered job queues, each of which has an assortment of constraints such as job size limit, job time limit, users permitted to use it, etc. Priority-ordered jobs are allocated nodes within a partition until the resources (nodes, processors, memory, etc.) within that partition are exhausted.
--[Slurm Workload Manager](https://slurm.schedmd.com/quickstart.html#arch)
+>The partitions can be considered job queues, each of which has an assortment of constraints such as job size limit, job time limit, users permitted to use it, etc.
+>
+>Priority-ordered jobs are allocated nodes within a partition until the resources (nodes, processors, memory, etc.) within that partition are exhausted.
+>
+>-[Slurm Workload Manager](https://slurm.schedmd.com/quickstart.html#arch)
 
-You execute algorithms as jobs on a partition. It can be difficult to figure out which parition to use.
+You run jobs on a partition, and it isn't always obvious which one to pick.
 
 For the RCC:
 
-- You can start with the RCC cluster partition description: https://docs.rcc.uchicago.edu/slurm/partitions/
-- It may be helpful to start by submitting CPU jobs to the `caslake` partition
-- If you have a job that uses GPUs (like the workshop example), you can use the `gpu` partition
-- For the RCC cluster there is also the common Schmidt partition: `schmidt-gpu`
+- **Partition list** - Start with the RCC cluster partition description: https://docs.rcc.uchicago.edu/slurm/partitions/
+- **CPU jobs** - It may be helpful to start by submitting CPU jobs to the `caslake` partition.
+- **GPU jobs** - If you have a job that uses GPUs (like the workshop example), you can use the `gpu` partition.
+- **Schmidt nodes** - For the RCC cluster there is also the common Schmidt partition: `schmidt-gpu`.
 
 For the DSI:
 
-- You can use the `general` parition, and you can request a gpu with `--gres=gpu:1`
+- **GPU jobs** - You can use the `general` partition, and request a GPU with `--gres=gpu:1`.
 
 (slurm-jobs)=
 ### Slurm jobs
@@ -212,11 +207,9 @@ A job is how you execute your algorithms on the cluster. There are two types of 
 
 #### batch jobs
 
-![Slurm batch jobs](./images/icon-batch.png)
+You start a batch job by wrapping the commands that run your algorithm in a shell script.
 
-You can start the execution of your algorithm by wrapping the code to execute your algorithm in a shell script.
-
-The top of the shell script will include comment-like details that tell Slurm how to execute your job. Here is a simplified example:
+The top of the script holds comment-like directives that tell Slurm how to run the job. Here is a simplified example:
 
 ```bash
 #SBATCH --job-name=gpu_example   # <-- name of the job to execute
@@ -229,8 +222,8 @@ The top of the shell script will include comment-like details that tell Slurm ho
 #SBATCH --time=02:00:00          # <-- time to execute the job for
 
 
-CONDA_ENV=/net/scratch2/$USER$/workshop-hpc-env  # <-- software environment created in step  5
-activate $CONDA_ENV # <-- activate the environment
+CONDA_ENV=/net/scratch2/$USER/workshop-hpc-env  # <-- software environment created in step 5
+conda activate "$CONDA_ENV"      # <-- activate the environment
 
 module load cuda  # <-- load modules required to execute job
 
@@ -244,8 +237,6 @@ sbatch my_job.sh
 ```
 
 #### interactive jobs
-
-![Slurm interactive jobs](./images/icon-interactive.png)
 
 Sometimes it can be useful to launch a terminal shell on a compute node directly.
 
@@ -262,10 +253,10 @@ Basic interactive CPU job:
 srun --partition=general --nodes=1 --ntasks=1 --cpus-per-task=2 --mem=4G --time=01:00:00 --pty bash -i
 ```
 
-Basic interactive GPU job:
+Basic interactive GPU job (note the added `--gres=gpu:1`):
 
 ```bash
-srun --partition=general --nodes=1 --ntasks=1 --cpus-per-task=2 --mem=4G --time=01:00:00 --pty bash -i
+srun --partition=general --nodes=1 --ntasks=1 --cpus-per-task=2 --mem=4G --gres=gpu:1 --time=01:00:00 --pty bash -i
 ```
 
 > 🧰 - Notice how the arguments to the srun command match the `#SBATCH` comments in the batch script. You can change these to manage the resources allocated to your interactive session.
@@ -273,11 +264,23 @@ srun --partition=general --nodes=1 --ntasks=1 --cpus-per-task=2 --mem=4G --time=
 (running-interactive-job)=
 ## 👉 7. Running an interactive job
 
-We are going to turn to the workshop repository to run an interactive job and then later submit a batch job on the RCC cluster.
+We'll now turn to the workshop repository to run an interactive job, then submit the same work as a batch job on the RCC cluster.
 
 **Repository link: https://github.com/chicago-aiscience/workshop-hpc-2026-sep**
 
-Before submitting batch jobs, let's get a feel for the cluster and see how we might develop an algorithm to run as a batch script.
+Working interactively first lets us get a feel for the cluster and develop the algorithm before scaling it up to a batch script.
+
+The seven steps we'll walk through:
+
+```{mermaid}
+flowchart LR
+    A[1 · Log in] --> B[2 · Clone repo]
+    B --> C[3 · Set up env]
+    C --> D[4 · Copy data]
+    D --> E[5 · Define paths]
+    E --> F[6 · Grab GPU]
+    F --> G[7 · Run model]
+```
 
 ### 👉 1. Log into the cluster
 
@@ -310,28 +313,7 @@ cd workshop-hpc-2026-sep
 *Run the following command to set up the `conda` environment in your scratch space:*
 
 ```bash
-SCRATCH_BASE=/scratch/midway3/ntebaldi bash config/setup_env.sh  # run the script (bash executable)
-```
-
-**4. Grab an interactive GPU**
-
-```bash
-srun --account pi-dfreedman \
-     --partition schmidt-gpu \
-     --qos=schmidt \
-     --nodes=1 \
-     --ntasks=1 \
-     --cpus-per-task=2 \
-     --mem=4GB \
-     --gres=gpu:1 \
-     --time=01:00:00 \
-     --pty bash -i
-```
-
-`--pty bash` drops you into a shell *on the compute node*. Confirm the GPU:
-
-```bash
-nvidia-smi          # should list one GPU
+SCRATCH_BASE=/scratch/midway3/$USER bash config/setup_env.sh  # run the script (bash executable)
 ```
 
 (copy-data)=
@@ -378,7 +360,28 @@ export ENV_NAME=/scratch/midway3/$USER/workshop-hpc-env
 mkdir -p "$WORK_DIR/data" "$WORK_DIR/runs"
 ```
 
-### 👉 6. Run the model on one basin
+### 👉 6. Grab an interactive GPU
+
+```bash
+srun --account pi-dfreedman \
+     --partition schmidt-gpu \
+     --qos=schmidt \
+     --nodes=1 \
+     --ntasks=1 \
+     --cpus-per-task=2 \
+     --mem=4GB \
+     --gres=gpu:1 \
+     --time=01:00:00 \
+     --pty bash -i
+```
+
+`--pty bash` drops you into a shell *on the compute node*. Confirm the GPU:
+
+```bash
+nvidia-smi          # should list one GPU
+```
+
+### 👉 7. Run the model on one basin
 
 ```bash
 # Load the paths you defined
@@ -406,14 +409,12 @@ Watch the loss print. When it finishes, `exit` releases the node.
 
 ## 👉 8. Running a batch job
 
-![Slurm submit a job](images/icon-submit.png)
-
-We will run all of the steps we walked through above but as a batch job defined by a shell script. See this script: [slurm/02_train.sbatch](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/02_train.sbatch)
+Now we'll run those same steps as a batch job defined by a shell script: [slurm/02_train.sbatch](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/02_train.sbatch).
 
 ```bash
 #!/usr/bin/env bash
 #SBATCH --job-name=consensus-train
-#SBATCH --account=pi-dfreedman          # change to an allowed account on the cluster
+#SBATCH --account=pi-dfreedman          # Schmidt fellows PI account
 #SBATCH --partition=schmidt-gpu         # GPU partition for Schmidt fellows
 #SBATCH --qos=schmidt
 #SBATCH --gres=gpu:1                    # request 1 GPU (adjust as needed)
@@ -422,9 +423,9 @@ We will run all of the steps we walked through above but as a batch job defined 
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=02:00:00
-#SBATCH --output=logs/train_%j.out      # stdout  -> normal log  (Workshop 2)
+#SBATCH --output=logs/train_%j.out      # stdout  -> normal log  (Lesson 3)
 #SBATCH --error=logs/train_%j.err       # stderr  -> error log
-# --- Workshop 1: a first batch GPU job. Submit with: sbatch slurm/02_train.sbatch
+# --- Lesson 1: a first batch GPU job. Submit with: sbatch slurm/02_train.sbatch
 
 set -euo pipefail
 source config/paths.sh
@@ -459,7 +460,7 @@ echo "training complete on $(hostname) job $SLURM_JOB_ID"
 
 ```bash
 cd $HOME/workshop-hpc-2026-sep
-mkdir logs  # create a logs directory for job logs
+mkdir -p logs  # create a logs directory for job logs
 sbatch slurm/02_train.sbatch
 ```
 
@@ -488,15 +489,15 @@ cat logs/train_51473191.out  # standard out logs
 
 ## ✅ Verification Checkpoint
 
-- You have learned a little bit about clusters and how to execute jobs on them
-- You have set up the workshop repository on the RCC cluster via `git clone`
-- You have created a software environment that contains the dependencies needed to run the workshop repository code
-- You have copied the input data to the cluster
-- You have ran an interactive job and executed the first part of the workshop repository code
-- You have ran a batch job that executed the first part of the workshop repository code
+- You learned what a cluster is and how to run jobs on one
+- You set up the workshop repository on the RCC cluster with `git clone`
+- You created a software environment with the dependencies needed to run the workshop code
+- You copied the input data to the cluster
+- You ran an interactive job and executed the first stage of the workshop code
+- You ran a batch job that executed the same stage
 
 # Lesson Conclusion
 
-You have run a job!!
+You have run a job on the cluster!
 
-Next we will focus on how to monitor jobs and recover from errors.
+Next we'll look at moving data onto and around the cluster - and where to put it.

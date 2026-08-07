@@ -29,7 +29,9 @@ Make a run repeatable - by you next month, by a collaborator next year - and mak
 | **Portable** | Does it still work on a *different* cluster or GPU? | + a lock file or container, no hardware assumptions |
 | **Bitwise identical** | Are the outputs byte-for-byte equal? | + seeding, deterministic kernels, fixed thread counts, *and the same hardware* |
 
-**Most scientific work should target "portable" and hold results to a tolerance** rather than chase bitwise equality. The last rung is achievable, but it constrains your hardware and can slow your code down - see [§5](#deterministic-operations).
+**In many cases scientific work can target Repeatable through Portable** rather than chase bitwise equality.
+
+The last rung is achievable, but it constrains your hardware and can slow your code down - see [§5](#deterministic-operations).
 
 A result is the product of six things. Pin the first five and hardware is the only thing left that can move:
 
@@ -86,7 +88,6 @@ conda list --explicit      > environment.lock.txt     # exact package URLs (plat
 
 - **`--no-builds`** - Portable across platforms; pins versions but lets conda re-solve build variants.
 - **`conda list --explicit`** - The strictest option. Rebuild with `conda create --name env --file environment.lock.txt`. It records exact URLs, so it only works on the same OS/architecture.
-- **`conda env export --from-history`** - The *opposite* of a lock: only the packages you explicitly asked for, no transitive dependencies. Useful for cleaning up a hand-written spec, not for reproducing one.
 
 On the pip side, `pip freeze > requirements.lock.txt` is the equivalent; [`pip-compile --generate-hashes`](https://pip-tools.readthedocs.io/) additionally records a hash per wheel so a tampered or re-uploaded package fails loudly.
 
@@ -115,7 +116,11 @@ apptainer exec --nv /project/<group>/images/workshop-hpc.sif python src/train_co
 
 `--nv` passes the node's NVIDIA driver into the container - the one thing the image deliberately does *not* carry, since it has to match the host.
 
-> 🧰 - A conda environment is thousands of small files, which is slow on shared storage (see [Lesson 2](./workshop-hpc-l2.md#data-best-practices)). A `.sif` image is a **single file**, which is why containers often start faster in a large job array than a conda env does. Build the environment **once** in a known location and activate it from every job - never rebuild it inside an array task.
+> 🧰 - A conda environment is thousands of small files, which is slow on shared storage (see [Lesson 2](./workshop-hpc-l2.md#data-best-practices)).
+>
+>  A `.sif` image is a **single file**, which is why containers often start faster in a large job array than a conda env does.
+>
+> Build the environment **once** in a known location and activate it from every job - never rebuild it inside an array task.
 
 ---
 
@@ -194,7 +199,17 @@ This is the habit from [Lesson 2](./workshop-hpc-l2.md#track-experiments-configs
 3. **Keep paths and secrets out of the experiment config.** Those are *where the job runs*, not *what the experiment is*. The workshop keeps them in [`config/paths.sh`](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/config/paths.sh) as environment variables, so the same experiment YAML works on RCC and DSI unchanged.
 4. **Save the resolved config from every stage that has knobs**, not just training.
 
-> 🧰 - Note the gap in the workshop repo as shipped: `build_manifest.py` accepts `--basins` to override `data.basins`, but doesn't call `save_config()`. It gets away with it because the manifest carries a `basin` column, so the record survives in the data itself. Your own code won't always be that lucky - write a `config_used.yaml` per stage.
+*Sample config copied alongside module execution results:*
+
+```yaml
+# $WORK_DIR/tiny.config_used.yaml        <- written by build_manifest.py
+data:
+  basins: ['232270']                     # the --basins override, as actually matched
+  mode: train
+  manifest: /scratch/midway3/$USER/workshop-hpc-data/output/tiny.csv
+model: {hidden: 64}
+train: {epochs: 500, batch_size: 256, lr: 0.001, checkpoint_interval: 50}
+```
 
 ---
 
@@ -238,11 +253,11 @@ For multi-gigabyte inputs where hashing is too slow to do per job, record `path`
 | Manifests | Committed script + recorded config | The run's output directory |
 | Intermediate / per-shard files | Nothing - they're re-derivable | `/scratch` or node-local |
 | Final results | The run directory + its metadata | `/project` |
-| Large files you need to version | [DVC](../../user_guide/tracking/dvc.md) or a committed pointer file | Repo pointer + a remote |
+| Large files you need to version | [Data Version Control (DVC)](../../user_guide/tracking/dvc.md) or a committed pointer file | Repo pointer + a remote |
 
 The two habits from [Lesson 2](./workshop-hpc-l2.md#data-best-practices) still carry most of the weight: **keep raw inputs read-only** so a stray job can't corrupt them, and **give every run its own output directory** so nothing is overwritten.
 
-> 🧰 - For files too large for Git but too static to justify DVC, a committed **pointer file** (a few lines of YAML with `path`, `sha256`, `source`, and `git_commit`) gives you the same guarantee for almost no setup. The [Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/) walks through pointers, DVC, MLflow, and W&B, and when each is worth adopting.
+> 🧰 - The [Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/) walks through pointers, DVC, MLflow, and W&B, and when each is worth adopting.
 
 ---
 
@@ -282,6 +297,8 @@ def set_seed(seed: int) -> None:
     torch.manual_seed(seed)           # PyTorch CPU *and* all visible CUDA devices
 ```
 
+> 🧰 - Make the seed an argument and set it in your config file so it gets saved alongside the results. This way you know what seed to use if you want to reproduce the results.
+
 `DataLoader` shuffling needs one more step - pass an explicitly seeded generator, and re-seed the worker processes:
 
 ```python
@@ -305,7 +322,9 @@ export PYTHONHASHSEED=0
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-1}   # pin thread count: reduction order depends on it
 ```
 
-> 🧰 - Prefer `np.random.default_rng(seed)` for new NumPy code - it gives you an isolated generator instead of mutating global state. `np.random.seed()` is shown above because most existing scientific code still uses the global RNG, and seeding it is what makes *that* code reproducible.
+> 🧰 - Prefer `np.random.default_rng(seed)` for new NumPy code - it gives you an isolated generator instead of mutating global state.
+>
+>`np.random.seed()` is shown above because most existing scientific code still uses the global RNG, and seeding it is what makes *that* code reproducible.
 
 ### Step 2: ask the libraries for deterministic kernels
 
@@ -320,7 +339,7 @@ torch.backends.cudnn.benchmark = False        # disable the autotuner (it picks 
 Separately, **TF32** is about numerics rather than determinism: it makes a run agree with itself but *not* with the same code on an older GPU. If you need results that match across hardware generations, turn it off:
 
 ```python
-torch.backends.cudnn.allow_tf32 = False       # defaults to True - this is the one that usually bites
+torch.backends.cudnn.allow_tf32 = False       # defaults to True
 torch.backends.cuda.matmul.allow_tf32 = False # already False by default in PyTorch 2.x; set it explicitly
 ```
 
@@ -334,23 +353,24 @@ Other libraries have their own switches. The ones worth knowing:
 
 | Library | What to set | Note |
 |---|---|---|
-| **scikit-learn** | `random_state=42` on *every* estimator and splitter (`train_test_split`, `KFold(shuffle=True, ...)`, `RandomForest`, `KMeans`) | It has no global seed - an unset `random_state` is a silent source of drift |
-| **XGBoost** | `seed=42`, and pin `tree_method` explicitly | The CPU `hist` builder is reproducible; the GPU path historically has not been guaranteed to be, so verify it if you rely on it |
-| **LightGBM** | `seed=42`, `deterministic=True`, `force_row_wise=True` | `deterministic=True` alone isn't enough without fixing the binning mode |
+| **scikit-learn** | `random_state=17` on *every* estimator and splitter (`train_test_split`, `KFold(shuffle=True, ...)`, `RandomForest`, `KMeans`) | It has no global seed - an unset `random_state` is a silent source of drift |
+| **XGBoost** | `seed=17`, and pin `tree_method` explicitly | The CPU `hist` builder is reproducible; the GPU path historically has not been guaranteed to be, so verify it if you rely on it |
+| **LightGBM** | `seed=17`, `deterministic=True`, `force_row_wise=True` | `deterministic=True` alone isn't enough without fixing the binning mode |
 | **JAX** | Explicit `PRNGKey` split through every call | No global RNG at all - randomness is always passed in, which is the design that makes this easy |
-| **TensorFlow** | `tf.keras.utils.set_random_seed(42)` + `tf.config.experimental.enable_op_determinism()` | The `enable_op_determinism` call is TF's equivalent of `use_deterministic_algorithms` |
+| **TensorFlow** | `tf.keras.utils.set_random_seed(17)` + `tf.config.experimental.enable_op_determinism()` | The `enable_op_determinism` call is TF's equivalent of `use_deterministic_algorithms` |
 
-> 🧰 - `use_deterministic_algorithms(True)` **raises a `RuntimeError`** for operations that have no deterministic implementation, rather than silently continuing. That is the point - but it means enabling it can break a working script. Common offenders are the backward passes of scatter/index operations, `nn.Embedding` (dense gradients), some pooling layers, and `interpolate`. `warn_only=True` downgrades the error to a warning while you work out which op is responsible.
+> 🧰 - `use_deterministic_algorithms(True)` **raises a `RuntimeError`** for operations that have no deterministic implementation, rather than silently continuing.
+>
+> That is the point - but it means enabling it can break a working script.
 
 ### Step 3: accept that this costs something
 
 Determinism is not free:
 
-- **`cudnn.benchmark = False`** gives up the autotuner that picks the fastest convolution kernel for your shapes. On convolution-heavy models this is the largest single cost.
-- **Deterministic kernels** are sometimes slower implementations of the same operation, because the fast version relies on atomics.
-- **Disabling TF32** can slow matmul-heavy work substantially on Ampere and newer cards, where TF32 tensor cores are several times faster than full FP32.
+- **`cudnn.benchmark = False`** - disables the autotuner that picks the fastest convolution kernel for your shapes.
+- **Deterministic kernels**  - are sometimes slower implementations of the same operation, because the fast version relies on atomics.
 
-**How much slower depends entirely on your op mix - measure it, don't guess.** Time one epoch with the flags on and one with them off before deciding.
+**How much slower depends entirely on your operations - measure it, don't guess.** Time one epoch with the flags on and one with them off before deciding.
 
 The workshop's consensus MLP is a useful contrast: it's `Linear` → `ReLU` → `MSELoss`, all of which are already deterministic, so the flags cost essentially nothing here. **Seeding alone makes it reproducible.** That won't hold for a convolutional or transformer model.
 
@@ -374,52 +394,10 @@ assert abs(new_nse - ref_nse) < 0.01, f"NSE moved by {abs(new_nse - ref_nse):.4f
 
 Two things make this practical:
 
-- **Pick the tolerance from the science, not the arithmetic.** If discharge is reported to three significant figures and gauge measurement error is 5-10%, a `1e-6` disagreement between two runs is noise. Say so explicitly, in a comment or the run's README, so nobody re-litigates it later.
-- **A tolerance is a *test*, not a shrug.** Store a reference result, compare against it on every rerun, and fail loudly when the difference exceeds the threshold. That catches a real regression (a changed preprocessing step) while ignoring a harmless one (a new GPU model).
+- **Pick the tolerance from the science, not the arithmetic.** Say so explicitly, in a comment or the run's README, so it is clear what you tolerate as noise and what indiciates an actual difference.
+- **A tolerance is a *test*.** Store a reference result, compare against it on every rerun, and fail loudly when the difference exceeds the threshold. That catches a real regression (a changed preprocessing step) while ignoring a harmless one (a new GPU model).
 
 > 🧰 - The single most useful thing you can do here is **record the seed in the config and in the run metadata**. A run you can't re-seed can't be re-run at all - the tolerance question never even comes up.
-
-### 👉 Try it: make training reproducible, then check the cost
-
-The workshop's `train_consensus.py` doesn't seed anything today - `DataLoader(..., shuffle=True)` draws from the global torch RNG, so two runs of `02_train.sbatch` produce different weights. Fixing that is a self-contained exercise.
-
-**1. Add a `seed` knob** to `DEFAULTS` in `src/config.py` and to `config/experiments/baseline.yaml`:
-
-```yaml
-train:
-  seed: 42
-```
-
-**2. Add `set_seed()`** (from Step 1 above) to `src/train_consensus.py` and call it in `main()`, right after the config is resolved and before `build_dataloader`. Add a matching `--seed` flag with `default=None` so it can be overridden per run.
-
-**3. Run it twice into separate directories and compare.** In an interactive session ([Lesson 1.7](./workshop-hpc-l1.md#running-interactive-job)), so both runs land where you want them. This uses the training manifest built by `02_train.sbatch` - if you don't have it yet, run `build_manifest.py` first as shown in [Lesson 3.6](./workshop-hpc-l3.md#test-job-interruptions):
-
-```bash
-source config/paths.sh
-module load python/anaconda-2025.12
-conda activate $ENV_NAME
-
-for tag in a b; do
-  python src/train_consensus.py --config "$EXPERIMENT_CONFIG" \
-      --manifest "$WORK_DIR/data/manifest_train.csv" \
-      --out "$WORK_DIR/runs/consensus_$tag" --epochs 5
-done
-```
-
-Then check that the two final models agree:
-
-```bash
-python - <<PY
-import torch
-a = torch.load("$WORK_DIR/runs/consensus_a/consensus_model_final.pt", map_location="cpu")["model"]
-b = torch.load("$WORK_DIR/runs/consensus_b/consensus_model_final.pt", map_location="cpu")["model"]
-print(max((a[k] - b[k]).abs().max().item() for k in a))   # ~0.0 once seeded, nonzero before
-PY
-```
-
-Run this **before** adding `set_seed()` too - the same command prints a clearly nonzero number, which is the whole point.
-
-**4. Optional - measure the determinism flags.** Add the Step 2 block plus `CUBLAS_WORKSPACE_CONFIG` and time an epoch with and without. On this MLP you should see no meaningful difference; the exercise is worth repeating on your own model, where it may look very different.
 
 ---
 
@@ -433,18 +411,16 @@ You now control the inputs. The last piece is making each *output* carry the rec
 | Field | Why you'll want it |
 |---|---|
 | `slurm_job_id`, `array_task_id` | The key that ties results back to `sacct` and the `.out`/`.err` logs |
-| `git_commit`, `git_branch`, `git_dirty` | Which code ran - and whether there were uncommitted changes |
+| `git_commit`, `git_branch` | Which code ran - and whether there were uncommitted changes |
 | `hostname`, `nodelist`, `gpu_name`, `driver_version` | Hardware, for when results differ across nodes |
 | `env_name`, `env_hash`, `modules` | The software stack conda + `module` actually provided |
 | `config_path`, `config_used.yaml`, `seed` | The knobs ([§3](#config-files)) and the randomness ([§5](#deterministic-operations)) |
 | `input_paths` + hashes, `manifest_rows` | The data ([§4](#data-manifests)) |
 | `started_at`, `finished_at`, `restart_count` | Wall time, and whether the job was requeued mid-run |
 
-> 🧰 - `git_dirty` is the one people skip and later regret. A commit SHA is only meaningful if the working tree was clean when the job started - otherwise it names code that never actually ran.
-
 ### Writing it from the batch script
 
-This works for any language, so it's the version worth copying. Drop it into your `.sbatch` **before** the Python step:
+This works for any language, so drop it into your `.sbatch` **before** your code steps:
 
 ```bash
 RUN_DIR="$WORK_DIR/runs/consensus"
@@ -462,7 +438,6 @@ cat > "$RUN_DIR/run_metadata.json" <<EOF
   "gpu":            "$(nvidia-smi --query-gpu=name,driver_version --format=csv,noheader 2>/dev/null | head -1)",
   "git_commit":     "$(git rev-parse HEAD 2>/dev/null || echo unknown)",
   "git_branch":     "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)",
-  "git_dirty":      $( [ -n "$(git status --porcelain 2>/dev/null)" ] && echo true || echo false ),
   "env_name":       "${ENV_NAME:-}",
   "env_hash":       "$(sha256sum environment.yml 2>/dev/null | cut -c1-16)",
   "config":         "${EXPERIMENT_CONFIG:-}",
@@ -479,7 +454,7 @@ conda list --explicit  > "$RUN_DIR/env_explicit.txt"
 
 ### Or from Python
 
-If you'd rather keep it with the code that writes the results, the same record fits in a short helper. This slots naturally next to `save_config()` in `src/config.py`:
+If you'd rather keep it with the code that writes the results, the same record fits in a short helper. This slots naturally next to `save_config()` in `src/config.py` from the workshop repo example:
 
 ```python
 import json, os, socket, subprocess, datetime
@@ -506,14 +481,11 @@ def save_run_metadata(path: str | Path, **extra) -> None:
         "hostname":      socket.gethostname(),
         "git_commit":    _git("rev-parse", "HEAD"),
         "git_branch":    _git("rev-parse", "--abbrev-ref", "HEAD"),
-        "git_dirty":     None if status is None else bool(status),
         "started_at":    datetime.datetime.now().astimezone().isoformat(),
         **extra,                      # e.g. seed=..., manifest=..., input_hashes=...
     }
     Path(path).write_text(json.dumps(meta, indent=2))
 ```
-
-> 🧰 - Note the three-state `git_dirty`. `bool(_git(...))` would look tidier, but it collapses "git wasn't available" into `False` - i.e. it reports a clean tree when it actually knows nothing. `null` is the honest answer, and it's the difference between metadata you can trust and metadata that quietly lies.
 
 Called from `main()` right after `save_config()`:
 
@@ -554,38 +526,6 @@ A sidecar file can get separated from the data it describes. Where the format ha
 
 - **Parquet** - Key/value metadata in the file footer, via `pyarrow`.
 - **CSV** - No metadata slot at all. Use a sidecar (`discharge.csv` + `discharge.metadata.json`) and keep them in the same directory.
-
-### Resource usage, after the fact
-
-`sacct` is the record of what the job actually *used* - but querying it from inside the running job reports a job still in progress. Collect it afterwards ([Lesson 3](./workshop-hpc-l3.md)):
-
-```bash
-sacct -j <JOBID> -P --format=JobID,JobName,State,Elapsed,TotalCPU,MaxRSS,ReqMem,ExitCode \
-    > runs/consensus/sacct.txt
-```
-
-`-P` gives pipe-delimited output that parses cleanly. Recent Slurm versions also support `sacct -j <JOBID> --json`, which returns the full record as JSON - check with `sacct --help` on your cluster.
-
-### 👉 Try it: capture your run's provenance
-
-**1. Add the metadata block.** Paste the bash block above into [`slurm/02_train.sbatch`](https://github.com/chicago-aiscience/workshop-hpc-2026-sep/blob/dev/slurm/02_train.sbatch), after `source config/paths.sh` and before the first `python` call.
-
-**2. Submit it:**
-
-```bash
-cd $HOME/workshop-hpc-2026-sep
-sbatch slurm/02_train.sbatch
-```
-
-**3. When it finishes, read the record back:**
-
-```bash
-source config/paths.sh
-cat "$WORK_DIR/runs/consensus/run_metadata.json"
-ls   "$WORK_DIR/runs/consensus/"          # config_used.yaml, run_metadata.json, modules.txt, ...
-```
-
-**4. Break it on purpose.** Make an uncommitted edit to `src/train_consensus.py`, resubmit, and confirm `git_dirty` flips to `true`. That flag is what tells future-you the SHA can't be trusted.
 
 ---
 
@@ -639,26 +579,9 @@ if (rng := state.get("rng")):
         torch.cuda.set_rng_state_all(rng["cuda"])
 ```
 
-> 🧰 - Even with RNG state saved, resuming *mid-epoch* exactly requires the `DataLoader` sampler's position too, which PyTorch does not checkpoint for you. This is why the workshop resumes at **epoch boundaries** (`epoch_completed`) - it's the pragmatic answer, and it costs at most one partial epoch of redone work.
-
-### How often to checkpoint
-
-Checkpointing too rarely means redoing work; too often means the job spends its time writing to shared storage instead of computing.
-
-When interruptions are **random** (preemption, node failure), the classic answer is the Young/Daly formula:
-
-```text
-optimal interval ≈ sqrt( 2 × checkpoint_cost × mean_time_between_interruptions )
-```
-
-A 30-second checkpoint on a cluster that interrupts you roughly every 12 hours gives `sqrt(2 × 30 × 43200) ≈ 1610 s`, so **about every 27 minutes**. The formula is a first-order approximation - it tells you the right order of magnitude, and that the answer is "minutes to tens of minutes", not "every step".
-
-When the interruption is **not** random - RCC has `PreemptMode = OFF`, so the only interruption is the known `--time` wall - the reasoning is simpler: checkpoint often enough that the last save is close to the wall, and rely on the `--signal` handler for the final one.
-
-Then two sanity checks, whichever regime you're in:
-
-- **Keep the write under ~5% of runtime.** If a checkpoint takes 30 s, don't write one more often than every ~10 minutes.
-- **Time the write, don't assume it.** A large model on a busy parallel filesystem can take far longer than it does on your laptop.
+> 🧰 - Even with RNG state saved, resuming *mid-epoch* exactly requires the `DataLoader` sampler's position too, which PyTorch does not checkpoint for you.
+>
+> This is why the workshop resumes at **epoch boundaries** (`epoch_completed`) - it's the pragmatic answer, and it costs at most one partial epoch of redone work.
 
 ### Retention: don't keep everything, don't keep only one
 
@@ -681,24 +604,6 @@ A few things bite specifically on the *second* run of a requeued job:
 - **Make output writes idempotent** - Anything that *appends* to a results file will double up after a resume. Write to a per-attempt path, or truncate-and-rewrite, rather than appending.
 - **Checkpoint the whole pipeline stage, not just training** - A dependency chain ([Lesson 4](./workshop-hpc-l4.md)) resumes at whichever stage failed. A stage that can detect its own completed output and skip is effectively checkpointed for free.
 - **Job arrays need per-task checkpoint paths** - `ckpt_dir/task_${SLURM_ARRAY_TASK_ID}/last.pt`. Ten array tasks sharing one `last.pt` will corrupt each other's resume point.
-- **Write checkpoints to node-local disk, copy the keepers out** - Frequent large writes to `/scratch` are exactly the I/O pattern [Lesson 2](./workshop-hpc-l2.md#data-best-practices) warns about. Keep the rolling checkpoint on `$SLURM_TMPDIR` and `rsync` the ones you want to keep to durable storage.
-
-  > 🧰 - With one exception: node-local disk is wiped when the job ends, so a checkpoint that only ever lives there **cannot be resumed from after a requeue** - the job comes back on a different node. Copy the rolling checkpoint out before the job exits, or keep it on shared storage in the first place.
-
-### Options beyond writing your own
-
-In-code checkpointing (what Lesson 3 built) is the most portable and the most controllable, because your program decides what a consistent state is. It's not the only option:
-
-| Approach | What it does | Worth knowing because |
-|---|---|---|
-| **Framework built-ins** - [PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/common/checkpointing.html), [submitit](https://github.com/facebookincubator/submitit), DeepSpeed | Handle the save/resume/requeue loop for you, including SLURM signal handling | If you're already using one, don't hand-roll this. Note Lightning claims `SIGUSR1` - which is why the workshop uses `SIGUSR2` |
-| **[DMTCP](https://doc.zih.tu-dresden.de/jobs_and_resources/checkpoint_restart/#using-dmtcp-manually)** | Transparent, system-level checkpointing of an *unmodified* process | The escape hatch for code you can't modify (closed-source or legacy simulation binaries). Its GPU/CUDA support is limited, so it's a poor fit for most deep learning |
-| **[CRIU](https://docs.nersc.gov/development/checkpoint-restart/containers/)** | Checkpoint/restore in userspace, typically for containers | Same idea as DMTCP at the container level; useful for containerized workloads |
-| **Application-level restart files** | Many simulation codes already write their own | Check before building anything - the feature often already exists |
-
-> 🧰 - Transparent checkpointing sounds strictly better than doing it yourself, and it isn't. A whole-process image is large, slow to write, and tied to the machine and library versions it was captured on. A checkpoint you write yourself contains only the state that matters, is a fraction of the size, and can often be loaded on completely different hardware.
-
----
 
 ## 8. Recommendations
 
@@ -715,8 +620,6 @@ Pulling the lesson together - the habits, roughly in order of value per minute s
 9. **Checkpoint on an interval, at safe boundaries, atomically** - and put the RNG state in the checkpoint if your results need to survive a requeue unchanged.
 10. **Layer on tracking tools as the project grows.** Git always; DVC or pointer files for large data; MLflow or W&B once you're comparing runs. The [Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/) covers the progression.
 
-A useful framing for the whole lesson: **everything above is something you'd otherwise reconstruct from memory.** The work is small and one-time; the alternative is answering "what did I run?" with a guess.
-
 > 🧰 - Want to work through what this looks like for *your* project - which knobs belong in a config, what to hash, where a container is worth it? Happy to hold a follow-up clinic.
 
 ## ✅ Verification Checkpoint
@@ -724,10 +627,8 @@ A useful framing for the whole lesson: **everything above is something you'd oth
 - You can name the levels of reproducibility and say which one your work actually needs.
 - You know the difference between a pinned `environment.yml` and a generated lock file, and what neither of them captures.
 - You can explain the `DEFAULTS < config file < CLI flag` precedence and why `default=None` in `argparse` is what makes it work.
-- You added a seed to the workshop config and saw two runs produce identical weights.
 - You know why deterministic kernels cost performance, and can state a tolerance for your own results instead.
-- You stamped `run_metadata.json` into a run directory and confirmed the `git_dirty` flag catches uncommitted code.
-- You can say what belongs in a checkpoint, how often to write one, and why the RNG state matters after a requeue.
+- You can say what belongs in a checkpoint, and why the RNG state matters after a requeue.
 
 # Lesson Conclusion
 
@@ -735,4 +636,4 @@ Reproducibility on a cluster isn't one tool - it's pinning the environment, comm
 
 That also closes the series. You've gone from logging in and submitting a first job, through placing data across cluster storage, monitoring and debugging jobs, and wiring stages into parallel workflows - to runs that survive interruption and can be defended a year later.
 
-Next steps: the [Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/) goes deeper on DVC, MLflow, and W&B, and the [References](./references.md) page collects the documentation and papers behind each lesson.
+Next steps: the [Lessons Summary](./workshop-hpc-summary.md) recaps the series and collects the key takeaways, the [Model, Data & Code Tracking guide](https://chicago-aiscience.github.io/index-1/) goes deeper on DVC, MLflow, and W&B, and the [Appendix](./appendix.md) collects every link used in the lessons alongside the documentation and papers behind them.

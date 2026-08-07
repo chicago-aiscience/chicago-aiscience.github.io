@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "jupyter-book",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd docs && uv run jupyter book start --port 3000"],
+      "port": 3000
+    }
+  ]
+}

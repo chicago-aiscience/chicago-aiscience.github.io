@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "jb-verify",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd docs && uv run jupyter book start --port 4500"],
+      "port": 4500
+    }
+  ]
+}

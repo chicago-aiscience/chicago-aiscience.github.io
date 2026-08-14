@@ -35,6 +35,16 @@ project:
             - file: workshops/workshop_github_actions/workshop-github-actions-l4.md
             - file: workshops/workshop_github_actions/workshop-github-actions-summary.md
             - file: workshops/workshop_github_actions/workshop-github-actions-appendix.md
+        - title: HPC cluster series
+          children:
+            - file: workshops/workshop_hpc_usage/workshop-hpc-l0.md
+            - file: workshops/workshop_hpc_usage/workshop-hpc-l1.md
+            - file: workshops/workshop_hpc_usage/workshop-hpc-l2.md
+            - file: workshops/workshop_hpc_usage/workshop-hpc-l3.md
+            - file: workshops/workshop_hpc_usage/workshop-hpc-l4.md
+            - file: workshops/workshop_hpc_usage/workshop-hpc-l5.md
+            - file: workshops/workshop_hpc_usage/workshop-hpc-summary.md
+            - file: workshops/workshop_hpc_usage/appendix.md
     - title: User Guide
       children:
         - title: HPC User Guide
